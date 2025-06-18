@@ -6,28 +6,46 @@
 
 ### Software
 
-- [ ] Tensorboard
-- [ ] PyTorch hooks
-- [ ] nn.Module `children` method
+- [x] Tensorboard
+- [x] PyTorch hooks
+- [x] nn.Module `children` method
 - [ ] Tests (what type of tests)
 
 ### DevOps
-- [ ] pyproject.toml
+- [x] pyproject.toml
 - [ ] publishing at anaconda
 - [ ] CI/CDing
 - [ ] Autodocumentation
 
 ## Architecture
 
-- [ ] 'Ends communication channels (injections/calls/intermediate objects)
-- [ ] Class hierarchies
+- [x] 'Ends communication channels (injections/calls/intermediate objects)
+- [-] Class hierarchies
 
-## Backend (metadata collection)
+## Backend (metadata collection - gatherers)
 
-## Middleend (metadata parsing)
+- [x] Backward callback
+- [x] Feedforward callback
+- [ ] Attention (forward) callback
+- [ ] Recursive (forward) callback
 
-## In-place Back-Middleend
+## Middleend (metadata parsing - preprocessors)
+
+- [ ] loss observers
+- [ ] neuron activation and death
+- [ ] gradient norms
+- [ ] gradient oscilations
+- [ ] utility running statistical info
 
 ## Frontend (metadata visualisation)
 
+- [ ] Infrasstructure
+- [ ] Matplotib (static)
+- [ ] Matplotib (dynamic)
+- [ ] Tensorboard
+
+
 ## Documentation
+
+- [ ] Docstrings
+- [ ] autodocumnetation
