@@ -1,0 +1,13 @@
+{
+  "include": ["monitorch"],
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "reportUnusedImport": false,
+  "reportUnusedClass": true,
+  "reportUnusedFunction": true,
+  "reportUnboundVariable": true,
+  "pythonVersion": "3.10",
+  "venvPath": ".",
+  "venv": ".venv"
+}
+
