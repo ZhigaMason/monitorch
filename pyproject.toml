@@ -3,14 +3,18 @@ name = "monitorch"
 version = "0.1.0"
 description = "A plug-and-use python library to monitor learning of PyTorch neural networks"
 readme = "README.md"
-license = { file = "LICENSE" }
 authors = [
   { name = "Maksym Khavil", email = "mk.khavil@gmail.com" }
 ]
-keywords = ["pytorch", "visualization", "neural networks", "gradients"]
+keywords = [
+        "pytorch",
+        "visualization",
+        "neural networks",
+        "gradients"
+]
+license = "BSD-3-Clause"
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent"
 ]
 requires-python = ">=3.10"
@@ -28,3 +32,6 @@ dependencies = [
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["monitorch"]
