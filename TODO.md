@@ -22,6 +22,10 @@
 - [x] 'Ends communication channels (injections/calls/intermediate objects)
 - [-] Class hierarchies
 
+## Optimizer (?)
+
+- [ ] Optimizer specific gradient shenenigans (i.e. aggregated velocity, acceleration vectors, nesterov action smth)
+
 ## Backend (metadata collection - gatherers)
 
 - [x] Backward callback
@@ -31,11 +35,20 @@
 
 ## Middleend (metadata parsing - preprocessors)
 
-- [ ] loss observers
 - [ ] neuron activation and death
+    - [ ] running mean & variance
+        - min, max
+    - [ ] all data accumulated
+        - median, IQR
 - [ ] gradient norms
+    - [ ] running mean & variance
+        - min, max
+    - [ ] all data accumulated
+        - median, IQR
 - [ ] gradient oscilations
+    - [ ] how exactly
 - [ ] utility running statistical info
+- [ ] loss observers
 
 ## Frontend (metadata visualisation)
 
