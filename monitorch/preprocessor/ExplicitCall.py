@@ -15,15 +15,11 @@ class ExplicitCall(AbstractPreprocessor):
 
     def push_remember(self, name : str, value) -> None:
         """ pushes value into list """
-        if name not in self.state:
-            self.state[name] = []
-        self.state[name].append(value)
+        self.state.setdefault(name, []).append(value)
 
     def push_mean_var(self, name : str, value : float) -> None:
         """ Updates running mean and variance in state """
-        if name not in self.state:
-            self.state[name] = RunningMeanVar()
-        self.state[name].update(value)
+        self.state.setdefault(name, RunningMeanVar()).update(value)
 
     def value(self) -> dict[str, Any]:
         """ Value is state accumulated in inspector calls """

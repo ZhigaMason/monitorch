@@ -17,7 +17,7 @@ class RunningMeanVar:
         delta1 = new_value - self.mean
         self.mean += delta1 / self.count
         delta2 = new_value - self.mean
-        self.var = ( delta1 * delta2 + self.var / (self.count - 1) ) / self.count
+        self.var = ( delta1 * delta2 + self.var * (self.count - 1) ) / self.count
 
     def __iter__(self):
         return (self.count, self.mean, self.var)
