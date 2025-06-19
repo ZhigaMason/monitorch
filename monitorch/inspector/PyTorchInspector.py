@@ -7,7 +7,7 @@ from torch.nn import Module as Module
 from typing_extensions import Self
 from monitorch.lens import AbstractLens
 from monitorch.gatherer import FeedForwardGatherer, BackwardGatherer
-from monitorch.preprocessor import AbstractForwardPreprocessor, AbstractBackwardPreprocessor
+from monitorch.preprocessor import AbstractForwardPreprocessor, AbstractBackwardPreprocessor, ExplicitCall
 from monitorch.vizualizer import _vizualizer_dict
 
 class PyTorchInspector:
@@ -18,6 +18,7 @@ class PyTorchInspector:
         self._vizualizer = _vizualizer_dict[vizualization]
 
         self._fw_preprocessors, self._bw_preprocessors = self._define_preprocessors()
+        self._call_preprocessor = ExplicitCall()
 
         self._fw_handles = {}
         self._bw_handles = {}
@@ -59,6 +60,13 @@ class PyTorchInspector:
             preprocessor.reset()
         for preprocessor in self._bw_preprocessors:
             preprocessor.reset()
+
+    def push_loss(self, value, *, train : bool, loss_type : str = 'val') -> None:
+        name = ('train' if train else loss_type) + '_loss'
+        self._call_preprocessor.push_mean_var(name, float(value))
+
+    def push_named_value(self, name : str, value) -> None:
+        self._call_preprocessor.push_remember(name, value)
 
     def _define_preprocessors(self) -> tuple[list[AbstractForwardPreprocessor], list[AbstractBackwardPreprocessor]]:
         fw_classes = set()
