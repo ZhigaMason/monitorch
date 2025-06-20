@@ -14,19 +14,20 @@ class GradientRunningGeometry(AbstractBackwardPreprocessor):
         self._adj_prod = adj_prod
         self._value = {} # Either name : norm or name : (norm, prod)
         if adj_prod:
-            self._prev_grad = 0.0
-            self._prev_norm = 1.0
+            self._prev_grad = {}
+            self._prev_norm = {}
 
     @no_grad
-    def process(self, name : str, _, grad_output) -> None:
+    def process(self, name : str, module, grad_input, grad_output) -> None:
+        grad = module.weights.grad
         if self._adj_prod:
-            new_norm = vector_norm(grad_output)
+            new_norm = vector_norm(grad)
 
             # Computes dot product of normalised current and previous gradients
-            new_prod = (grad_output * self._prev_grad).sum() / (new_norm * self._prev_norm)
+            new_prod = (grad * self._prev_grad.get(name, 0.0)).sum() / (new_norm * self._prev_norm.get(name, 1.0))
 
-            self._prev_grad = grad_output
-            self._prev_norm = new_norm
+            self._prev_grad[name] = grad
+            self._prev_norm[name] = new_norm
 
             norm, prod = self._value.setdefault(name, (RunningMeanVar(), RunningMeanVar()))
             norm.update(new_norm)
@@ -34,7 +35,7 @@ class GradientRunningGeometry(AbstractBackwardPreprocessor):
 
         else:
             norm = self._value.setdefault(name, RunningMeanVar())
-            norm.update(vector_norm(grad_output))
+            norm.update(vector_norm(grad))
 
     def value(self) -> dict[str, Any]:
         """ Value computed by Abstract Preprocessor for all layers, that it is processing, identified by name"""

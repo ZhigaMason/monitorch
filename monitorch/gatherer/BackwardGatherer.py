@@ -21,4 +21,4 @@ class BackwardGatherer:
     def __call__(self, module, args, layer_output) -> None:
         layer_input = args[0]
         for preprocessor in self._preprocessors:
-            preprocessor.process(self._name, layer_input, layer_output)
+            preprocessor.process(self._name, module, layer_input, layer_output)
