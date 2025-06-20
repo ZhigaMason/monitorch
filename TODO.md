@@ -40,19 +40,22 @@
         - min, max
     - [ ] all data accumulated
         - median, IQR
-- [ ] gradient norms
-    - [ ] running mean & variance
+- [x] gradient norms
+    - [x] running mean & variance
         - min, max
     - [ ] all data accumulated
         - median, IQR
-- [ ] gradient oscilations
-    - [ ] how exactly
-- [ ] utility running statistical info
-- [ ] loss observers
+- [x] utility running statistical info
+- [x] loss observers
 
 ## Frontend (metadata visualisation)
 
-- [ ] Infrasstructure
+- [ ] generic vizualizer methods
+    - [ ] statistics
+        - mean, min, max, median
+        - variance, iqr
+    - [ ] fractions/probability
+
 - [ ] Matplotib (static)
 - [ ] Matplotib (dynamic)
 - [ ] Tensorboard
