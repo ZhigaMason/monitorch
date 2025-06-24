@@ -4,5 +4,12 @@ from .AbstractForwardPreprocessor import AbstractForwardPreprocessor
 from .AbstractPreprocessor import AbstractPreprocessor
 
 from .ExplicitCall import ExplicitCall
+
 from .WeightGradientRunningGeometry import WeightGradientRunningGeometry
 from .WeightGradientGeometryMemory import WeightGradientGeometryMemory
+
+from .BiasGradientRunningGeometry import BiasGradientRunningGeometry
+from .BiasGradientGeometryMemory import BiasGradientGeometryMemory
+
+from .OutputGradientRunningGeometry import OutputGradientRunningGeometry
+from .OutputGradientGeometryMemory import OutputGradientGeometryMemory
