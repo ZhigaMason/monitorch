@@ -16,3 +16,6 @@ from .OutputGradientGeometryMemory import OutputGradientGeometryMemory
 
 from .OutputActivationMemory import OutputActivationMemory
 from .OutputRunningActivation import OutputRunningActivation
+
+from .OutputNormMemory import OutputNormMemory
+from .OutputRunningNorm import OutputRunningNorm
