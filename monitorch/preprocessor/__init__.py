@@ -13,3 +13,6 @@ from .BiasGradientGeometryMemory import BiasGradientGeometryMemory
 
 from .OutputGradientRunningGeometry import OutputGradientRunningGeometry
 from .OutputGradientGeometryMemory import OutputGradientGeometryMemory
+
+from .OutputActivationMemory import OutputActivationMemory
+from .OutputRunningActivation import OutputRunningActivation

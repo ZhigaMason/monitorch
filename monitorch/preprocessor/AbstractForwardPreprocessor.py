@@ -11,3 +11,4 @@ class AbstractForwardPreprocessor(AbstractPreprocessor):
     @abstractmethod
     def process(self, name : str, module, layer_input, layer_output):
         """ Process raw inputs and outputs into meaningful informaion """
+        pass
