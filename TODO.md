@@ -35,22 +35,26 @@
 
 ## Middleend (metadata parsing - preprocessors)
 
-- [ ] neuron activation and death
-    - [ ] running mean & variance
-        - min, max
-    - [ ] all data accumulated
-        - median, IQR
-- [x] gradient norms
-    - [ ] weights vs bias vs outputs (vs inputs? [they are not used in backprop essentially])
+- [ ] fix naming convention for running/memory (inplace/inmemory)
+- [x] neuron activation and death
     - [x] running mean & variance
-        - [ ] min, max
-    - [ ] all data accumulated
+        - min, max
+    - [x] all data accumulated
+        - median, IQR
+- [x] output norms
+    - [x] inplace
+    - [x] inmemory
+- [x] gradient norms
+    - [x] weights vs bias vs outputs (vs inputs? [they are not used in backprop essentially])
+    - [x] running mean & variance
+        - [x] min, max
+    - [x] all data accumulated
         - median, IQR
     - [ ] gradient death & activation
-- [ ] output gradient preprocessors
 - [x] utility running statistical info
 - [x] loss observers
 - [ ] net-aggregation preprocessors
+    - I think it makes more sense to inject such functionality into lenses, as they have an overview over all layers
 
 ## Frontend (metadata visualisation)
 
