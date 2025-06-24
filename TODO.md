@@ -71,8 +71,8 @@
 
 - [ ] Matplotib (static)
 - [ ] Matplotib (dynamic? [it is not designed for that])
-- [ ] Tensorboard
-    - [ ] How to plot ranges
+- [x] Tensorboard
+    - [-] How to plot ranges - additional line plots
 
 
 ## Documentation
