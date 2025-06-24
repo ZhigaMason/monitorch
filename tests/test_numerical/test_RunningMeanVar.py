@@ -28,4 +28,6 @@ def test_running_mean_variance(values, eps=1e-7):
         assert abs(np_mean - rmv.mean) < eps
         np_var  = np.var(values[:(idx + 1)])
         assert abs(np_var - rmv.var) < eps
+        assert rmv.min_ == np.min(values[:(idx + 1)])
+        assert rmv.max_ == np.max(values[:(idx + 1)])
 
