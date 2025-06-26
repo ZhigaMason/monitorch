@@ -38,6 +38,7 @@ class OutputGradientGeometryMemory(AbstractBackwardPreprocessor):
         else:
             l.append(new_norm)
 
+    @property
     def value(self) -> dict[str, Any]:
         return self._value
 

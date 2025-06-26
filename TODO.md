@@ -35,7 +35,7 @@
 
 ## Middleend (metadata parsing - preprocessors)
 
-- [ ] fix naming convention for running/memory (inplace/inmemory)
+- [x] fix naming convention for running/memory (inplace/inmemory)
 - [x] neuron activation and death
     - [x] running mean & variance
         - min, max
@@ -45,6 +45,7 @@
     - [x] inplace
     - [x] inmemory
 - [x] gradient norms
+    - [ ] fix: rewrite backward pass for bias and weight gradients, they need post\_accumulate\_hook on parameters, not backward hook on module
     - [x] weights vs bias vs outputs (vs inputs? [they are not used in backprop essentially])
     - [x] running mean & variance
         - [x] min, max

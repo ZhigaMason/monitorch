@@ -20,7 +20,7 @@ classifiers = [
 requires-python = ">=3.10"
 
 dependencies = [
-  "torch>=1.10.0",
+  "torch>=2.0.0",
   "matplotlib",
   "tensorboard"
 ]

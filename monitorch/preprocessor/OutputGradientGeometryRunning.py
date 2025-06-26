@@ -39,6 +39,7 @@ class OutputGradientGeometryRunning(AbstractBackwardPreprocessor):
             norm = self._value.setdefault(name, RunningMeanVar())
             norm.update( (new_norm / sqrt(grad.numel())) if self._normalize else new_norm)
 
+    @property
     def value(self) -> dict[str, Any]:
         return self._value
 

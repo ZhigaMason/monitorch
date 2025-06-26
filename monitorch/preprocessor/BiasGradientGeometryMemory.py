@@ -17,7 +17,6 @@ class BiasGradientGeometryMemory(AbstractBackwardPreprocessor):
         if adj_prod:
             self._prev_grad = {}
 
-    @no_grad
     def process(self, name : str, module, grad_input, grad_output) -> None:
         l = self._value.setdefault(name, [])
         grad = module.bias.grad
@@ -38,6 +37,7 @@ class BiasGradientGeometryMemory(AbstractBackwardPreprocessor):
         else:
             l.append(new_norm)
 
+    @property
     def value(self) -> dict[str, Any]:
         return self._value
 

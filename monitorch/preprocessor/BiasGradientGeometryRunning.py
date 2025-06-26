@@ -19,7 +19,6 @@ class BiasGradientGeometryRunning(AbstractBackwardPreprocessor):
             self._prev_grad = {}
             self._prev_norm = {}
 
-    @no_grad
     def process(self, name : str, module, grad_input, grad_output) -> None:
         grad = module.bias.grad
         new_norm = vector_norm(grad)
@@ -39,6 +38,7 @@ class BiasGradientGeometryRunning(AbstractBackwardPreprocessor):
             norm = self._value.setdefault(name, RunningMeanVar())
             norm.update( (new_norm / sqrt(grad.numel())) if self._normalize else new_norm)
 
+    @property
     def value(self) -> dict[str, Any]:
         return self._value
 
