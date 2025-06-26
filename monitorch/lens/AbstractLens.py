@@ -15,7 +15,7 @@ class AbstractLens(ABC):
         pass
 
     @abstractmethod
-    def register_preprocessors(self, preprocessors : list[AbstractPreprocessor]):
+    def register_preprocessors(self, preprocessors : dict[Type[AbstractPreprocessor], AbstractPreprocessor]):
         pass
 
     @abstractmethod

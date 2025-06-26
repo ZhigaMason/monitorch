@@ -56,6 +56,7 @@ class PyTorchInspector:
         """ Draws information obtained during the epoch and resets internal state """
         for lens in self._lenses:
             lens.vizualize(self._vizualizer)
+
         for preprocessor in self._fw_preprocessors:
             preprocessor.reset()
         for preprocessor in self._bw_preprocessors:
@@ -81,7 +82,7 @@ class PyTorchInspector:
 
         for lens in self._lenses:
             lens.register_preprocessors(
-                [ preprocessors[cls] for cls in (lens.requires_forward() | lens.requires_backward())]
+                { cls : preprocessors[cls] for cls in (lens.requires_forward() | lens.requires_backward())}
             )
 
         fw_preprocessors = [ prp for prp in preprocessors.values() if isinstance(prp, AbstractForwardPreprocessor)]
