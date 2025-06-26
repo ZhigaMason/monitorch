@@ -1,4 +1,4 @@
-from torch import no_grad, ones_like, minimum
+from torch import no_grad, ones_like, bool as bool_
 from typing import Any
 from .AbstractForwardPreprocessor import AbstractForwardPreprocessor
 from ._module_classes import isactivation, threshold_for_module
@@ -16,7 +16,7 @@ class OutputActivationMemory(AbstractForwardPreprocessor):
     def process(self, name : str, module, layer_input, layer_output) -> None:
         if name not in self._value:
             if self._death:
-                self._value[name] = ([], ones_like(layer_output))
+                self._value[name] = ([], ones_like(layer_output, dtype=bool_))
             else:
                 self._value[name] = []
             self._thresholds[name] = threshold_for_module(module)
@@ -29,7 +29,7 @@ class OutputActivationMemory(AbstractForwardPreprocessor):
         if self._death:
             activation, death_tensor = self._value[name]
             activation.append(new_activation_rate)
-            death_tensor = minimum(death_tensor, (~new_activation_tensor).float())
+            death_tensor &= ~new_activation_tensor
         else:
             self._value[name].append(new_activation_rate)
 
@@ -45,4 +45,3 @@ class OutputActivationMemory(AbstractForwardPreprocessor):
 
     def is_preprocessing(self, module) -> bool:
         return isactivation(module)
-

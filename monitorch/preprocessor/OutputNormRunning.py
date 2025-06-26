@@ -8,7 +8,7 @@ from .AbstractForwardPreprocessor import AbstractForwardPreprocessor
 from ._module_classes import isactivation
 from monitorch.numerical import RunningMeanVar
 
-class OutputRunningNorm(AbstractForwardPreprocessor):
+class OutputNormRunning(AbstractForwardPreprocessor):
 
     def __init__(self, normalize : bool):
         self._normalize = normalize

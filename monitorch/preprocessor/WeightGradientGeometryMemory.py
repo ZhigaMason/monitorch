@@ -20,7 +20,7 @@ class WeightGradientGeometryMemory(AbstractBackwardPreprocessor):
     @no_grad
     def process(self, name : str, module, grad_input, grad_output) -> None:
         l = self._value.setdefault(name, [])
-        grad = module.weights.grad
+        grad = module.weight.grad
         new_norm = vector_norm(grad)
         if self._normalize:
             new_norm /= sqrt(grad.numel())

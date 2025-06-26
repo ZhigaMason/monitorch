@@ -9,7 +9,7 @@ from .AbstractBackwardPreprocessor import AbstractBackwardPreprocessor
 from monitorch.numerical import RunningMeanVar
 from ._module_classes import islinear
 
-class BiasGradientRunningGeometry(AbstractBackwardPreprocessor):
+class BiasGradientGeometryRunning(AbstractBackwardPreprocessor):
 
     def __init__(self, adj_prod : bool, normalize : bool):
         self._adj_prod = adj_prod

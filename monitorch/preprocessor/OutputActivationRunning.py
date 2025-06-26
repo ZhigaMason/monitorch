@@ -1,13 +1,13 @@
 
 from monitorch.numerical import RunningMeanVar
 
-from torch import no_grad, ones_like, minimum
+from torch import no_grad, ones_like, bool as bool_
 from typing import Any
 from .AbstractForwardPreprocessor import AbstractForwardPreprocessor
 from ._module_classes import isactivation, threshold_for_module
 
 
-class OutputRunningActivation(AbstractForwardPreprocessor):
+class OutputActivationRunning(AbstractForwardPreprocessor):
 
     def __init__(self, death : bool, eps : float = 1e-7):
         self._death = death
@@ -19,7 +19,7 @@ class OutputRunningActivation(AbstractForwardPreprocessor):
     def process(self, name : str, module, layer_input, layer_output) -> None:
         if name not in self._value:
             if self._death:
-                self._value[name] = (RunningMeanVar(), ones_like(layer_output))
+                self._value[name] = (RunningMeanVar(), ones_like(layer_output, dtype=bool_))
             else:
                 self._value[name] = RunningMeanVar()
             self._thresholds[name] = threshold_for_module(module)
@@ -32,7 +32,7 @@ class OutputRunningActivation(AbstractForwardPreprocessor):
         if self._death:
             activation, death_tensor = self._value[name]
             activation.update(new_activation_rate)
-            death_tensor = minimum(death_tensor, (~new_activation_tensor).float())
+            death_tensor &= ~new_activation_tensor
         else:
             self._value[name].update(new_activation_rate)
 

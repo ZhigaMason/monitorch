@@ -9,7 +9,7 @@ from .AbstractBackwardPreprocessor import AbstractBackwardPreprocessor
 from monitorch.numerical import RunningMeanVar
 from ._module_classes import islinear
 
-class OutputGradientRunningGeometry(AbstractBackwardPreprocessor):
+class WeightGradientGeometryRunning(AbstractBackwardPreprocessor):
 
     def __init__(self, adj_prod : bool, normalize : bool):
         self._adj_prod = adj_prod
@@ -21,7 +21,7 @@ class OutputGradientRunningGeometry(AbstractBackwardPreprocessor):
 
     @no_grad
     def process(self, name : str, module, grad_input, grad_output) -> None:
-        grad = grad_output
+        grad = module.weight.grad
         new_norm = vector_norm(grad)
         if self._adj_prod:
 

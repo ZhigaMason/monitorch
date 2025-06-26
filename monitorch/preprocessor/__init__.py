@@ -5,17 +5,17 @@ from .AbstractPreprocessor import AbstractPreprocessor
 
 from .ExplicitCall import ExplicitCall
 
-from .WeightGradientRunningGeometry import WeightGradientRunningGeometry
+from .WeightGradientGeometryRunning import WeightGradientGeometryRunning
 from .WeightGradientGeometryMemory import WeightGradientGeometryMemory
 
-from .BiasGradientRunningGeometry import BiasGradientRunningGeometry
+from .BiasGradientGeometryRunning import BiasGradientGeometryRunning
 from .BiasGradientGeometryMemory import BiasGradientGeometryMemory
 
-from .OutputGradientRunningGeometry import OutputGradientRunningGeometry
+from .OutputGradientGeometryRunning import OutputGradientGeometryRunning
 from .OutputGradientGeometryMemory import OutputGradientGeometryMemory
 
+from .OutputActivationRunning import OutputActivationRunning
 from .OutputActivationMemory import OutputActivationMemory
-from .OutputRunningActivation import OutputRunningActivation
 
+from .OutputNormRunning import OutputNormRunning
 from .OutputNormMemory import OutputNormMemory
-from .OutputRunningNorm import OutputRunningNorm
