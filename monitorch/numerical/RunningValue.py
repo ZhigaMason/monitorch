@@ -15,6 +15,7 @@ class RunningMeanVar:
 
     def update(self, new_value : float) -> None:
         """ Uses Welford's algorithm to update variance and trivial procedure to update mean """
+        new_value = float(new_value)
         self.count += 1
         delta1 = new_value - self.mean
         self.mean += delta1 / self.count
