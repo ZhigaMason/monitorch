@@ -5,10 +5,10 @@ from torch.linalg import vector_norm
 from torch import no_grad
 
 from ._module_classes import islinear
-from .AbstractBackwardPreprocessor import AbstractBackwardPreprocessor
+from .AbstractGradientPreprocessor import AbstractGradientPreprocessor
 
 
-class WeightGradientGeometryMemory(AbstractBackwardPreprocessor):
+class WeightGradientGeometryMemory(AbstractGradientPreprocessor):
 
     def __init__(self, adj_prod, normalize):
         self._adj_prod = adj_prod
@@ -17,9 +17,8 @@ class WeightGradientGeometryMemory(AbstractBackwardPreprocessor):
         if adj_prod:
             self._prev_grad = {}
 
-    def process(self, name : str, module, grad_input, grad_output) -> None:
+    def process_grad(self, name : str, grad) -> None:
         l = self._value.setdefault(name, [])
-        grad = module.weight.grad
         new_norm = vector_norm(grad)
         if self._normalize:
             new_norm /= sqrt(grad.numel())

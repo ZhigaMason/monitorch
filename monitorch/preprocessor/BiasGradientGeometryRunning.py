@@ -5,11 +5,11 @@ from torch import no_grad
 from torch.nn import Module
 from torch.linalg import vector_norm
 
-from .AbstractBackwardPreprocessor import AbstractBackwardPreprocessor
+from .AbstractGradientPreprocessor import AbstractGradientPreprocessor
 from monitorch.numerical import RunningMeanVar
 from ._module_classes import islinear
 
-class BiasGradientGeometryRunning(AbstractBackwardPreprocessor):
+class BiasGradientGeometryRunning(AbstractGradientPreprocessor):
 
     def __init__(self, adj_prod : bool, normalize : bool):
         self._adj_prod = adj_prod
@@ -19,8 +19,7 @@ class BiasGradientGeometryRunning(AbstractBackwardPreprocessor):
             self._prev_grad = {}
             self._prev_norm = {}
 
-    def process(self, name : str, module, grad_input, grad_output) -> None:
-        grad = module.bias.grad
+    def process(self, name : str, grad) -> None:
         new_norm = vector_norm(grad)
         if self._adj_prod:
 
