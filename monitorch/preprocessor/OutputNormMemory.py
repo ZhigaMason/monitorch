@@ -17,9 +17,9 @@ class OutputNormMemory(AbstractForwardPreprocessor):
     def process(self, name : str, module, layer_input, layer_output):
         norm = self._value.setdefault(name, [])
         if self._normalize:
-            norm.append(vector_norm(layer_output) / sqrt(layer_output.numel()))
+            norm.append(vector_norm(layer_output).item() / sqrt(layer_output.numel()))
         else:
-            norm.append(vector_norm(layer_output))
+            norm.append(vector_norm(layer_output).item())
 
     @property
     def value(self) -> dict[str, Any]:
