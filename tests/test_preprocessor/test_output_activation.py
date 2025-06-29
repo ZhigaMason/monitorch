@@ -32,16 +32,15 @@ class DumbModule(nn.Module):
         ]), 0.5384615384615384)
     ]
 )
-def test_output_single_activation(module, X, activation, eps=1e-7):
+def test_output_single_activation(module, X, activation):
     oam = OutputActivationMemory(death=False)
     oar = OutputActivationRunning(death=False)
-    ffg = FeedForwardGatherer([
+    ffg = FeedForwardGatherer(module, [
             oam, oar
     ], 'standalone_test' )
-    module.register_forward_hook(ffg)
     _ = module(X)
-    assert abs(activation - oam.value['standalone_test'][0]) < eps
-    assert abs(activation - oar.value['standalone_test'].mean) < eps
+    assert np.isclose(activation, oam.value['standalone_test'][0])
+    assert np.isclose(activation, oar.value['standalone_test'].mean)
 
 @pytest.mark.parametrize(
     ['module', 'activation_tensor_func', 'n_iter', 'seed'],
@@ -67,13 +66,12 @@ def test_output_single_activation(module, X, activation, eps=1e-7):
         (nn.Mish(),  lambda y: (y.abs() > 1e-7),           500, 42),
     ]
 )
-def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, seed, eps=1e-5):
+def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, seed):
     oam = OutputActivationMemory(death=True)
     oar = OutputActivationRunning(death=True)
-    ffg = FeedForwardGatherer([
+    ffg = FeedForwardGatherer(module, [
             oam, oar
     ], 'standalone_test' )
-    module.register_forward_hook(ffg)
 
     x = torch.rand(100, 100)
     activations = []
@@ -86,16 +84,13 @@ def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, s
         act_tensor = activation_tensor_func(y)
         activations.append(act_tensor.float().mean())
         death_tensor &= ~act_tensor
-        assert abs(oam.value['standalone_test'][0][-1] - activations[-1]) < eps
+        assert np.isclose(oam.value['standalone_test'][0][-1], activations[-1])
         assert (death_tensor ^ oam.value['standalone_test'][1]).float().mean() < 2/100
 
     assert (death_tensor ^ oar.value['standalone_test'][1]).float().mean() < 2/100
     rmv = oar.value['standalone_test'][0]
     mean = np.mean(activations)
-    assert abs(mean - rmv.mean) < eps
     var = np.var(activations)
-    assert abs(var - rmv.var) < eps
     min_ = np.min(activations)
-    assert abs(min_ - rmv.min_) < eps
     max_ = np.max(activations)
-    assert abs(max_ - rmv.max_) < eps
+    assert np.isclose([mean, var, min_, max_], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()
