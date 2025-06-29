@@ -8,7 +8,7 @@ class OutputActivationMemory(AbstractForwardPreprocessor):
 
     def __init__(self, death : bool, eps : float = 1e-7):
         self._death = death
-        self._value = {} # Either name : activation or name : (activation, death_tensor)
+        self._value = {} # Either name : list[activation] or name : (list[activation], list[death_rates])
         self._thresholds : dict[str, tuple[float, float]]= {}
         self._eps : float = eps
 
@@ -16,7 +16,7 @@ class OutputActivationMemory(AbstractForwardPreprocessor):
     def process(self, name : str, module, layer_input, layer_output) -> None:
         if name not in self._value:
             if self._death:
-                self._value[name] = ([], ones_like(layer_output, dtype=bool_))
+                self._value[name] = ([], [])
             else:
                 self._value[name] = []
             self._thresholds[name] = threshold_for_module(module)
@@ -24,14 +24,16 @@ class OutputActivationMemory(AbstractForwardPreprocessor):
         lo, up = self._thresholds[name]
 
         new_activation_tensor = ((layer_output - lo).abs() > self._eps) & ((layer_output - up).abs() > self._eps)
-        new_activation_rate = new_activation_tensor.float().mean()
+        if len(new_activation_tensor.shape) > 2:
+            new_activation_tensor = new_activation_tensor.flatten(2, -1).any(dim=-1)
+        new_activation_rate = new_activation_tensor.float().mean(dim=0).flatten()
 
         if self._death:
-            activation, death_tensor = self._value[name]
-            activation.append(new_activation_rate)
-            death_tensor &= ~new_activation_tensor
+            activations, death_rates = self._value[name]
+            activations.extend(new_activation_rate.tolist())
+            death_rates.append(new_activation_rate.eq(0).float().mean().item())
         else:
-            self._value[name].append(new_activation_rate)
+            self._value[name].extend(new_activation_rate.tolist())
 
 
     @property

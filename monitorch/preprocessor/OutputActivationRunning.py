@@ -19,7 +19,7 @@ class OutputActivationRunning(AbstractForwardPreprocessor):
     def process(self, name : str, module, layer_input, layer_output) -> None:
         if name not in self._value:
             if self._death:
-                self._value[name] = (RunningMeanVar(), ones_like(layer_output, dtype=bool_))
+                self._value[name] = (RunningMeanVar(), RunningMeanVar())
             else:
                 self._value[name] = RunningMeanVar()
             self._thresholds[name] = threshold_for_module(module)
@@ -27,14 +27,19 @@ class OutputActivationRunning(AbstractForwardPreprocessor):
         lo, up = self._thresholds[name]
 
         new_activation_tensor = ((layer_output - lo).abs() > self._eps) & ((layer_output - up).abs() > self._eps)
-        new_activation_rate = new_activation_tensor.float().mean()
+        if len(new_activation_tensor.shape) > 2:
+            new_activation_tensor = new_activation_tensor.flatten(2, -1).any(dim=-1)
+        new_activation_rate = new_activation_tensor.float().mean(dim=0).flatten()
 
         if self._death:
-            activation, death_tensor = self._value[name]
-            activation.update(new_activation_rate)
-            death_tensor &= ~new_activation_tensor
+            activations, death_rates = self._value[name]
+            death_rates.update(new_activation_rate.eq(0).float().mean())
+            for act in new_activation_rate:
+                activations.update(act.item())
         else:
-            self._value[name].update(new_activation_rate)
+            activations = self._value[name]
+            for act in new_activation_rate:
+                activations.update(act.item())
 
 
     @property

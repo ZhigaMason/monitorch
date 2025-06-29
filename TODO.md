@@ -30,13 +30,14 @@
 
 - [x] Backward callback
 - [x] Feedforward callback
-- [ ] Attention (forward) callback
-- [ ] Recursive (forward) callback
+- [ ] Attention (forward and backward) callback
+- [ ] Recursive (forward and backward) callback
 
 ## Middleend (metadata parsing - preprocessors)
 
 - [x] fix naming convention for running/memory (inplace/inmemory)
 - [x] neuron activation and death
+    - [x] spatial attention and channels
     - [x] running mean & variance
         - min, max
     - [x] all data accumulated
@@ -45,13 +46,13 @@
     - [x] inplace
     - [x] inmemory
 - [x] gradient norms
-    - [ ] fix: rewrite backward pass for bias and weight gradients, they need post\_accumulate\_hook on parameters, not backward hook on module
     - [x] weights vs bias vs outputs (vs inputs? [they are not used in backprop essentially])
     - [x] running mean & variance
         - [x] min, max
     - [x] all data accumulated
         - median, IQR
     - [ ] gradient death & activation
+        - [ ] abstract activation compututations into monitorch.numerical
 - [x] utility running statistical info
 - [x] loss observers
 - [ ] net-aggregation preprocessors
