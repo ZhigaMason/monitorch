@@ -9,13 +9,13 @@
 - [x] Tensorboard
 - [x] PyTorch hooks
 - [x] nn.Module `children` method
-- [ ] Tests (what type of tests)
+- [x] Tests (what type of tests)
 
 ### DevOps
 - [x] pyproject.toml
 - [ ] publishing at anaconda
 - [ ] CI/CDing
-- [ ] Autodocumentation
+- [x] Autodocumentation
 
 ## Architecture
 
@@ -30,14 +30,18 @@
 
 - [x] Backward callback
 - [x] Feedforward callback
-- [ ] Attention (forward and backward) callback
-- [ ] Recursive (forward and backward) callback
+- [ ] Attention callback
+    - [ ] Forward
+    - [ ] Backward
+- [ ] Recurent callback
+    - [ ] Forward
+    - [ ] Backward
 
 ## Middleend (metadata parsing - preprocessors)
 
 - [x] fix naming convention for running/memory (inplace/inmemory)
 - [x] neuron activation and death
-    - [x] spatial attention and channels
+    - [-] spatial attention ~~and channels~~
     - [x] running mean & variance
         - min, max
     - [x] all data accumulated
@@ -65,18 +69,17 @@
         - Tensorboard - use tag and dump all plots
         - Matplotlib  - group into one subfigure (with shared x if x is epoch)
 
-- [ ] generic vizualizer methods
-    - [ ] plots registration
-    - [ ] statistics & log statistics
+- generic vizualizer methods
+    - statistics & log statistics
         - mean, min, max, median
         - variance, iqr
-    - [ ] probability
-    - [ ] multivariate relations
+    - probability
+    - multivariate relations
         - stack graph
         - multiline graph
 
 - [ ] Matplotib (static)
-- [ ] Matplotib (dynamic? [it is not designed for that])
+- [x] ~~Matplotib (dynamic? [it is not designed for that])~~
 - [x] Tensorboard
     - [-] How to plot ranges - additional line plots
 
