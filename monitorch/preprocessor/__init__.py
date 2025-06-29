@@ -5,11 +5,8 @@ from .AbstractPreprocessor import AbstractPreprocessor
 
 from .ExplicitCall import ExplicitCall
 
-from .WeightGradientGeometryRunning import WeightGradientGeometryRunning
-from .WeightGradientGeometryMemory import WeightGradientGeometryMemory
-
-from .BiasGradientGeometryRunning import BiasGradientGeometryRunning
-from .BiasGradientGeometryMemory import BiasGradientGeometryMemory
+from .GradientGeometryRunning import GradientGeometryRunning
+from .GradientGeometryMemory import GradientGeometryMemory
 
 from .OutputGradientGeometryRunning import OutputGradientGeometryRunning
 from .OutputGradientGeometryMemory import OutputGradientGeometryMemory

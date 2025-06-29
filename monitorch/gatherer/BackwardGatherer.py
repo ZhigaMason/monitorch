@@ -11,12 +11,11 @@ class BackwardGatherer(AbstractGatherer):
     def __init__(self, module, preprocessors : list[AbstractBackwardPreprocessor], name : str):
         self._preprocessors = preprocessors
         self._name = name
-        self._handle = module.register_forward_hook(self)
+        self._handle = module.register_full_backward_hook(self)
 
     def detach(self) -> None:
         self._handle.remove()
 
-    def __call__(self, module, args, layer_output) -> None:
-        layer_input = args[0]
+    def __call__(self, module, grad_inp, grad_out) -> None:
         for preprocessor in self._preprocessors:
-            preprocessor.process(self._name, module, layer_input, layer_output)
+            preprocessor.process(self._name, module, grad_inp, grad_out)
