@@ -19,7 +19,7 @@ class BiasGradientGeometryRunning(AbstractGradientPreprocessor):
             self._prev_grad = {}
             self._prev_norm = {}
 
-    def process(self, name : str, grad) -> None:
+    def process_grad(self, name : str, grad) -> None:
         new_norm = vector_norm(grad)
         if self._adj_prod:
 

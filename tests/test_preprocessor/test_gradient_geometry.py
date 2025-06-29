@@ -13,7 +13,7 @@ from monitorch.preprocessor import (
         OutputGradientGeometryMemory, OutputGradientGeometryRunning,
 )
 
-from monitorch.gatherer import BackwardGatherer
+from monitorch.gatherer import WeightGradientGatherer, BiasGradientGatherer
 
 def replace_w_grad(tensor):
     def f(module, inp, out):
@@ -45,17 +45,21 @@ def replace_b_grad(tensor):
         (nn.Conv1d(1, 5, 2), (1, 16),     torch.rand(5, 1, 2),    torch.rand(5), True),
     ]
 )
-def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize, eps=1e-7):
+def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
     wggm = WeightGradientGeometryMemory(adj_prod=False, normalize=normalize)
     wggr = WeightGradientGeometryRunning(adj_prod=False, normalize=normalize)
     bggm = BiasGradientGeometryMemory(adj_prod=False, normalize=normalize)
     bggr = BiasGradientGeometryRunning(adj_prod=False, normalize=normalize)
-    bg = BackwardGatherer([
-        wggm, wggr, bggm, bggr
-    ], 'standalone_test')
-    module.register_full_backward_hook(replace_w_grad(deepcopy(grad_w)))
-    module.register_full_backward_hook(replace_b_grad(deepcopy(grad_b)))
-    module.register_full_backward_hook(bg)
+
+    module.register_full_backward_hook(replace_w_grad(grad_w))
+    module.register_full_backward_hook(replace_b_grad(grad_b))
+
+    wgg = WeightGradientGatherer(
+        module, [wggm, wggr], 'standalone_test'
+    )
+    bgg = BiasGradientGatherer(
+        module, [bggm, bggr], 'standalone_test'
+    )
 
     x = torch.ones(*inp_size)
     y = module(x)
@@ -67,28 +71,45 @@ def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize, e
         w_norm /= sqrt(grad_w.numel())
         b_norm /= sqrt(grad_b.numel())
 
-    assert abs(w_norm - wggm.value['standalone_test'][-1]) < eps
-    assert abs(w_norm - wggr.value['standalone_test'].mean) < eps
+    assert np.isclose(w_norm, wggm.value['standalone_test'][-1])
+    assert np.isclose(w_norm, wggr.value['standalone_test'].mean)
 
-    assert abs(b_norm - bggm.value['standalone_test'][-1]) < eps
-    assert abs(b_norm - bggr.value['standalone_test'].mean) < eps
+    assert np.isclose(b_norm, bggm.value['standalone_test'][-1])
+    assert np.isclose(b_norm, bggr.value['standalone_test'].mean)
 
 
 @pytest.mark.parametrize(
-    ['module', 'inp_size', 'normalize', 'n_iter'],
+    ['module', 'inp_size', 'normalize', 'n_iter', 'seed'],
     [
-        (nn.Linear(10, 5), (10,), False, 100)
+        (nn.Linear(10, 5),   (10,),       False, 100, 0),
+        (nn.Conv2d(1, 5, 2), (1, 16, 16), False, 100, 0),
+        (nn.Conv1d(1, 5, 2), (1, 16),     False, 100, 0),
+
+        (nn.Linear(10, 5),   (10,),       True,  100, 0),
+        (nn.Conv2d(1, 5, 2), (1, 16, 16), True,  100, 0),
+        (nn.Conv1d(1, 5, 2), (1, 16),     True,  100, 0),
+
+        (nn.Linear(10, 5),   (10,),       False, 100, 42),
+        (nn.Conv2d(1, 5, 2), (1, 16, 16), False, 100, 42),
+        (nn.Conv1d(1, 5, 2), (1, 16),     False, 100, 42),
+
+        (nn.Linear(10, 5),   (10,),       True,  100, 42),
+        (nn.Conv2d(1, 5, 2), (1, 16, 16), True,  100, 42),
+        (nn.Conv1d(1, 5, 2), (1, 16),     True,  100, 42),
     ]
 )
-def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, eps=1e-7):
+def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
     wggm = WeightGradientGeometryMemory(adj_prod=True, normalize=normalize)
     wggr = WeightGradientGeometryRunning(adj_prod=True, normalize=normalize)
     bggm = BiasGradientGeometryMemory(adj_prod=True, normalize=normalize)
     bggr = BiasGradientGeometryRunning(adj_prod=True, normalize=normalize)
-    bg = BackwardGatherer([
-        wggm, wggr, bggm, bggr
-    ], 'standalone_test')
-    module.register_full_backward_hook(bg)
+
+    wgg = WeightGradientGatherer(
+        module, [wggm, wggr], 'standalone_test'
+    )
+    bgg = BiasGradientGatherer(
+        module, [bggm, bggr], 'standalone_test'
+    )
 
     x = torch.zeros(*inp_size)
     prev_w_grad = 0.0
@@ -98,6 +119,7 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, eps=1e-7):
     b_norms = [1]
     b_products = []
 
+    torch.manual_seed(seed)
     for _ in range(n_iter):
         x.cauchy_()
         module(x).square().mean().backward()
@@ -110,19 +132,31 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, eps=1e-7):
             w_norm /= sqrt(module.weight.grad.numel())
             b_norm /= sqrt(module.bias.grad.numel())
 
-        assert abs(w_norm - wggm.value['standalone_test'][0][-1]) < eps
-        assert abs(b_norm - bggm.value['standalone_test'][0][-1]) < eps
+        assert np.isclose(w_norm, wggm.value['standalone_test'][-1][0])
+        assert np.isclose(b_norm, bggm.value['standalone_test'][-1][0])
 
-        assert abs(w_prod - wggm.value['standalone_test'][1][-1]) < eps
-        assert abs(b_prod - bggm.value['standalone_test'][1][-1]) < eps
+        assert np.isclose(w_prod, wggm.value['standalone_test'][-1][1])
+        assert np.isclose(b_prod, bggm.value['standalone_test'][-1][1])
 
         w_norms.append(w_norm)
         w_products.append(w_prod)
         b_norms.append(b_norm)
         b_products.append(b_prod)
+        prev_w_grad = module.weight.grad
+        prev_b_grad = module.bias.grad
 
     del w_norms[0]
     del b_norms[0]
 
-    assert abs(np.mean(w_norms) - wggr.value['standalone_test'][0].mean) < eps
+    rmv = wggr.value['standalone_test'][0]
+    assert np.isclose(
+        [np.mean(w_norms), np.var(w_norms), np.min(w_norms), np.max(w_norms)],
+        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
+    ).all()
+
+    rmv = bggr.value['standalone_test'][0]
+    assert np.isclose(
+        [np.mean(b_norms), np.var(b_norms), np.min(b_norms), np.max(b_norms)],
+        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
+    ).all()
 

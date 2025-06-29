@@ -19,17 +19,17 @@ class BiasGradientGeometryMemory(AbstractGradientPreprocessor):
 
     def process_grad(self, name : str, grad) -> None:
         l = self._value.setdefault(name, [])
-        new_norm = vector_norm(grad)
+        new_norm = vector_norm(grad).item()
         if self._normalize:
             new_norm /= sqrt(grad.numel())
 
         if self._adj_prod:
 
             # Computes dot product of normalised current and previous gradients
-            prev_norm = l[-1] if l else 1.0
+            prev_norm = l[-1][0] if l else 1.0
             if self._normalize:
                 prev_norm *= sqrt(grad.numel())
-            new_prod = (grad * self._prev_grad.get(name, 0.0)).sum() / (new_norm * prev_norm)
+            new_prod = ( grad * self._prev_grad.get(name, 0.0)).sum().item() / ( new_norm * prev_norm)
 
             self._prev_grad[name] = grad
             l.append( (new_norm, new_prod) )

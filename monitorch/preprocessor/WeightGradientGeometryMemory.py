@@ -13,7 +13,7 @@ class WeightGradientGeometryMemory(AbstractGradientPreprocessor):
     def __init__(self, adj_prod, normalize):
         self._adj_prod = adj_prod
         self._normalize = normalize
-        self._value = {} # Either name : norm or name : (norm, prod)
+        self._value = {} # Either name : list[norm] or name : list[(norm, prod)]
         if adj_prod:
             self._prev_grad = {}
 
@@ -26,7 +26,7 @@ class WeightGradientGeometryMemory(AbstractGradientPreprocessor):
         if self._adj_prod:
 
             # Computes dot product of normalised current and previous gradients
-            prev_norm = l[-1] if l else 1.0
+            prev_norm = l[-1][0] if l else 1.0
             if self._normalize:
                 prev_norm *= sqrt(grad.numel())
             new_prod = (grad * self._prev_grad.get(name, 0.0)).sum() / (new_norm * prev_norm)
