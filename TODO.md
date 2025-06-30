@@ -40,6 +40,7 @@
 ## Middleend (metadata parsing - preprocessors)
 
 - [x] fix naming convention for running/memory (inplace/inmemory)
+- [ ] restructure inplace/inmemory
 - [x] neuron activation and death
     - [-] spatial attention ~~and channels~~
     - [x] running mean & variance
@@ -55,10 +56,11 @@
         - [x] min, max
     - [x] all data accumulated
         - median, IQR
-    - [ ] gradient death & activation
+    - [x] gradient death & activation
         - [x] abstract activation compututations into monitorch.numerical
 - [x] utility running statistical info
 - [x] loss observers
+- [ ] learnable parameter norm
 - [ ] net-aggregation preprocessors
     - I think it makes more sense to inject such functionality into lenses, as they have an overview over all layers
 

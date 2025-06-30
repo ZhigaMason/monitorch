@@ -6,13 +6,16 @@ from .AbstractPreprocessor import AbstractPreprocessor
 from .ExplicitCall import ExplicitCall
 
 from .GradientGeometryRunning import GradientGeometryRunning
-from .GradientGeometryMemory import GradientGeometryMemory
+from .GradientGeometryMemory  import GradientGeometryMemory
+
+from .GradientActivationRunning import GradientActivationRunning
+from .GradientActivationMemory  import GradientActivationMemory
 
 from .OutputGradientGeometryRunning import OutputGradientGeometryRunning
-from .OutputGradientGeometryMemory import OutputGradientGeometryMemory
+from .OutputGradientGeometryMemory  import OutputGradientGeometryMemory
 
 from .OutputActivationRunning import OutputActivationRunning
-from .OutputActivationMemory import OutputActivationMemory
+from .OutputActivationMemory  import OutputActivationMemory
 
 from .OutputNormRunning import OutputNormRunning
-from .OutputNormMemory import OutputNormMemory
+from .OutputNormMemory  import OutputNormMemory
