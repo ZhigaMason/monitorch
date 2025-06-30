@@ -56,7 +56,7 @@
     - [x] all data accumulated
         - median, IQR
     - [ ] gradient death & activation
-        - [ ] abstract activation compututations into monitorch.numerical
+        - [x] abstract activation compututations into monitorch.numerical
 - [x] utility running statistical info
 - [x] loss observers
 - [ ] net-aggregation preprocessors

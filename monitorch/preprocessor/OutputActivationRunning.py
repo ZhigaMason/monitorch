@@ -1,5 +1,5 @@
 
-from monitorch.numerical import RunningMeanVar
+from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates
 
 from torch import no_grad, ones_like, bool as bool_
 from typing import Any
@@ -27,9 +27,7 @@ class OutputActivationRunning(AbstractForwardPreprocessor):
         lo, up = self._thresholds[name]
 
         new_activation_tensor = ((layer_output - lo).abs() > self._eps) & ((layer_output - up).abs() > self._eps)
-        if len(new_activation_tensor.shape) > 2:
-            new_activation_tensor = new_activation_tensor.flatten(2, -1).any(dim=-1)
-        new_activation_rate = new_activation_tensor.float().mean(dim=0).flatten()
+        new_activation_rate = reduce_activation_to_activation_rates(new_activation_tensor, batch=True)
 
         if self._death:
             activations, death_rates = self._value[name]
