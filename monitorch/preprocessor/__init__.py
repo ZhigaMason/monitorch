@@ -2,6 +2,7 @@
 from .AbstractBackwardPreprocessor import AbstractBackwardPreprocessor
 from .AbstractForwardPreprocessor import AbstractForwardPreprocessor
 from .AbstractPreprocessor import AbstractPreprocessor
+from .AbstractModulePreprocessor import AbstractModulePreprocessor
 
 from .ExplicitCall import ExplicitCall
 
@@ -19,3 +20,6 @@ from .OutputActivationMemory  import OutputActivationMemory
 
 from .OutputNormRunning import OutputNormRunning
 from .OutputNormMemory  import OutputNormMemory
+
+from .ParameterNormRunning import ParameterNormRunning
+from .ParameterNormMemory  import ParameterNormMemory

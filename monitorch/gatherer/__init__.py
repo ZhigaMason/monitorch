@@ -2,3 +2,4 @@ from .FeedForwardGatherer import FeedForwardGatherer
 from .BackwardGatherer import BackwardGatherer
 from .WeightGradientGatherer import WeightGradientGatherer
 from .BiasGradientGatherer import BiasGradientGatherer
+from .EpochModuleGatherer import EpochModuleGatherer

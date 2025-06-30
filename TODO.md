@@ -41,6 +41,7 @@
 
 - [x] fix naming convention for running/memory (inplace/inmemory)
 - [ ] restructure inplace/inmemory
+- [ ] resolve abstract backward/foreward hook name collision
 - [x] neuron activation and death
     - [-] spatial attention ~~and channels~~
     - [x] running mean & variance
@@ -60,9 +61,26 @@
         - [x] abstract activation compututations into monitorch.numerical
 - [x] utility running statistical info
 - [x] loss observers
-- [ ] learnable parameter norm
+- [x] learnable parameter norm
 - [ ] net-aggregation preprocessors
     - I think it makes more sense to inject such functionality into lenses, as they have an overview over all layers
+
+## Lens
+
+- inplace and inmemory variants
+
+- [ ] interaction with inspector
+    - [ ] hooking to modules
+    - [ ] interactions with vizualizer
+- [ ] net aggregation
+
+- [ ] Debug Lens
+- [ ] Gradient Geometry
+- [ ] Gradient Activation
+- [ ] Output Activation
+- [ ] Output Norm
+- [ ] Parameter norms
+- [ ] Loss/Metrics
 
 ## Frontend (metadata visualisation)
 
@@ -81,6 +99,9 @@
         - multiline graph
 
 - [ ] Matplotib (static)
+    - [ ] \(pre\)allocating figures and axis
+    - [ ] axis metainfo (logy, shadows)
+    - [ ] generic methods
 - [x] ~~Matplotib (dynamic? [it is not designed for that])~~
 - [x] Tensorboard
     - [-] How to plot ranges - additional line plots
