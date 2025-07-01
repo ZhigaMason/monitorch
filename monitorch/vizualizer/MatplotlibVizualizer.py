@@ -1,19 +1,39 @@
 from collections import OrderedDict as odict
-from .AbstractVizualizer import AbstractVizualizer
 from enum import Enum
+from itertools import chain
+
+from .AbstractVizualizer import AbstractVizualizer
 
 from matplotlib import  pyplot as plt
-from matplotlib.figure import Figure
+from matplotlib.figure import Figure, SubFigure
 
 class FigType(Enum):
     NUMERICAL = 0
-    PROBABILITY = 0
-    RELATIONS = 0
+    PROBABILITY = 1
+    RELATIONS = 2
+
+# this is such a mess
+# should be rewritten with separate ordered dictionaries for each plot method
+#
+# should add more degrees of separation most probably
+# current layout cannot deal with one lens providing data for distinct parameters (e.g. weight and bias)
+# it will collide in plot numerical
+#
+# concept of "main_tag" should be more clear.
+# is it 1 main_tag per lens or is it 1 main_tag per displayed statistics
+# second makes it easier to think allocate subfigures as they all will have width 1
+# allocating subplots will also be easier
+#
+# TODO: redefine vizualizer arch, this is garbage
+#
+# the whole thing should be rethought
+#
+# allocating subfigures and subplots is a@@
 
 class MatplotlibVizualizer(AbstractVizualizer):
 
     def __init__(self, **kwargs):
-        self._to_plot = {}
+        self._to_plot = odict()
         self._figure : Figure|None = None
         self._kwargs = kwargs
 
@@ -62,4 +82,28 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
     def _compose_figure(self) -> Figure:
         fig = plt.figure(**self._kwargs)
+        subfig_dict = self._allocate_subfigures(fig)
         return fig
+
+    def _allocate_subfigures(self, fig : Figure) -> dict[str, SubFigure]:
+        expected_sizes = self._compute_expected_sizes_dict()
+        return {}
+
+    def _compute_expected_sizes_dict(self) -> dict[str, tuple[int, int]]:
+        ret = {}
+        for main_tag, (fig_type, tag_dict) in self._to_plot.items():
+            h, w = 0, 0
+            match fig_type:
+                case FigType.NUMERICAL:
+                    val_tag_dict, range_tag_dict = tag_dict # super confusing: tag_dict is actually a 2-tuple
+
+                    subtages = set()
+                case FigType.PROBABILITY | FigType.RELATIONS:
+                    h = len(tag_dict)
+                    w = max(
+                        int(len(val) > 0) for val in tag_dict.values()
+                    )
+            ret[main_tag] = (h, w)
+
+        return ret
+
