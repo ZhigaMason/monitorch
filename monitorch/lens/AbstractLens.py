@@ -7,17 +7,9 @@ from monitorch.vizualizer import AbstractVizualizer
 class AbstractLens(ABC):
 
     @abstractmethod
-    def requires_forward(self) -> set[Type[AbstractForwardPreprocessor]]:
+    def register_module(self, module):
         pass
 
     @abstractmethod
-    def requires_backward(self) -> set[Type[AbstractBackwardPreprocessor]]:
-        pass
-
-    @abstractmethod
-    def register_preprocessors(self, preprocessors : dict[Type[AbstractPreprocessor], AbstractPreprocessor]):
-        pass
-
-    @abstractmethod
-    def vizualize(self, vizualizer : AbstractVizualizer):
+    def register_tags(self, vizualizer : AbstractVizualizer):
         pass

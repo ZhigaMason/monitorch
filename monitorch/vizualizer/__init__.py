@@ -1,4 +1,4 @@
-from .AbstractVizualizer import AbstractVizualizer
+from .AbstractVizualizer import AbstractVizualizer, TagAttributes
 from .PrintVizualizer import PrintVizualizer
 from .TensorBoardVizualizer import TensorBoardVizualizer
 

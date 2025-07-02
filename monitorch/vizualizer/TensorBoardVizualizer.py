@@ -1,11 +1,15 @@
 from collections import OrderedDict as odict
-from .AbstractVizualizer import AbstractVizualizer
+from .AbstractVizualizer import AbstractVizualizer, TagAttributes
 from torch.utils.tensorboard import SummaryWriter
 
 class TensorBoardVizualizer(AbstractVizualizer):
 
     def __init__(self, logdir, **kwargs):
         self.writer = SummaryWriter(logdir, **kwargs)
+
+    def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:
+        """ Tensorboard needs no registration. Is present for consitency. """
+        pass
 
     def plot_numerical_values(self, epoch : int, main_tag : str, values_dict : odict[str, dict[str, float]], ranges_dict : odict[str, dict[tuple[str, str], tuple[float, float]]] | None = None) -> None:
 
