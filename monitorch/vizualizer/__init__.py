@@ -1,5 +1,5 @@
 from typing import Type
-from .AbstractVizualizer import AbstractVizualizer, TagAttributes
+from .AbstractVizualizer import AbstractVizualizer, TagAttributes, TagType
 from .PrintVizualizer import PrintVizualizer
 from .TensorBoardVizualizer import TensorBoardVizualizer
 from .MatplotlibVizualizer import MatplotlibVizualizer

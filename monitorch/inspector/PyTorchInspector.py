@@ -22,10 +22,8 @@ class PyTorchInspector:
     ):
         """ Initializes all lenses and hooks to a module if one is given """
         self._lenses = lenses
-        self._call_preprocessor = ExplicitCall()
+        self._call_preprocessor = ExplicitCall(train_loss_str, non_train_loss_str)
 
-        self.train_loss_str = train_loss_str
-        self.non_train_loss_str = non_train_loss_str
         self.epoch_counter = 0
 
         if isinstance(vizualizer, str):
@@ -61,11 +59,7 @@ class PyTorchInspector:
             self._call_preprocessor.push_memory(name, value)
 
     def push_loss(self, value : float, *, train : bool, running : bool = True):
-        name = self.train_loss_str if train else self.non_train_loss_str
-        if running:
-            self._call_preprocessor.push_running(name, value)
-        else:
-            self._call_preprocessor.push_memory(name, value)
+        self._call_preprocessor.push_loss(value, train=train, running=running)
 
     def tick_epoch(self, epoch : int|None=None):
         if epoch is not None:

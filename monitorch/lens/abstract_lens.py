@@ -1,5 +1,5 @@
-from torch.nn import Module
 from abc import ABC, abstractmethod
+from torch.nn import Module
 from monitorch.preprocessor import AbstractPreprocessor
 from monitorch.vizualizer import AbstractVizualizer
 
