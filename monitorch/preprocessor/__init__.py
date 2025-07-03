@@ -1,25 +1,30 @@
 
-from .AbstractBackwardPreprocessor import AbstractBackwardPreprocessor
-from .AbstractForwardPreprocessor import AbstractForwardPreprocessor
-from .AbstractPreprocessor import AbstractPreprocessor
-from .AbstractModulePreprocessor import AbstractModulePreprocessor
-
 from .ExplicitCall import ExplicitCall
 
-from .GradientGeometryRunning import GradientGeometryRunning
-from .GradientGeometryMemory  import GradientGeometryMemory
+from .memory import (
+    GradientActivationMemory,
+    GradientGeometryMemory,
+    OutputActivationMemory,
+    OutputGradientGeometryMemory,
+    OutputNormMemory,
+    ParameterNormMemory
+)
 
-from .GradientActivationRunning import GradientActivationRunning
-from .GradientActivationMemory  import GradientActivationMemory
+from .running import (
+    GradientActivationRunning,
+    GradientGeometryRunning,
+    OutputActivationRunning,
+    OutputGradientGeometryRunning,
+    OutputNormRunning,
+    ParameterNormRunning
+)
 
-from .OutputGradientGeometryRunning import OutputGradientGeometryRunning
-from .OutputGradientGeometryMemory  import OutputGradientGeometryMemory
+from .abstract import (
+    AbstractBackwardPreprocessor,
+    AbstractForwardPreprocessor,
+    AbstractGradientPreprocessor,
+    AbstractModulePreprocessor,
+    AbstractPreprocessor
+)
 
-from .OutputActivationRunning import OutputActivationRunning
-from .OutputActivationMemory  import OutputActivationMemory
 
-from .OutputNormRunning import OutputNormRunning
-from .OutputNormMemory  import OutputNormMemory
-
-from .ParameterNormRunning import ParameterNormRunning
-from .ParameterNormMemory  import ParameterNormMemory

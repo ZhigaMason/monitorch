@@ -1,27 +1,24 @@
-
-from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates
-
-from torch import no_grad, ones_like, bool as bool_
+from torch import no_grad
 from typing import Any
-from .AbstractForwardPreprocessor import AbstractForwardPreprocessor
-from ._module_classes import isactivation, threshold_for_module
+from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
+from monitorch.numerical import reduce_activation_to_activation_rates, threshold_for_module
 
 
-class OutputActivationRunning(AbstractForwardPreprocessor):
+class OutputActivationMemory(AbstractForwardPreprocessor):
 
     def __init__(self, death : bool, eps : float = 1e-7):
         self._death = death
-        self._value = {} # Either name : activation or name : (activation, death_tensor)
+        self._value = {} # Either name : list[activation] or name : (list[activation], list[death_rates])
         self._thresholds : dict[str, tuple[float, float]]= {}
         self._eps : float = eps
 
     @no_grad
-    def process(self, name : str, module, layer_input, layer_output) -> None:
+    def process_fw(self, name : str, module, layer_input, layer_output) -> None:
         if name not in self._value:
             if self._death:
-                self._value[name] = (RunningMeanVar(), RunningMeanVar())
+                self._value[name] = ([], [])
             else:
-                self._value[name] = RunningMeanVar()
+                self._value[name] = []
             self._thresholds[name] = threshold_for_module(module)
 
         lo, up = self._thresholds[name]
@@ -31,13 +28,10 @@ class OutputActivationRunning(AbstractForwardPreprocessor):
 
         if self._death:
             activations, death_rates = self._value[name]
-            death_rates.update(new_activation_rate.eq(0).float().mean())
-            for act in new_activation_rate:
-                activations.update(act.item())
+            activations.extend(new_activation_rate.tolist())
+            death_rates.append(new_activation_rate.eq(0).float().mean().item())
         else:
-            activations = self._value[name]
-            for act in new_activation_rate:
-                activations.update(act.item())
+            self._value[name].extend(new_activation_rate.tolist())
 
 
     @property

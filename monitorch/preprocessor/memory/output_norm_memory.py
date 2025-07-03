@@ -4,8 +4,7 @@ from torch.linalg import vector_norm
 from math import sqrt
 
 from typing import Any
-from .AbstractForwardPreprocessor import AbstractForwardPreprocessor
-from ._module_classes import isactivation
+from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
 
 class OutputNormMemory(AbstractForwardPreprocessor):
 
@@ -14,7 +13,7 @@ class OutputNormMemory(AbstractForwardPreprocessor):
         self._value = {}
 
     @no_grad
-    def process(self, name : str, module, layer_input, layer_output):
+    def process_fw(self, name : str, module, layer_input, layer_output):
         norm = self._value.setdefault(name, [])
         if self._normalize:
             norm.append(vector_norm(layer_output).item() / sqrt(layer_output.numel()))

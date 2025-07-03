@@ -2,8 +2,7 @@ from typing import Any
 
 from torch import isclose, tensor
 
-from .AbstractGradientPreprocessor import AbstractGradientPreprocessor
-from ._module_classes import islinear
+from monitorch.preprocessor.abstract.abstract_gradient_preprocessor import AbstractGradientPreprocessor
 
 from monitorch.numerical import reduce_activation_to_activation_rates
 

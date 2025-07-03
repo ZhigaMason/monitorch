@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Type
-from monitorch.preprocessor import AbstractForwardPreprocessor, AbstractBackwardPreprocessor, AbstractPreprocessor
+from monitorch.preprocessor import ExplicitCall
 from monitorch.vizualizer import AbstractVizualizer
 
 
@@ -11,5 +10,13 @@ class AbstractLens(ABC):
         pass
 
     @abstractmethod
+    def register_explicit_call_ppr(self, ecppr : ExplicitCall):
+        pass
+
+    @abstractmethod
     def register_tags(self, vizualizer : AbstractVizualizer):
+        pass
+
+    @abstractmethod
+    def vizualize(self, vizualizer : AbstractVizualizer):
         pass

@@ -1,23 +1,25 @@
 
 from math import sqrt
+from copy import deepcopy
 from typing import Any
 from torch.linalg import vector_norm
-from copy import deepcopy
+from torch import no_grad
 
-from ._module_classes import islinear
-from .AbstractGradientPreprocessor import AbstractGradientPreprocessor
+from monitorch.preprocessor.abstract.abstract_backward_preprocessor import AbstractBackwardPreprocessor
 
 
-class GradientGeometryMemory(AbstractGradientPreprocessor):
+class OutputGradientGeometryMemory(AbstractBackwardPreprocessor):
 
     def __init__(self, adj_prod, normalize):
         self._adj_prod = adj_prod
         self._normalize = normalize
-        self._value = {} # Either name : list[norm] or name : list[(norm, prod)]
+        self._value = {} # Either name : norm or name : (norm, prod)
         if adj_prod:
             self._prev_grad = {}
 
-    def process_grad(self, name : str, grad) -> None:
+    @no_grad
+    def process_bw(self, name : str, module, grad_input, grad_output) -> None:
+        grad = grad_output[0]
         l = self._value.setdefault(name, [])
         new_norm = vector_norm(grad).item()
         if self._normalize:

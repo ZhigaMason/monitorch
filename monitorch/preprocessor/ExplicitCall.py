@@ -3,9 +3,8 @@
 """
 
 from typing import Any
-from torch.nn import Module
 
-from .AbstractPreprocessor import AbstractPreprocessor
+from monitorch.preprocessor.abstract.abstract_preprocessor import AbstractPreprocessor
 from monitorch.numerical import RunningMeanVar
 
 class ExplicitCall(AbstractPreprocessor):

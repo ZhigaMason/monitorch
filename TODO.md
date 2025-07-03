@@ -40,8 +40,8 @@
 ## Middleend (metadata parsing - preprocessors)
 
 - [x] fix naming convention for running/memory (inplace/inmemory)
-- [ ] restructure inplace/inmemory
-- [ ] resolve abstract backward/foreward hook name collision
+- [x] restructure inplace/inmemory
+- [x] resolve abstract backward/foreward hook name collision
 - [x] neuron activation and death
     - [-] spatial attention ~~and channels~~
     - [x] running mean & variance

@@ -6,11 +6,10 @@ from torch import no_grad
 from torch.nn import Module
 from torch.linalg import vector_norm
 
-from .AbstractGradientPreprocessor import AbstractGradientPreprocessor
+from monitorch.preprocessor.abstract.abstract_backward_preprocessor import AbstractBackwardPreprocessor
 from monitorch.numerical import RunningMeanVar
-from ._module_classes import islinear
 
-class GradientGeometryRunning(AbstractGradientPreprocessor):
+class OutputGradientGeometryRunning(AbstractBackwardPreprocessor):
 
     def __init__(self, adj_prod : bool, normalize : bool):
         self._adj_prod = adj_prod
@@ -20,10 +19,13 @@ class GradientGeometryRunning(AbstractGradientPreprocessor):
             self._prev_grad = {}
             self._prev_norm = {}
 
-    def process_grad(self, name : str, grad) -> None:
+    @no_grad
+    def process_bw(self, name : str, module, grad_input, grad_output) -> None:
+        grad = grad_output[0]
         new_norm = vector_norm(grad).item()
         if self._normalize:
             new_norm /= sqrt(grad.numel())
+
         if self._adj_prod:
             new_prod = (grad * self._prev_grad.get(name, 0.0)).sum().item() / (new_norm * self._prev_norm.get(name, 1.0))
             if self._normalize:

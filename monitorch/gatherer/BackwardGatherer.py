@@ -3,7 +3,7 @@
     Implements __call__
 """
 
-from monitorch.preprocessor.AbstractBackwardPreprocessor import AbstractBackwardPreprocessor
+from monitorch.preprocessor import AbstractBackwardPreprocessor
 from .AbstractGatherer import AbstractGatherer
 
 class BackwardGatherer(AbstractGatherer):
@@ -18,4 +18,4 @@ class BackwardGatherer(AbstractGatherer):
 
     def __call__(self, module, grad_inp, grad_out) -> None:
         for preprocessor in self._preprocessors:
-            preprocessor.process(self._name, module, grad_inp, grad_out)
+            preprocessor.process_bw(self._name, module, grad_inp, grad_out)

@@ -1,6 +1,6 @@
 
 from abc import abstractmethod
-from .AbstractPreprocessor import AbstractPreprocessor
+from .abstract_preprocessor import AbstractPreprocessor
 
 
 class AbstractModulePreprocessor(AbstractPreprocessor):

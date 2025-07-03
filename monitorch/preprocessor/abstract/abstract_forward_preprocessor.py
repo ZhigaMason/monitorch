@@ -3,12 +3,12 @@
 """
 
 from abc import abstractmethod
-from .AbstractPreprocessor import AbstractPreprocessor
+from .abstract_preprocessor import AbstractPreprocessor
 
 
 class AbstractForwardPreprocessor(AbstractPreprocessor):
 
     @abstractmethod
-    def process(self, name : str, module, layer_input, layer_output):
+    def process_fw(self, name : str, module, layer_input, layer_output):
         """ Process raw inputs and outputs into meaningful informaion """
         pass

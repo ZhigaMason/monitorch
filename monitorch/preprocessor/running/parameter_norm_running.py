@@ -2,8 +2,7 @@
 from typing import Any
 from math import sqrt
 from torch.linalg import vector_norm
-from .AbstractModulePreprocessor import AbstractModulePreprocessor
-from ._module_classes import islinear
+from monitorch.preprocessor.abstract.abstract_module_preprocessor import AbstractModulePreprocessor
 from monitorch.numerical import RunningMeanVar
 
 

@@ -3,7 +3,7 @@
     Implements __call__
 """
 
-from monitorch.preprocessor.AbstractForwardPreprocessor import AbstractForwardPreprocessor
+from monitorch.preprocessor import AbstractForwardPreprocessor
 from .AbstractGatherer import AbstractGatherer
 
 class FeedForwardGatherer(AbstractGatherer):
@@ -19,4 +19,4 @@ class FeedForwardGatherer(AbstractGatherer):
     def __call__(self, module, args, layer_output) -> None:
         layer_input = args[0]
         for preprocessor in self._preprocessors:
-            preprocessor.process(self._name, module, layer_input, layer_output)
+            preprocessor.process_fw(self._name, module, layer_input, layer_output)
