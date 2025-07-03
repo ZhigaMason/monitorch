@@ -32,7 +32,8 @@ from monitorch.numerical import threshold_for_module
         (nn.Threshold(10, 5),),
     ]
 )
-def test_threshold_for_module(module, n_pts=1000, eps=0.075):
+def test_threshold_for_module(module, n_pts=1000, eps=0.075, seed=42):
+    torch.manual_seed(seed)
     x = torch.zeros(n_pts, dtype=torch.float).cauchy_().requires_grad_(True)
     y = module(x)
     y.sum().backward()
