@@ -45,7 +45,3 @@ class OutputGradientGeometryMemory(AbstractBackwardPreprocessor):
         self._value = {}
         if self._adj_prod:
             self._prev_grad = {}
-
-    def is_preprocessing(self, module) -> bool:
-        """ Determines whether given module is observed with the preprocessor """
-        return islinear(module)

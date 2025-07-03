@@ -28,6 +28,3 @@ class ParameterNormRunning(AbstractModulePreprocessor):
 
     def reset(self) -> None:
         self._value = {}
-
-    def is_preprocessing(self, module) -> bool:
-        return islinear(module)

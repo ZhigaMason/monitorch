@@ -43,6 +43,3 @@ class OutputActivationMemory(AbstractForwardPreprocessor):
     def reset(self) -> None:
         """ Resets preprocessor for further computation """
         self._value = {}
-
-    def is_preprocessing(self, module) -> bool:
-        return isactivation(module)

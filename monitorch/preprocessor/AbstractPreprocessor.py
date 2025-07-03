@@ -19,8 +19,3 @@ class AbstractPreprocessor(ABC):
     def reset(self) -> None:
         """ Resets preprocessor for further computation """
         pass
-
-    @abstractmethod
-    def is_preprocessing(self, module : Module) -> bool:
-        """ Determines whether given module is observed with the preprocessor """
-        pass

@@ -50,7 +50,3 @@ class GradientGeometryRunning(AbstractGradientPreprocessor):
         if self._adj_prod:
             self._prev_grad = {}
             self._prev_norm = {}
-
-    def is_preprocessing(self, module : Module) -> bool:
-        """ Determines whether given module is observed with the preprocessor """
-        return islinear(module)

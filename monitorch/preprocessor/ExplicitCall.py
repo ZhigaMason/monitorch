@@ -28,7 +28,3 @@ class ExplicitCall(AbstractPreprocessor):
     def reset(self) -> None:
         """ Resets preprocessor for further computation """
         self.state = {}
-
-    def is_preprocessing(self, _ : Module) -> bool:
-        """ Does not serve any module, but explicit function calls on inspector """
-        return False
