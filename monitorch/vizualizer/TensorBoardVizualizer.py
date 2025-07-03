@@ -4,7 +4,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 class TensorBoardVizualizer(AbstractVizualizer):
 
-    def __init__(self, logdir, **kwargs):
+    def __init__(self, logdir='runs', **kwargs):
         self.writer = SummaryWriter(logdir, **kwargs)
 
     def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:

@@ -3,6 +3,9 @@ from collections import OrderedDict as odict
 
 class PrintVizualizer(AbstractVizualizer):
 
+    def __init__(self):
+        pass
+
     def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:
         print(f"{main_tag}: {tag_attr}")
 
