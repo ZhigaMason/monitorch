@@ -1,95 +1,79 @@
 """
     An inspector for neural networks that implement PyTorch nn.Module
 """
-from dataclasses import dataclass
-
-from torch.nn import Module as Module
+from torch.nn import Module
 from typing_extensions import Self
+
 from monitorch.lens import AbstractLens
-from monitorch.gatherer import FeedForwardGatherer, BackwardGatherer
-from monitorch.preprocessor import AbstractForwardPreprocessor, AbstractBackwardPreprocessor, ExplicitCall
-from monitorch.vizualizer import _vizualizer_dict
+from monitorch.preprocessor import ExplicitCall
+from monitorch.vizualizer import _vizualizer_dict, AbstractVizualizer
 
 class PyTorchInspector:
 
-    def __init__(self, lenses : list[AbstractLens], *, vizualization = 'matplotlib', module = None, level = -1):
+    def __init__(
+            self,
+            lenses : list[AbstractLens], *,
+            vizualizer : str|AbstractVizualizer = 'matplotlib',
+            module : None|Module = None,
+            depth : int = -1,
+            module_name_prefix : str = '.',
+            train_loss_str = 'train',
+            non_train_loss_str = 'val'
+    ):
         """ Initializes all lenses and hooks to a module if one is given """
         self._lenses = lenses
-        self._vizualizer = _vizualizer_dict[vizualization]
-
-        self._fw_preprocessors, self._bw_preprocessors = self._define_preprocessors()
         self._call_preprocessor = ExplicitCall()
 
-        self._fw_handles = {}
-        self._bw_handles = {}
+        self.train_loss_str = train_loss_str
+        self.non_train_loss_str = non_train_loss_str
+        self.epoch_counter = 0
 
-        if module:
-            self.attach(module, level)
+        if isinstance(vizualizer, str):
+            if vizualizer not in _vizualizer_dict:
+                raise AttributeError(f"Unknown vizualizer, string defined vizualizer must be one of {list(_vizualizer_dict.keys())} ")
+            self.vizualizer = _vizualizer_dict[vizualizer]()
+        else:
+            self.vizualizer : AbstractVizualizer = vizualizer
 
-    def attach(self, module, level = -1) -> Self:
-        """ Hooks inspector to given module """
-        named_children = PyTorchInspector._module_leaves(module, level)
+        if module is not None:
+            self.attach(module, depth, module_name_prefix)
 
-        for child, name in named_children:
-            fw = [ prp for prp in self._fw_preprocessors if prp.is_preprocessing(child) ]
-            bw = [ prp for prp in self._bw_preprocessors if prp.is_preprocessing(child) ]
-            fw_handle = child.register_forward_hook(
-                FeedForwardGatherer(fw, name)
-            )
-            bw_handle = child.register_full_backward_hook(
-                BackwardGatherer(bw, name)
-            )
-            self._fw_handles[name] = fw_handle
-            self._bw_handles[name] = bw_handle
+    def attach(self, module : Module, depth : int, module_name_prefix='.') -> Self:
+        module_names = PyTorchInspector._module_leaves(module, depth, module_name_prefix)
+        for module, name in module_names:
+            for lens in self._lenses:
+                lens.register_module(module, name)
 
+        for lens in self._lenses:
+            lens.register_foreign_preprocessor(self._call_preprocessor)
+            lens.introduce_tags(self.vizualizer)
         return self
 
     def detach(self) -> Self:
-        """ Detaches inspector from its module """
-        for handle in self._fw_handles:
-            handle.remove()
-        for handle in self._bw_handles:
-            handle.remove()
+        for lens in self._lenses:
+            lens.detach_from_module()
         return self
 
-    def tick_epoch(self) -> None:
-        """ Draws information obtained during the epoch and resets internal state """
+    def push_metric(self, name : str, value : float, *, running : bool=True):
+        if running:
+            self._call_preprocessor.push_running(name, value)
+        else:
+            self._call_preprocessor.push_memory(name, value)
+
+    def push_loss(self, value : float, *, train : bool, running : bool = True):
+        name = self.train_loss_str if train else self.non_train_loss_str
+        if running:
+            self._call_preprocessor.push_running(name, value)
+        else:
+            self._call_preprocessor.push_memory(name, value)
+
+    def tick_epoch(self, epoch : int|None=None):
+        if epoch is not None:
+            self.epoch_counter = epoch
         for lens in self._lenses:
-            lens.vizualize(self._vizualizer)
-
-        for preprocessor in self._fw_preprocessors:
-            preprocessor.reset()
-        for preprocessor in self._bw_preprocessors:
-            preprocessor.reset()
-
-    def push_loss(self, value, *, train : bool, loss_type : str = 'val') -> None:
-        name = ('train' if train else loss_type) + '_loss'
-        self._call_preprocessor.push_mean_var(name, float(value))
-
-    def push_named_value(self, name : str, value) -> None:
-        self._call_preprocessor.push_remember(name, value)
-
-    def _define_preprocessors(self) -> tuple[list[AbstractForwardPreprocessor], list[AbstractBackwardPreprocessor]]:
-        fw_classes = set()
-        bw_classes = set()
-        for lens in self._lenses:
-            fw_classes.update(lens.requires_forward())
-            bw_classes.update(lens.requires_backward())
-
-        preprocessors = {
-            cls : cls() for cls in (fw_classes | bw_classes)
-        }
-
-        for lens in self._lenses:
-            lens.register_preprocessors(
-                { cls : preprocessors[cls] for cls in (lens.requires_forward() | lens.requires_backward())}
-            )
-
-        fw_preprocessors = [ prp for prp in preprocessors.values() if isinstance(prp, AbstractForwardPreprocessor)]
-        bw_preprocessors = [ prp for prp in preprocessors.values() if isinstance(prp, AbstractBackwardPreprocessor)]
-
-        return (fw_preprocessors, bw_preprocessors)
-
+            lens.finalize_epoch()
+            lens.vizualize(self.vizualizer, self.epoch_counter)
+        self.epoch_counter += 1
 
     @staticmethod
     def _decide_prefix(prefix : str, grand_name : str):
@@ -97,7 +81,7 @@ class PyTorchInspector:
 
     @staticmethod
     def _module_leaves(module : Module, depth : int = -1, prefix : str = '.') -> list[tuple[Module, str]]:
-        assert depth >= -1, "Depth of leaves must be non-negative of -1 (maximal depth)"
+        assert depth >= -1, "Depth of leaves must be non-negative or -1 (maximal depth)"
         if depth == -1:
             return PyTorchInspector._module_deep_leaves(module, prefix=prefix)
         if depth == 0:

@@ -62,17 +62,15 @@
 - [x] utility running statistical info
 - [x] loss observers
 - [x] learnable parameter norm
-- [ ] net-aggregation preprocessors
-    - I think it makes more sense to inject such functionality into lenses, as they have an overview over all layers
 
 ## Lens
 
 - inplace and inmemory variants
 
-- [ ] interaction with inspector
-    - [ ] hooking to modules
-    - [ ] interactions with vizualizer
-- [ ] net aggregation
+- [x] interaction with inspector
+    - [x] hooking to modules
+    - [x] interactions with vizualizer
+- [-] net aggregation
 
 - [ ] Debug Lens
 - [ ] Gradient Geometry

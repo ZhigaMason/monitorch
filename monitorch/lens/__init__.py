@@ -1,1 +1,1 @@
-from AbstractLens import AbstractLens
+from .abstract_lens import AbstractLens

@@ -12,11 +12,11 @@ class ExplicitCall(AbstractPreprocessor):
     def __init__(self):
         self.state : dict[str, Any] = {}
 
-    def push_remember(self, name : str, value) -> None:
+    def push_memory(self, name : str, value) -> None:
         """ pushes value into list """
         self.state.setdefault(name, []).append(value)
 
-    def push_mean_var(self, name : str, value : float) -> None:
+    def push_running(self, name : str, value : float) -> None:
         """ Updates running mean and variance in state """
         self.state.setdefault(name, RunningMeanVar()).update(value)
 
