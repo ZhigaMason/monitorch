@@ -98,10 +98,10 @@
         - stack graph
         - multiline graph
 
-- [ ] Matplotib (static)
-    - [ ] \(pre\)allocating figures and axis
-    - [ ] axis metainfo (logy, shadows)
-    - [ ] generic methods
+- [x] Matplotib (static)
+    - [x] \(pre\)allocating figures and axis
+    - [x] axis metainfo (logy, shadows)
+    - [x] generic methods
 - [x] ~~Matplotib (dynamic? [it is not designed for that])~~
 - [x] Tensorboard
     - [-] How to plot ranges - additional line plots

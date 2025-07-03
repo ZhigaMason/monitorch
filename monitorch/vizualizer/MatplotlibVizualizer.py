@@ -1,32 +1,12 @@
 import numpy as np
 
 from collections import OrderedDict as odict
-from enum import Enum
-from itertools import chain
 
 from .AbstractVizualizer import AbstractVizualizer, TagAttributes, TagType
 
 from matplotlib import  pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.figure import Figure, SubFigure
-
-# this is such a mess
-# should be rewritten with separate ordered dictionaries for each plot method
-#
-# should add more degrees of separation most probably
-# current layout cannot deal with one lens providing data for distinct parameters (e.g. weight and bias)
-# it will collide in plot numerical
-#
-# concept of "main_tag" should be more clear.
-# is it 1 main_tag per lens or is it 1 main_tag per displayed statistics
-# second makes it easier to think allocate subfigures as they all will have width 1
-# allocating subplots will also be easier
-#
-# TODO: redefine vizualizer arch, this is garbage
-#
-# the whole thing should be rethought
-#
-# allocating subfigures and subplots is a@@
 
 class MatplotlibVizualizer(AbstractVizualizer):
 
@@ -35,7 +15,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
     _RANGE_COLORS = {
         ('min', 'max') : 'grey',
         ('Q1', 'Q3')   : 'blue',
-        ('+σ', '-σ')   : 'steelblue'
+        ('-σ', '+σ')   : 'steelblue'
     }
 
     _RANGE_ALPHA = 0.2
@@ -55,16 +35,21 @@ class MatplotlibVizualizer(AbstractVizualizer):
     }
 
     _RELATION_COLORS = [
-        'lightblue', 'steelblue'
+        'cornflowerblue', 'royalblue'
     ]
 
-    def __init__(self, alt_color=(0.9, 0.9, 0.95), **kwargs):
+    _SUPTITLE_WEIGHT = 580
+
+    _SMALL_TAG_FACE_COLORS = [
+        (1,1,1), (0.95, 0.92, 0.9)
+    ]
+
+    def __init__(self, **kwargs):
         self._to_plot = odict()
         self._small_tag_attr : odict[str, TagAttributes] = odict()
         self._big_tag_attr : odict[str, TagAttributes] = odict()
         self._n_max_small_plots : int = -1
         self._figure : Figure|None = None
-        self._alt_color = alt_color
         self._kwargs = kwargs
 
     def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:
@@ -102,10 +87,10 @@ class MatplotlibVizualizer(AbstractVizualizer):
                 ys.insert(epoch, y)
 
 
-    def plot_relations(self, epoch : int, main_tag, values_dict : odict[str, dict[str, float]]) -> None:
+    def plot_relations(self, epoch : int, main_tag, values_dict : odict[str, odict[str, float]]) -> None:
         values = self._to_plot.setdefault(main_tag, odict())
         for tag, numerical_values_dict in values_dict.items():
-            tag_dict = values.setdefault(tag, {})
+            tag_dict = values.setdefault(tag, odict)
             for descriptor, y in numerical_values_dict.items():
                 ys = tag_dict.setdefault(descriptor, [])
                 ys.insert(epoch, y)
@@ -178,10 +163,13 @@ class MatplotlibVizualizer(AbstractVizualizer):
         return ret
 
     def _plot_tags(self, subfig_dict : dict[str, SubFigure]):
+        small_figs = []
         for tag, fig in subfig_dict.items():
             if tag in self._small_tag_attr:
-                self._plot_small_tags(fig)
+                self._plot_small_tag(fig, tag)
+                small_figs.append(fig)
             elif tag in self._big_tag_attr:
+                fig.suptitle(tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT)
                 ax = fig.subplots()
                 if self._big_tag_attr[tag].logy:
                     ax.set_yscale('log', base=10)
@@ -194,8 +182,33 @@ class MatplotlibVizualizer(AbstractVizualizer):
                     case TagType.RELATIONS:
                         MatplotlibVizualizer._plot_relations(ax, self._to_plot[tag])
 
-    def _plot_small_tags(self, fig : SubFigure) -> None:
-        pass
+        colors = MatplotlibVizualizer._SMALL_TAG_FACE_COLORS
+        for idx, fig in enumerate(small_figs):
+            fig.set_facecolor(colors[idx % len(colors)])
+
+    def _plot_small_tag(self, fig : SubFigure, tag) -> None:
+        tag_dict = self._to_plot[tag]
+        tag_attr = self._small_tag_attr[tag]
+        axes = fig.subplots(nrows=self._n_max_plots_in_small_tags, sharex=True)
+        n_real_plots = len(tag_dict)
+        fig.suptitle(tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT)
+        for ax in axes[n_real_plots:]:
+            ax.set_visible(False)
+
+        for ax, (plot_name, values) in zip(axes, tag_dict.items()):
+            ax.set_title(plot_name)
+            if tag_attr.logy:
+                ax.set_yscale('log', base=10)
+            match tag_attr.type:
+                    case TagType.NUMERICAL:
+                        val_dict, range_dict = values
+                        MatplotlibVizualizer._plot_numerical(ax, val_dict, range_dict)
+                    case TagType.PROBABILITY:
+                        MatplotlibVizualizer._plot_probability(ax, values)
+                    case TagType.RELATIONS:
+                        MatplotlibVizualizer._plot_relations(ax, values)
+        axes[n_real_plots - 1].tick_params(labelbottom=True)
+        fig.subplots_adjust(top=0.95 * (1 - 1/(self._n_max_plots_in_small_tags + 1) ** 2),bottom=0)
 
     @staticmethod
     def _plot_numerical(ax, val_dict, range_dict) -> None:
@@ -248,8 +261,16 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
     @staticmethod
     def _plot_relations(ax, rel_dict) -> None:
-        #for relations in rel_dict.values():
-            # TODO
+        l = len(next(iter(rel_dict.values())))
+        first_record = []
+        for relations in rel_dict.values():
+            assert l == len(relations), "All relations must have same number of epochs recorded"
+            first_record.append(relations[0])
+        ax.stackplot(range(l), *rel_dict.values(), colors=MatplotlibVizualizer._RELATION_COLORS)
+        arr = np.array(first_record)
+        pos_arr = np.cumsum(arr) - arr / 2
+        for pos, rel_name in zip(pos_arr, rel_dict.keys()):
+            ax.text(0, pos, rel_name)
 
 
     @staticmethod
