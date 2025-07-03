@@ -4,7 +4,7 @@
 """
 
 from monitorch.preprocessor import AbstractForwardPreprocessor
-from .AbstractGatherer import AbstractGatherer
+from .abstract_gatherer import AbstractGatherer
 
 class FeedForwardGatherer(AbstractGatherer):
 

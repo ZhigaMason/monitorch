@@ -1,6 +1,6 @@
 
 from monitorch.preprocessor import AbstractGradientPreprocessor
-from .AbstractGatherer import AbstractGatherer
+from .abstract_gatherer import AbstractGatherer
 
 class WeightGradientGatherer(AbstractGatherer):
 

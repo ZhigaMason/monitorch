@@ -1,5 +1,5 @@
 
-from .AbstractGatherer import AbstractGatherer
+from .abstract_gatherer import AbstractGatherer
 from monitorch.preprocessor import AbstractModulePreprocessor
 
 class EpochModuleGatherer(AbstractGatherer):
