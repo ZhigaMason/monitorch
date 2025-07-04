@@ -7,7 +7,8 @@ from .memory import (
     OutputActivationMemory,
     OutputGradientGeometryMemory,
     OutputNormMemory,
-    ParameterNormMemory
+    ParameterNormMemory,
+    LossModuleMemory
 )
 
 from .running import (
@@ -16,7 +17,8 @@ from .running import (
     OutputActivationRunning,
     OutputGradientGeometryRunning,
     OutputNormRunning,
-    ParameterNormRunning
+    ParameterNormRunning,
+    LossModuleRunning
 )
 
 from .abstract import (

@@ -30,3 +30,7 @@ class AbstractLens(ABC):
     @abstractmethod
     def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
         pass
+
+    @abstractmethod
+    def reset_epoch(self):
+        pass

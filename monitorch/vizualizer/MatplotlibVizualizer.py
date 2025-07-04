@@ -15,7 +15,15 @@ class MatplotlibVizualizer(AbstractVizualizer):
     _RANGE_COLORS = {
         ('min', 'max') : 'grey',
         ('Q1', 'Q3')   : 'blue',
-        ('-σ', '+σ')   : 'steelblue'
+        ('-σ', '+σ')   : 'steelblue',
+
+        ('train_loss min', 'train_loss max')  : 'grey',
+        ('train_loss Q1',  'train_loss Q3')   : 'blue',
+        ('train_loss -σ',  'train_loss +σ')   : 'steelblue',
+
+        ('val_loss min', 'val_loss max')  : 'bisque',
+        ('val_loss Q1',  'val_loss Q3')   : 'orange',
+        ('val_loss -σ',  'val_loss +σ')   : 'sandybrown',
     }
 
     _RANGE_ALPHA = 0.2
@@ -51,8 +59,10 @@ class MatplotlibVizualizer(AbstractVizualizer):
         self._n_max_small_plots : int = -1
         self._figure : Figure|None = None
         self._kwargs = kwargs
+        self._n_max_plots_in_small_tags : int = -1
 
     def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:
+        print('AAAAAAAAAAAAAAA')
         if tag_attr.big_plot:
             self._big_tag_attr[main_tag] = tag_attr
         else:
@@ -106,14 +116,19 @@ class MatplotlibVizualizer(AbstractVizualizer):
         if 'figsize' not in self._kwargs:
             self._kwargs['figsize'] = self._compute_figsize()
         fig = plt.figure(**self._kwargs)
+        print(fig)
         subfig_dict = self._allocate_subfigures(fig)
         self._plot_tags(subfig_dict)
         return fig
 
     def _validate_tag_dictionaries(self) -> None:
-        raise NotImplemented()
+        # I cant remember what i had in mind
+        #                                :D
+        pass
 
     def _compute_figsize(self) -> tuple[int, int]:
+        if self._n_max_plots_in_small_tags == -1:
+            self._compute_n_max_small_plots()
         n_small_tags = len(self._small_tag_attr)
         n_big_tags = len(self._big_tag_attr)
 
@@ -130,7 +145,8 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
     def _compute_n_max_small_plots(self):
         n_max_plots_in_prob_rel = max(
-            len(self._to_plot[tag]) for (tag, attr) in self._small_tag_attr if attr in {TagType.PROBABILITY, TagType.RELATIONS}
+            (len(self._to_plot[tag]) for (tag, attr) in self._small_tag_attr if attr in {TagType.PROBABILITY, TagType.RELATIONS}),
+            default=0
         )
         numerical_tags = [tag for (tag, attr) in self._small_tag_attr if attr == TagType.NUMERICAL]
         n_max_plots_in_numerical = 0
@@ -141,7 +157,9 @@ class MatplotlibVizualizer(AbstractVizualizer):
         self._n_max_plots_in_small_tags = max(n_max_plots_in_numerical, n_max_plots_in_prob_rel)
 
     def _allocate_subfigures(self, fig : Figure) -> dict[str, SubFigure]:
-        if self._big_tag_attr == -1:
+        assert (len(self._small_tag_attr) + len(self._big_tag_attr)) > 0, "Nothing to plot add lenses or reconfigure them"
+        print('1', fig)
+        if self._n_max_plots_in_small_tags == -1:
             self._compute_n_max_small_plots()
 
         height_ratios = (2, self._n_max_plots_in_small_tags + 1)
@@ -149,38 +167,54 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
         ret = {}
 
-        up_fig = fig.add_subfigure(gs[0])
-        subfigs = up_fig.subfigures(ncols=len(self._big_tag_attr))
-        for fig, tag in zip(subfigs, self._big_tag_attr):
-            ret[tag] = fig
+        print('2', fig)
+        up_fig : SubFigure
+        if len(self._small_tag_attr) == 0:
+            up_fig = fig.add_subfigure(GridSpec(1,1)[0])
+        elif len(self._big_tag_attr) > 0:
+            up_fig = fig.add_subfigure(gs[0])
 
-        lo_fig = fig.add_subfigure(gs[1])
-        subfigs = lo_fig.subfigures(ncols=len(self._small_tag_attr))
-        for idx, tag in enumerate(self._small_tag_attr):
-            subfigs[idx] = (1,1,1) if idx % 2 else self._alt_color
-            ret[tag] = subfigs[idx]
+        print('3', fig)
+        if len(self._big_tag_attr) > 0:
+            subfigs = up_fig.subfigures(ncols=len(self._big_tag_attr), squeeze=False).flatten()
+            for subfig, tag in zip(subfigs, self._big_tag_attr):
+                print('OOO', tag, subfig)
+                ret[tag] = subfig
+
+        lo_fig : SubFigure
+        if len(self._big_tag_attr) == 0:
+            lo_fig = fig.add_subfigure(GridSpec(1,1)[0])
+        elif len(self._small_tag_attr) > 0:
+            lo_fig = fig.add_subfigure(gs[1])
+
+        if len(self._small_tag_attr) > 0:
+            subfigs = lo_fig.subfigures(ncols=len(self._small_tag_attr), squeeze=False).flatten()
+            for subfig, tag in zip(subfigs, self._small_tag_attr):
+                ret[tag] = subfig
 
         return ret
 
     def _plot_tags(self, subfig_dict : dict[str, SubFigure]):
         small_figs = []
-        for tag, fig in subfig_dict.items():
+        for tag, subfig in subfig_dict.items():
+            print('I', tag, subfig)
             if tag in self._small_tag_attr:
-                self._plot_small_tag(fig, tag)
-                small_figs.append(fig)
+                self._plot_small_tag(subfig, tag)
+                small_figs.append(subfig)
             elif tag in self._big_tag_attr:
-                fig.suptitle(tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT)
-                ax = fig.subplots()
+                subfig.suptitle(tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT)
+                ax = subfig.subplots()
                 if self._big_tag_attr[tag].logy:
                     ax.set_yscale('log', base=10)
                 match self._big_tag_attr[tag].type:
                     case TagType.NUMERICAL:
+                        print(self._to_plot)
                         val_dict, range_dict = self._to_plot[tag]
-                        MatplotlibVizualizer._plot_numerical(ax, val_dict, range_dict)
+                        MatplotlibVizualizer._plot_numerical(ax, val_dict[tag], range_dict[tag])
                     case TagType.PROBABILITY:
-                        MatplotlibVizualizer._plot_probability(ax, self._to_plot[tag])
+                        MatplotlibVizualizer._plot_probability(ax, self._to_plot[tag][tag])
                     case TagType.RELATIONS:
-                        MatplotlibVizualizer._plot_relations(ax, self._to_plot[tag])
+                        MatplotlibVizualizer._plot_relations(ax, self._to_plot[tag][tag])
 
         colors = MatplotlibVizualizer._SMALL_TAG_FACE_COLORS
         for idx, fig in enumerate(small_figs):
@@ -212,6 +246,9 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
     @staticmethod
     def _plot_numerical(ax, val_dict, range_dict) -> None:
+        print('\n\n\n\n\n\n\n')
+        print('range_dict', range_dict)
+        print('\nval_dict', val_dict)
         for range_name, (lo, up) in range_dict.items():
             assert len(lo) == len(up)
             if range_name in MatplotlibVizualizer._RANGE_COLORS:
@@ -226,7 +263,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
                     alpha = MatplotlibVizualizer._RANGE_ALPHA
                 )
 
-        for val_name, values in val_dict:
+        for val_name, values in val_dict.items():
             if val_name in MatplotlibVizualizer._LINE_COLORS:
                 ax.plot(
                     range(len(values)), values,

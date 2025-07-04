@@ -29,6 +29,7 @@ class ExplicitCall(AbstractPreprocessor):
         else:
             self.push_memory(name, value)
 
+    @property
     def value(self) -> dict[str, Any]:
         """ Value is state accumulated in inspector calls """
         return self.state

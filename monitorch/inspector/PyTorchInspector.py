@@ -17,8 +17,8 @@ class PyTorchInspector:
             module : None|Module = None,
             depth : int = -1,
             module_name_prefix : str = '.',
-            train_loss_str = 'train',
-            non_train_loss_str = 'val'
+            train_loss_str = 'train_loss',
+            non_train_loss_str = 'val_loss'
     ):
         """ Initializes all lenses and hooks to a module if one is given """
         self._lenses = lenses
@@ -33,6 +33,9 @@ class PyTorchInspector:
         else:
             self.vizualizer : AbstractVizualizer = vizualizer
 
+        for lens in self._lenses:
+            lens.register_foreign_preprocessor(self._call_preprocessor)
+            lens.introduce_tags(self.vizualizer)
         if module is not None:
             self.attach(module, depth, module_name_prefix)
 
@@ -41,10 +44,6 @@ class PyTorchInspector:
         for module, name in module_names:
             for lens in self._lenses:
                 lens.register_module(module, name)
-
-        for lens in self._lenses:
-            lens.register_foreign_preprocessor(self._call_preprocessor)
-            lens.introduce_tags(self.vizualizer)
         return self
 
     def detach(self) -> Self:
@@ -67,6 +66,8 @@ class PyTorchInspector:
         for lens in self._lenses:
             lens.finalize_epoch()
             lens.vizualize(self.vizualizer, self.epoch_counter)
+            lens.reset_epoch()
+        self._call_preprocessor.reset()
         self.epoch_counter += 1
 
     @staticmethod
