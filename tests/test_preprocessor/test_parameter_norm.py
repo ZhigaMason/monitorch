@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 
-from monitorch.preprocessor import ParameterNormMemory, ParameterNormRunning
+from monitorch.preprocessor import ParameterNorm
 from monitorch.gatherer import EpochModuleGatherer
 
 @pytest.mark.parametrize(
@@ -30,8 +30,8 @@ from monitorch.gatherer import EpochModuleGatherer
     ]
 )
 def test_norm_parameter(module, inp_size, normalize, n_iter, seed):
-    pnm = ParameterNormMemory(['weight', 'bias'], normalize=normalize)
-    pnr = ParameterNormRunning(['weight', 'bias'], normalize=normalize)
+    pnm = ParameterNorm(['weight', 'bias'], normalize=normalize, inplace=False)
+    pnr = ParameterNorm(['weight', 'bias'], normalize=normalize, inplace=True)
 
     emg = EpochModuleGatherer(
         module, [pnm, pnr], 'standalone_test'

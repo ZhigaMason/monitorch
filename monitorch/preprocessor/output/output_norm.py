@@ -13,6 +13,7 @@ class OutputNorm(AbstractForwardPreprocessor):
         self._normalize = normalize
         self._value = {}
         self._agg_class = RunningMeanVar if inplace else list
+        self._agg_class = RunningMeanVar if inplace else list
 
     @no_grad
     def process_fw(self, name : str, module, layer_input, layer_output):

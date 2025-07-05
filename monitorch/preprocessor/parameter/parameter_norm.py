@@ -6,12 +6,13 @@ from monitorch.preprocessor.abstract.abstract_module_preprocessor import Abstrac
 from monitorch.numerical import RunningMeanVar
 
 
-class ParameterNormRunning(AbstractModulePreprocessor):
+class ParameterNorm(AbstractModulePreprocessor):
 
-    def __init__(self, attrs : list[str], normalize : bool):
+    def __init__(self, attrs : list[str], normalize : bool, inplace : bool):
         self._normalize = normalize
         self._attrs = attrs
-        self._value : dict[str, dict[str, RunningMeanVar]]= {}
+        self._value = {}
+        self._agg_class = RunningMeanVar if inplace else list
 
     def process_module(self, name : str, module):
         d = self._value.setdefault(name, {})
@@ -19,7 +20,7 @@ class ParameterNormRunning(AbstractModulePreprocessor):
             norm = vector_norm(getattr(module, attr)).item()
             if self._normalize:
                 norm /= sqrt(getattr(module, attr).numel())
-            d.setdefault(attr, RunningMeanVar()).update(norm)
+            d.setdefault(attr, self._agg_class() ).append(norm)
 
     @property
     def value(self) -> dict[str, Any]:
