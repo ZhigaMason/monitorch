@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import pytest
-from monitorch.preprocessor import OutputActivationRunning, OutputActivationMemory
+from monitorch.preprocessor import OutputActivation
 from monitorch.gatherer import FeedForwardGatherer
 
 class DumbModule(nn.Module):
@@ -34,8 +34,8 @@ class DumbModule(nn.Module):
     ]
 )
 def test_output_single_activation(module, X, activation):
-    oam = OutputActivationMemory(death=False)
-    oar = OutputActivationRunning(death=False)
+    oam = OutputActivation(death=False, inplace=False)
+    oar = OutputActivation(death=False, inplace=True)
     ffg = FeedForwardGatherer(module, [
             oam, oar
     ], 'standalone_test' )
@@ -49,37 +49,37 @@ def test_output_single_activation(module, X, activation):
         (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 100), 0),
         (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 100), 0),
         (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 100), 0),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-7),           50, (100, 100), 0),
+        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 100), 0),
 
         (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 100), 42),
         (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 100), 42),
         (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 100), 42),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-7),           50, (100, 100), 42),
+        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 100), 42),
 
         (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 10, 10), 0),
         (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 10), 0),
         (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 10, 10), 0),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-7),           50, (100, 10, 10), 0),
+        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 0),
 
         (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 10, 10), 42),
         (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 10), 42),
         (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 10, 10), 42),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-7),           50, (100, 10, 10), 42),
+        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 42),
 
         (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 10, 2, 10), 0),
         (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 2, 10), 0),
         (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 10, 2, 10), 0),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-7),           50, (100, 10, 2, 10), 0),
+        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 0),
 
         (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 10, 2, 10), 42),
         (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 2, 10), 42),
         (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 10, 2, 10), 42),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-7),           50, (100, 10, 2, 10), 42),
+        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 42),
     ]
 )
 def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, inp_size, seed):
-    oam = OutputActivationMemory(death=True)
-    oar = OutputActivationRunning(death=True)
+    oam = OutputActivation(death=True, inplace=False)
+    oar = OutputActivation(death=True, inplace=True)
     ffg = FeedForwardGatherer(module, [
             oam, oar
     ], 'standalone_test' )

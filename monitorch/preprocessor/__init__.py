@@ -2,17 +2,11 @@
 from .ExplicitCall import ExplicitCall
 
 from .memory import (
-    OutputActivationMemory,
-    OutputNormMemory,
     ParameterNormMemory,
-    LossModuleMemory
 )
 
 from .running import (
-    OutputActivationRunning,
-    OutputNormRunning,
     ParameterNormRunning,
-    LossModuleRunning
 )
 
 from .abstract import (
@@ -29,3 +23,8 @@ from .gradient import (
     OutputGradientGeometry
 )
 
+from .output import (
+    OutputNorm,
+    OutputActivation,
+    LossModule
+)

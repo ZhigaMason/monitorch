@@ -8,7 +8,7 @@ from monitorch.gatherer import FeedForwardGatherer
 from monitorch.preprocessor import (
         AbstractPreprocessor,
         ExplicitCall,
-        LossModuleRunning, LossModuleMemory
+        LossModule
 )
 from monitorch.vizualizer import AbstractVizualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point, extract_range, parse_range_name
@@ -52,7 +52,7 @@ class LossMetrics(AbstractLens):
         self._is_loss_fn = False
         if loss_fn is not None:
             self._is_loss_fn = True
-            self._preprocessor = LossModuleRunning() if loss_fn_inplace else LossModuleMemory()
+            self._preprocessor = LossModule(inplace=loss_fn_inplace)
             self._loss_gatherer = FeedForwardGatherer(
                 loss_fn, [self._preprocessor], 'loss'
             )

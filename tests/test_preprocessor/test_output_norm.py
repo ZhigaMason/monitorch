@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch
 from torch.linalg import vector_norm
 
-from monitorch.preprocessor import OutputNormMemory, OutputNormRunning
+from monitorch.preprocessor import OutputNorm
 from monitorch.gatherer import FeedForwardGatherer
 
 
@@ -31,8 +31,8 @@ from monitorch.gatherer import FeedForwardGatherer
     ]
 )
 def test_sequence_output_norm(module, inp_size, normalize, n_iter, seed):
-    onm = OutputNormMemory(normalize=normalize)
-    onr = OutputNormRunning(normalize=normalize)
+    onm = OutputNorm(normalize=normalize, inplace=False)
+    onr = OutputNorm(normalize=normalize, inplace=True)
 
     ffg = FeedForwardGatherer(
         module, [onm, onr], 'standalone_test'
