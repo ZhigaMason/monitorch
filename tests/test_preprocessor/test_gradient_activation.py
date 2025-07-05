@@ -3,7 +3,7 @@ import numpy as np
 import torch.nn as nn
 import pytest
 
-from monitorch.preprocessor import GradientActivationMemory, GradientActivationRunning
+from monitorch.preprocessor import GradientActivation, GradientActivation
 from monitorch.gatherer import WeightGradientGatherer, BiasGradientGatherer
 from monitorch.numerical import reduce_activation_to_activation_rates
 
@@ -26,10 +26,10 @@ from monitorch.numerical import reduce_activation_to_activation_rates
     ]
 )
 def test_one_pass_gradient_activation(module, inp):
-    wgam = GradientActivationMemory(death=True)
-    wgar = GradientActivationRunning(death=True)
-    bgam = GradientActivationMemory(death=True)
-    bgar = GradientActivationRunning(death=True)
+    wgam = GradientActivation(death=True, inplace=False)
+    wgar = GradientActivation(death=True, inplace=True)
+    bgam = GradientActivation(death=True, inplace=False)
+    bgar = GradientActivation(death=True, inplace=True)
 
     wgg = WeightGradientGatherer(
         module, [wgam, wgar], 'standalone_test'
@@ -95,10 +95,10 @@ def test_one_pass_gradient_activation(module, inp):
     ]
 )
 def test_sequence_gradient_activation(module, inp_size, n_iter, seed):
-    wgam = GradientActivationMemory(death=True)
-    wgar = GradientActivationRunning(death=True)
-    bgam = GradientActivationMemory(death=True)
-    bgar = GradientActivationRunning(death=True)
+    wgam = GradientActivation(death=True, inplace=False)
+    wgar = GradientActivation(death=True, inplace=True)
+    bgam = GradientActivation(death=True, inplace=False)
+    bgar = GradientActivation(death=True, inplace=True)
 
     wgg = WeightGradientGatherer(
         module, [wgam, wgar], 'standalone_test'

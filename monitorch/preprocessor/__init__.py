@@ -2,20 +2,14 @@
 from .ExplicitCall import ExplicitCall
 
 from .memory import (
-    GradientActivationMemory,
-    GradientGeometryMemory,
     OutputActivationMemory,
-    OutputGradientGeometryMemory,
     OutputNormMemory,
     ParameterNormMemory,
     LossModuleMemory
 )
 
 from .running import (
-    GradientActivationRunning,
-    GradientGeometryRunning,
     OutputActivationRunning,
-    OutputGradientGeometryRunning,
     OutputNormRunning,
     ParameterNormRunning,
     LossModuleRunning
@@ -29,4 +23,9 @@ from .abstract import (
     AbstractPreprocessor
 )
 
+from .gradient import (
+    GradientActivation,
+    GradientGeometry,
+    OutputGradientGeometry
+)
 

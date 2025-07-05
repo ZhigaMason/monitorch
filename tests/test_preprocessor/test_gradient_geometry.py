@@ -7,10 +7,7 @@ import numpy as np
 import torch.nn as nn
 from torch.linalg import vector_norm
 
-from monitorch.preprocessor import (
-        GradientGeometryMemory, GradientGeometryRunning,
-        OutputGradientGeometryMemory, OutputGradientGeometryRunning,
-)
+from monitorch.preprocessor import GradientGeometry
 
 from monitorch.gatherer import WeightGradientGatherer, BiasGradientGatherer, BackwardGatherer
 
@@ -45,10 +42,10 @@ def replace_b_grad(tensor):
     ]
 )
 def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
-    wggm = GradientGeometryMemory(adj_prod=False, normalize=normalize)
-    wggr = GradientGeometryRunning(adj_prod=False, normalize=normalize)
-    bggm = GradientGeometryMemory(adj_prod=False, normalize=normalize)
-    bggr = GradientGeometryRunning(adj_prod=False, normalize=normalize)
+    wggm = GradientGeometry(adj_prod=False, normalize=normalize, inplace=False)
+    wggr = GradientGeometry(adj_prod=False, normalize=normalize, inplace=True)
+    bggm = GradientGeometry(adj_prod=False, normalize=normalize, inplace=False)
+    bggr = GradientGeometry(adj_prod=False, normalize=normalize, inplace=True)
 
     module.register_full_backward_hook(replace_w_grad(grad_w))
     module.register_full_backward_hook(replace_b_grad(grad_b))
@@ -98,10 +95,10 @@ def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
     ]
 )
 def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
-    wggm = GradientGeometryMemory(adj_prod=True, normalize=normalize)
-    wggr = GradientGeometryRunning(adj_prod=True, normalize=normalize)
-    bggm = GradientGeometryMemory(adj_prod=True, normalize=normalize)
-    bggr = GradientGeometryRunning(adj_prod=True, normalize=normalize)
+    wggm = GradientGeometry(adj_prod=True, normalize=normalize, inplace=False)
+    wggr = GradientGeometry(adj_prod=True, normalize=normalize, inplace=True)
+    bggm = GradientGeometry(adj_prod=True, normalize=normalize, inplace=False)
+    bggr = GradientGeometry(adj_prod=True, normalize=normalize, inplace=True)
 
     wgg = WeightGradientGatherer(
         module, [wggm, wggr], 'standalone_test'
@@ -135,14 +132,16 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
             w_prod /= module.weight.grad.numel()
             b_prod /= module.bias.grad.numel()
 
-        assert np.isclose(w_norm, wggm.value['standalone_test'][-1][0])
-        assert np.isclose(b_norm, bggm.value['standalone_test'][-1][0])
+        print(w_norm)
+        print(wggm.value['standalone_test'][-1])
+        assert np.isclose(w_norm, wggm.value['standalone_test'][0][-1])
+        assert np.isclose(b_norm, bggm.value['standalone_test'][0][-1])
 
         assert abs(w_prod) <= (1 + 1e-5)
         assert abs(b_prod) <= (1 + 1e-5)
 
-        assert np.isclose(w_prod, wggm.value['standalone_test'][-1][1])
-        assert np.isclose(b_prod, bggm.value['standalone_test'][-1][1])
+        assert np.isclose(w_prod, wggm.value['standalone_test'][1][-1])
+        assert np.isclose(b_prod, bggm.value['standalone_test'][1][-1])
 
         w_norms.append(w_norm)
         w_products.append(w_prod)

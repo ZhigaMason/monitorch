@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch
 from torch.linalg import vector_norm
 
-from monitorch.preprocessor import OutputGradientGeometryMemory, OutputGradientGeometryRunning
+from monitorch.preprocessor import OutputGradientGeometry
 from monitorch.gatherer import BackwardGatherer
 
 
@@ -39,8 +39,8 @@ def collect_output_grad(l : list):
     ]
 )
 def test_sequence_output_gradient_norm(module, inp_size, normalize, n_iter, seed):
-    oggm = OutputGradientGeometryMemory(adj_prod=True, normalize=normalize)
-    oggr = OutputGradientGeometryRunning(adj_prod=True, normalize=normalize)
+    oggm = OutputGradientGeometry(adj_prod=True, normalize=normalize, inplace=False)
+    oggr = OutputGradientGeometry(adj_prod=True, normalize=normalize, inplace=True)
 
     bg = BackwardGatherer(
         module, [oggm, oggr], 'standalone_test'
@@ -65,10 +65,10 @@ def test_sequence_output_gradient_norm(module, inp_size, normalize, n_iter, seed
         if normalize:
             prod /= grads[-1].numel()
 
-        assert np.isclose(norm, oggm.value['standalone_test'][-1][0])
+        assert np.isclose(norm, oggm.value['standalone_test'][0][-1])
 
         assert abs(prod) <= (1 + 1e-5)
-        assert np.isclose(prod, oggm.value['standalone_test'][-1][1])
+        assert np.isclose(prod, oggm.value['standalone_test'][1][-1])
 
         norms.append(norm)
         products.append(prod)

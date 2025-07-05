@@ -25,6 +25,9 @@ class RunningMeanVar:
         self.min_ = min(self.min_, new_value)
         self.max_ = max(self.max_, new_value)
 
+    """ alias for list compatability """
+    append = update
+
     def __len__(self) -> int:
         return self.count
 
