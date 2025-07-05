@@ -78,12 +78,12 @@ class LossMetrics(AbstractLens):
     def introduce_tags(self, vizualizer : AbstractVizualizer):
         if self._separate_loss_and_metrics:
             if self._loss:
-                vizualizer.register_tags('Loss',    TagAttributes(logy=False, big_plot=True, type=TagType.NUMERICAL))
+                vizualizer.register_tags('Loss',    TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.NUMERICAL))
             if self._metrics:
-                vizualizer.register_tags('Metrics', TagAttributes(logy=False, big_plot=True, type=TagType.NUMERICAL))
+                vizualizer.register_tags('Metrics', TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.NUMERICAL))
         else:
             if self._loss or self._metrics:
-                vizualizer.register_tags('Loss & Metrics',    TagAttributes(logy=False, big_plot=True, type=TagType.NUMERICAL))
+                vizualizer.register_tags('Loss & Metrics',    TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.NUMERICAL))
 
     def finalize_epoch(self):
         if self._loss:
@@ -150,9 +150,6 @@ class LossMetrics(AbstractLens):
             )
 
         if self._metrics:
-            print('CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC')
-            print('metric_values', self._metrics_values)
-            print('metric_ranges', self._metrics_ranges)
             vizualizer.plot_numerical_values(
                 epoch, metrics_tag,
                 OrderedDict([(metrics_tag, self._metrics_values)]),

@@ -1,5 +1,6 @@
 import numpy as np
 
+from typing_extensions import Self
 from collections import OrderedDict as odict
 
 from .AbstractVizualizer import AbstractVizualizer, TagAttributes, TagType
@@ -62,7 +63,6 @@ class MatplotlibVizualizer(AbstractVizualizer):
         self._n_max_plots_in_small_tags : int = -1
 
     def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:
-        print('AAAAAAAAAAAAAAA')
         if tag_attr.big_plot:
             self._big_tag_attr[main_tag] = tag_attr
         else:
@@ -110,13 +110,16 @@ class MatplotlibVizualizer(AbstractVizualizer):
             self._figure = self._compose_figure()
         return self._figure
 
+    def reset_fig(self) -> Self:
+        self._figure = None
+        return self
+
 
     def _compose_figure(self) -> Figure:
         self._validate_tag_dictionaries()
         if 'figsize' not in self._kwargs:
             self._kwargs['figsize'] = self._compute_figsize()
         fig = plt.figure(**self._kwargs)
-        print(fig)
         subfig_dict = self._allocate_subfigures(fig)
         self._plot_tags(subfig_dict)
         return fig
@@ -158,7 +161,6 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
     def _allocate_subfigures(self, fig : Figure) -> dict[str, SubFigure]:
         assert (len(self._small_tag_attr) + len(self._big_tag_attr)) > 0, "Nothing to plot add lenses or reconfigure them"
-        print('1', fig)
         if self._n_max_plots_in_small_tags == -1:
             self._compute_n_max_small_plots()
 
@@ -167,18 +169,15 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
         ret = {}
 
-        print('2', fig)
         up_fig : SubFigure
         if len(self._small_tag_attr) == 0:
             up_fig = fig.add_subfigure(GridSpec(1,1)[0])
         elif len(self._big_tag_attr) > 0:
             up_fig = fig.add_subfigure(gs[0])
 
-        print('3', fig)
         if len(self._big_tag_attr) > 0:
             subfigs = up_fig.subfigures(ncols=len(self._big_tag_attr), squeeze=False).flatten()
             for subfig, tag in zip(subfigs, self._big_tag_attr):
-                print('OOO', tag, subfig)
                 ret[tag] = subfig
 
         lo_fig : SubFigure
@@ -197,7 +196,6 @@ class MatplotlibVizualizer(AbstractVizualizer):
     def _plot_tags(self, subfig_dict : dict[str, SubFigure]):
         small_figs = []
         for tag, subfig in subfig_dict.items():
-            print('I', tag, subfig)
             if tag in self._small_tag_attr:
                 self._plot_small_tag(subfig, tag)
                 small_figs.append(subfig)
@@ -208,13 +206,14 @@ class MatplotlibVizualizer(AbstractVizualizer):
                     ax.set_yscale('log', base=10)
                 match self._big_tag_attr[tag].type:
                     case TagType.NUMERICAL:
-                        print(self._to_plot)
                         val_dict, range_dict = self._to_plot[tag]
                         MatplotlibVizualizer._plot_numerical(ax, val_dict[tag], range_dict[tag])
                     case TagType.PROBABILITY:
                         MatplotlibVizualizer._plot_probability(ax, self._to_plot[tag][tag])
                     case TagType.RELATIONS:
                         MatplotlibVizualizer._plot_relations(ax, self._to_plot[tag][tag])
+                if self._big_tag_attr[tag].annotate:
+                    ax.legend()
 
         colors = MatplotlibVizualizer._SMALL_TAG_FACE_COLORS
         for idx, fig in enumerate(small_figs):
@@ -246,32 +245,33 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
     @staticmethod
     def _plot_numerical(ax, val_dict, range_dict) -> None:
-        print('\n\n\n\n\n\n\n')
-        print('range_dict', range_dict)
-        print('\nval_dict', val_dict)
         for range_name, (lo, up) in range_dict.items():
             assert len(lo) == len(up)
             if range_name in MatplotlibVizualizer._RANGE_COLORS:
                 ax.fill_between(
                     range(len(lo)), lo, up,
                     color = MatplotlibVizualizer._RANGE_COLORS[range_name],
-                    alpha = MatplotlibVizualizer._RANGE_ALPHA
+                    alpha = MatplotlibVizualizer._RANGE_ALPHA,
+                    label = f"{range_name[0]} -- {range_name[1]}"
                 )
             else:
                 ax.fill_between(
-                    np.ones(len(lo)), lo, up,
-                    alpha = MatplotlibVizualizer._RANGE_ALPHA
+                    range(len(lo)), lo, up,
+                    alpha = MatplotlibVizualizer._RANGE_ALPHA,
+                    label = f"{range_name[0]} -- {range_name[1]}"
                 )
 
         for val_name, values in val_dict.items():
             if val_name in MatplotlibVizualizer._LINE_COLORS:
                 ax.plot(
                     range(len(values)), values,
-                    color = MatplotlibVizualizer._LINE_COLORS[val_name]
+                    color = MatplotlibVizualizer._LINE_COLORS[val_name],
+                    label=val_name
                 )
             else:
                 ax.plot(
                     range(len(values)), values,
+                    label=val_name
                 )
 
     @staticmethod
@@ -286,6 +286,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
                 ax.plot(
                     range(len(probs)), probs,
                     color = MatplotlibVizualizer._LINE_COLORS[prob_name],
+                    label=prob_name
                 )
             else:
                 ax.fill_between(
@@ -294,6 +295,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
                 )
                 ax.plot(
                     range(len(probs)), probs,
+                    label=prob_name
                 )
 
     @staticmethod
@@ -308,18 +310,3 @@ class MatplotlibVizualizer(AbstractVizualizer):
         pos_arr = np.cumsum(arr) - arr / 2
         for pos, rel_name in zip(pos_arr, rel_dict.keys()):
             ax.text(0, pos, rel_name)
-
-
-    @staticmethod
-    def range_color(idx):
-        if idx < len(MatplotlibVizualizer._RANGE_COLORS):
-            return MatplotlibVizualizer._RANGE_COLORS[idx]
-        return tuple(np.ones(3) - 1/idx)
-
-    @staticmethod
-    def line_color(idx):
-        if idx < len(MatplotlibVizualizer._LINE_COLORS):
-            return MatplotlibVizualizer._LINE_COLORS[idx]
-        return tuple(0.5 * np.ones(3) + 1/idx)
-
-

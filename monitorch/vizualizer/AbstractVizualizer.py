@@ -13,10 +13,11 @@ class TagType(Enum):
 class TagAttributes:
     logy : bool
     big_plot : bool
+    annotate : bool
     type : TagType
 
     def __repr__(self) -> str:
-        return f"TagAttributes(logy={self.logy}, big_plot={self.big_plot}), type={self.type.name})"
+        return f"TagAttributes(logy={self.logy}, big_plot={self.big_plot}, annotate={self.annotate}, type={self.type.name})"
 
 
 class AbstractVizualizer(ABC):
