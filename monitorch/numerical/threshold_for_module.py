@@ -29,7 +29,7 @@ _ACTIVATION_THRESHOLDS= {
     SELU : (-1.7580993408473766, _max), # scale * alpha * (-1)
     Sigmoid : (0.0, 1.0),
     Softsign : (-1.0, 1.0),
-    Tanh : (-pi/2, pi/2),
+    Tanh : (-1.0, 1.0),
     Tanhshrink : _min_max,
 }
 

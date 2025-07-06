@@ -1,5 +1,5 @@
 
-from torch import no_grad
+from torch import no_grad, is_grad_enabled
 from torch.linalg import vector_norm
 from math import sqrt
 
@@ -9,19 +9,23 @@ from monitorch.numerical import RunningMeanVar
 
 class OutputNorm(AbstractForwardPreprocessor):
 
-    def __init__(self, normalize : bool, inplace : bool):
+    def __init__(self, normalize : bool, inplace : bool, record_no_grad : bool):
         self._normalize = normalize
         self._value = {}
         self._agg_class = RunningMeanVar if inplace else list
         self._agg_class = RunningMeanVar if inplace else list
+        self._record_no_grad = record_no_grad
 
-    @no_grad
     def process_fw(self, name : str, module, layer_input, layer_output):
+        if not (self._record_no_grad or is_grad_enabled()):
+            return
         norm = self._value.setdefault(name, self._agg_class())
-        if self._normalize:
-            norm.append(vector_norm(layer_output).item() / sqrt(layer_output.numel()))
-        else:
-            norm.append(vector_norm(layer_output).item())
+
+        with no_grad():
+            if self._normalize:
+                norm.append(vector_norm(layer_output).item() / sqrt(layer_output.numel()))
+            else:
+                norm.append(vector_norm(layer_output).item())
 
     @property
     def value(self) -> dict[str, Any]:

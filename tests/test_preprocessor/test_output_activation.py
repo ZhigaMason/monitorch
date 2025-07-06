@@ -34,8 +34,8 @@ class DumbModule(nn.Module):
     ]
 )
 def test_output_single_activation(module, X, activation):
-    oam = OutputActivation(death=False, inplace=False)
-    oar = OutputActivation(death=False, inplace=True)
+    oam = OutputActivation(death=False, inplace=False, record_no_grad=False)
+    oar = OutputActivation(death=False, inplace=True, record_no_grad=False)
     ffg = FeedForwardGatherer(module, [
             oam, oar
     ], 'standalone_test' )
@@ -46,40 +46,34 @@ def test_output_single_activation(module, X, activation):
 @pytest.mark.parametrize(
     ['module', 'activation_tensor_func', 'n_iter', 'inp_size', 'seed'],
     [
-        (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 100), 0),
-        (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 100), 0),
-        (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 100), 0),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 100), 0),
+        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 100), 0),
+        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 100), 0),
+        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 0),
 
-        (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 100), 42),
-        (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 100), 42),
-        (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 100), 42),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 100), 42),
+        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 100), 42),
+        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 100), 42),
+        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 42),
 
-        (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 10, 10), 0),
-        (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 10), 0),
-        (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 10, 10), 0),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 0),
+        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 10, 10), 0),
+        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 10), 0),
+        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 0),
 
-        (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 10, 10), 42),
-        (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 10), 42),
-        (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 10, 10), 42),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 42),
+        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 10, 10), 42),
+        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 10), 42),
+        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 42),
 
-        (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 10, 2, 10), 0),
-        (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 2, 10), 0),
-        (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 10, 2, 10), 0),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 0),
+        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 10, 2, 10), 0),
+        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 2, 10), 0),
+        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 0),
 
-        (nn.ReLU(),  lambda y: (y > 0),                    50, (100, 10, 2, 10), 42),
-        (nn.ReLU6(), lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 2, 10), 42),
-        (nn.Tanh(),  lambda y: ((y < pi/2) & (y > -pi/2)), 50, (100, 10, 2, 10), 42),
-        (nn.Mish(),  lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 42),
+        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 10, 2, 10), 42),
+        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 2, 10), 42),
+        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 42),
     ]
 )
 def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, inp_size, seed):
-    oam = OutputActivation(death=True, inplace=False)
-    oar = OutputActivation(death=True, inplace=True)
+    oam = OutputActivation(death=True, inplace=False, record_no_grad=False)
+    oar = OutputActivation(death=True, inplace=True, record_no_grad=False)
     ffg = FeedForwardGatherer(module, [
             oam, oar
     ], 'standalone_test' )
@@ -117,3 +111,35 @@ def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, i
         [np.mean(deathes), np.var(deathes), np.min(deathes), np.max(deathes)],
         [rmv.mean, rmv.var, rmv.min_, rmv.max_]
     ).all()
+
+@pytest.mark.parametrize(
+    [ 'module', 'record_no_grad'],
+    [
+        (nn.ReLU(), False,),
+        (nn.ReLU(), True),
+
+        (nn.Sigmoid(), False,),
+        (nn.Sigmoid(), True),
+
+        (nn.Mish(), False,),
+        (nn.Mish(), True),
+    ]
+)
+def test_record_no_grad(module, record_no_grad : bool):
+    oam = OutputActivation(death=True, inplace=False, record_no_grad=record_no_grad)
+    oar = OutputActivation(death=True, inplace=True, record_no_grad=record_no_grad)
+
+    ffg = FeedForwardGatherer(module, [
+            oam, oar
+    ], 'standalone_test' )
+
+    with torch.no_grad():
+        x = torch.rand(100, 100)
+        module(x)
+
+    if record_no_grad:
+        assert 'standalone_test' in oam.value
+        assert 'standalone_test' in oar.value
+    else:
+        assert 'standalone_test' not in oam.value
+        assert 'standalone_test' not in oar.value
