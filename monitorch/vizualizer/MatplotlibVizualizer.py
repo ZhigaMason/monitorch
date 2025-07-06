@@ -70,10 +70,11 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
 
     def plot_numerical_values(self, epoch : int, main_tag : str, values_dict : odict[str, dict[str, float]], ranges_dict : odict[str, dict[tuple[str, str], tuple[float, float]]] | None = None) -> None:
-        values, ranges = self._to_plot.setdefault(main_tag, (odict(), odict()))
+
+        values_ranges = self._to_plot.setdefault(main_tag, odict())
 
         for tag, numerical_values_dict in values_dict.items():
-            tag_dict = values.setdefault(tag, {})
+            tag_dict = values_ranges.setdefault(tag, ({}, {}))[0]
             for descriptor, y in numerical_values_dict.items():
                 ys = tag_dict.setdefault(descriptor, [])
                 ys.insert(epoch, y)
@@ -81,7 +82,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
         if not ranges_dict:
             return
         for tag, numerical_ranges_dict in ranges_dict.items():
-            tag_dict = ranges.setdefault(tag, {})
+            tag_dict = values_ranges.setdefault(tag, ({}, {}))[1]
             for (desc1, desc2), (y1, y2) in numerical_ranges_dict.items():
                 y1s, y2s = tag_dict.setdefault((desc1, desc2), ([], []))
                 y1s.insert(epoch, y1)
@@ -148,10 +149,10 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
     def _compute_n_max_small_plots(self):
         n_max_plots_in_prob_rel = max(
-            (len(self._to_plot[tag]) for (tag, attr) in self._small_tag_attr if attr in {TagType.PROBABILITY, TagType.RELATIONS}),
+            (len(self._to_plot[tag]) for (tag, attr) in self._small_tag_attr.items() if attr.type in {TagType.PROBABILITY, TagType.RELATIONS}),
             default=0
         )
-        numerical_tags = [tag for (tag, attr) in self._small_tag_attr if attr == TagType.NUMERICAL]
+        numerical_tags = [tag for (tag, attr) in self._small_tag_attr.items() if attr.type == TagType.NUMERICAL]
         n_max_plots_in_numerical = 0
         for tag in numerical_tags:
             val_dict, range_dict = self._to_plot[tag]
@@ -202,16 +203,16 @@ class MatplotlibVizualizer(AbstractVizualizer):
             elif tag in self._big_tag_attr:
                 subfig.suptitle(tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT)
                 ax = subfig.subplots()
+                values = self._to_plot[tag][tag]
                 if self._big_tag_attr[tag].logy:
                     ax.set_yscale('log', base=10)
                 match self._big_tag_attr[tag].type:
                     case TagType.NUMERICAL:
-                        val_dict, range_dict = self._to_plot[tag]
-                        MatplotlibVizualizer._plot_numerical(ax, val_dict[tag], range_dict[tag])
+                        MatplotlibVizualizer._plot_numerical(ax, values[0], values[1])
                     case TagType.PROBABILITY:
-                        MatplotlibVizualizer._plot_probability(ax, self._to_plot[tag][tag])
+                        MatplotlibVizualizer._plot_probability(ax, values)
                     case TagType.RELATIONS:
-                        MatplotlibVizualizer._plot_relations(ax, self._to_plot[tag][tag])
+                        MatplotlibVizualizer._plot_relations(ax, values)
                 if self._big_tag_attr[tag].annotate:
                     ax.legend()
 
