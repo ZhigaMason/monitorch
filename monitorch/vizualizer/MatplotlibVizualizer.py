@@ -155,8 +155,8 @@ class MatplotlibVizualizer(AbstractVizualizer):
         numerical_tags = [tag for (tag, attr) in self._small_tag_attr.items() if attr.type == TagType.NUMERICAL]
         n_max_plots_in_numerical = 0
         for tag in numerical_tags:
-            val_dict, range_dict = self._to_plot[tag]
-            n_max_plots_in_numerical = max(n_max_plots_in_numerical, len(val_dict), len(range_dict))
+            val_range_dict = self._to_plot[tag]
+            n_max_plots_in_numerical = max(n_max_plots_in_numerical, len(val_range_dict))
 
         self._n_max_plots_in_small_tags = max(n_max_plots_in_numerical, n_max_plots_in_prob_rel)
 
@@ -241,8 +241,13 @@ class MatplotlibVizualizer(AbstractVizualizer):
                         MatplotlibVizualizer._plot_probability(ax, values)
                     case TagType.RELATIONS:
                         MatplotlibVizualizer._plot_relations(ax, values)
+        if tag_attr.annotate:
+            axes[0].legend(
+                loc='lower center',
+                bbox_to_anchor=(0.5, 1.1)
+            )
         axes[n_real_plots - 1].tick_params(labelbottom=True)
-        fig.subplots_adjust(top=0.95 * (1 - 1/(self._n_max_plots_in_small_tags + 1) ** 2),bottom=0)
+        fig.subplots_adjust(top=0.92 * (1 - 1/(self._n_max_plots_in_small_tags + 1) ** 2),bottom=0)
 
     @staticmethod
     def _plot_numerical(ax, val_dict, range_dict) -> None:
