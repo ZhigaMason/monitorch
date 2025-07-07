@@ -15,8 +15,6 @@ from .abstract_lens import AbstractLens
 class OutputNorm(AbstractLens):
 
     SMALL_TAG_NAME = "Output Norm"
-    RELATIONS_TAG_NAME = "Output Norm Comparison"
-    LOG_RELATIONS_TAG_NAME = "Output Log Norm Comparison"
 
     def __init__(
             self,
@@ -27,6 +25,9 @@ class OutputNorm(AbstractLens):
 
             activation_only : bool = True,
 
+            comparison_plot : bool = True,
+            comparison_aggregation : str|None = None,
+
             line_aggregation : str|Iterable[str] = 'mean',
             range_aggregation : str|Iterable[str]|None = ('std', 'min-max')
     ):
@@ -36,7 +37,7 @@ class OutputNorm(AbstractLens):
             record_no_grad=not skip_no_grad_pass
         )
 
-        self._tag_attr = TagAttributes(
+        self._small_tag_attr = TagAttributes(
             logy=log_scale,
             big_plot=False,
             annotate=True,
@@ -57,6 +58,13 @@ class OutputNorm(AbstractLens):
             self._range_aggregation = []
         else:
             self._range_aggregation = range_aggregation
+
+        self._comparison_plot = comparison_plot
+        if self._comparison_plot:
+            self._comparison_aggregation = comparison_aggregation if comparison_aggregation else next(iter(self._line_aggregation))
+            self._comparison_plot_name = f'{self._comparison_aggregation} Output{" Log" if log_scale else ""} Norm Comparison'.title()
+            self._comparison_data : OrderedDict[str, float]= OrderedDict()
+
 
 
     def register_module(self, module : Module, module_name : str):
@@ -79,8 +87,16 @@ class OutputNorm(AbstractLens):
 
     def introduce_tags(self, vizualizer : AbstractVizualizer):
         vizualizer.register_tags(
-            OutputNorm.SMALL_TAG_NAME, self._tag_attr
+            OutputNorm.SMALL_TAG_NAME, self._small_tag_attr
         )
+        if self._comparison_plot:
+            vizualizer.register_tags(
+                self._comparison_plot_name,
+                TagAttributes(
+                    logy=False, big_plot=True, annotate=False, type=TagType.RELATIONS
+                )
+            )
+
 
     def finalize_epoch(self):
         for module_name, module_data in self._preprocessor.value.items():
@@ -92,11 +108,25 @@ class OutputNorm(AbstractLens):
             for method in self._range_aggregation:
                 range_values[parse_range_name(method)] = extract_range(module_data, method)
 
+        if self._comparison_plot:
+            total_sum = 0
+            for module_name, module_data in self._preprocessor.value.items():
+                self._comparison_data[module_name] = extract_point(module_data, self._comparison_aggregation)
+                total_sum += self._comparison_data[module_name]
+            for module_name in self._comparison_data:
+                self._comparison_data[module_name] /= total_sum
+
 
     def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
         vizualizer.plot_numerical_values(
             epoch, OutputNorm.SMALL_TAG_NAME, self._line_data, self._range_data
         )
+
+        if self._comparison_plot:
+            vizualizer.plot_relations(
+                epoch, self._comparison_plot_name,
+                OrderedDict([(self._comparison_plot_name, self._comparison_data)])
+            )
 
     def reset_epoch(self):
         self._preprocessor.reset()

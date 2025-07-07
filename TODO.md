@@ -18,7 +18,6 @@
 - [x] Autodocumentation
 
 ## Architecture
-
 - [x] 'Ends communication channels (injections/calls/intermediate objects)
 - [-] Class hierarchies
 
@@ -76,9 +75,9 @@
 - [ ] Gradient Geometry
 - [ ] Gradient Activation
 - [ ] Output Activation
-- [ ] Output Norm
+- [x] Output Norm
 - [ ] Parameter norms
-- [ ] Loss/Metrics
+- [x] Loss/Metrics
 
 ## Frontend (metadata visualisation)
 

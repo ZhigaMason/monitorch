@@ -101,7 +101,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
     def plot_relations(self, epoch : int, main_tag, values_dict : odict[str, odict[str, float]]) -> None:
         values = self._to_plot.setdefault(main_tag, odict())
         for tag, numerical_values_dict in values_dict.items():
-            tag_dict = values.setdefault(tag, odict)
+            tag_dict = values.setdefault(tag, odict())
             for descriptor, y in numerical_values_dict.items():
                 ys = tag_dict.setdefault(descriptor, [])
                 ys.insert(epoch, y)
