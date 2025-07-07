@@ -36,6 +36,9 @@ class MatplotlibVizualizer(AbstractVizualizer):
         'activation_rate' : 'blue',
         'death_rate'      : 'orange',
 
+        'worst activation_rate' : 'blue',
+        'worst death_rate'      : 'orange',
+
         'train_loss' : 'blue',
         'val_loss'   : 'orange',
 
@@ -303,6 +306,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
                     range(len(probs)), probs,
                     label=prob_name
                 )
+        ax.set_ylim(0, 1)
 
     @staticmethod
     def _plot_relations(ax, rel_dict) -> None:
