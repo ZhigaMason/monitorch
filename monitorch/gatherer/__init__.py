@@ -1,6 +1,5 @@
 from .abstract_gatherer import AbstractGatherer
 from .feed_forward_gatherer import FeedForwardGatherer
 from .backward_gatherer import BackwardGatherer
-from .weight_gradient_gatherer import WeightGradientGatherer
-from .bias_gradient_gatherer import BiasGradientGatherer
+from .parameter_gradient_gatherer import ParameterGradientGatherer
 from .epoch_module_gatherer import EpochModuleGatherer
