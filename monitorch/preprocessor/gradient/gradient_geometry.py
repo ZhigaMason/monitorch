@@ -1,4 +1,5 @@
 
+from collections import OrderedDict
 from math import sqrt
 from copy import deepcopy
 from typing import Any
@@ -12,7 +13,7 @@ class GradientGeometry(AbstractGradientPreprocessor):
     def __init__(self, adj_prod : bool, normalize : bool, inplace : bool):
         self._adj_prod = adj_prod
         self._normalize = normalize
-        self._value = {} # Either name : norm or name : (norm, prod)
+        self._value = OrderedDict() # Either name : norm or name : (norm, prod)
         self._agg_class = RunningMeanVar if inplace else list
         if adj_prod:
             self._prev_grad = {}
