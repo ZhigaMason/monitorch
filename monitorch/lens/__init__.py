@@ -4,3 +4,4 @@ from .output_norm                 import OutputNorm
 from .output_activation           import OutputActivation
 from .parameter_norm              import ParameterNorm
 from .parameter_gradient_geometry import ParameterGradientGeometry
+from .output_gradient_geometry    import OutputGradientGeometry
