@@ -119,6 +119,12 @@ class ParameterGradientGeometry(AbstractLens):
                         line_norm_dict[method] = extract_point(value, method)
                     for method in self._range_aggregation:
                         range_norm_dict[parse_range_name(method)] = extract_range(value, method)
+            self._line_data[parameter_name] = OrderedDict(reversed(line_norm_tag_dict.items()))
+            self._range_data[parameter_name] = OrderedDict(reversed(range_norm_tag_dict.items()))
+            if self._compute_adj_prod:
+                self._line_adj_prod_data[parameter_name] = OrderedDict(reversed(line_prod_tag_dict.items()))
+                self._range_adj_prod_data[parameter_name] = OrderedDict(reversed(range_prod_tag_dict.items()))
+
 
 
     def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
