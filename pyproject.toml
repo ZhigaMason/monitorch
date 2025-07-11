@@ -1,6 +1,6 @@
 [project]
 name = "monitorch"
-version = "0.1.0"
+version = "0.0.1"
 description = "A plug-and-use python library to monitor learning of PyTorch neural networks"
 readme = "README.md"
 authors = [
@@ -21,8 +21,8 @@ requires-python = ">=3.10"
 
 dependencies = [
   "torch>=2.0.0",
-  "matplotlib",
-  "tensorboard"
+  "matplotlib>=3.10.0",
+  "tensorboard>=2.19.0"
 ]
 
 [project.urls]

@@ -14,7 +14,7 @@
 ### DevOps
 - [x] pyproject.toml
 - [ ] publishing at anaconda
-- [ ] CI/CDing
+- [-] CI/CDing
 - [x] Autodocumentation
 
 ## Architecture
@@ -72,11 +72,11 @@
 - [-] net aggregation
 
 - [ ] Debug Lens
-- [ ] Gradient Geometry
-- [ ] Gradient Activation
-- [ ] Output Activation
+- [x] Gradient Geometry
+- [x] Gradient Activation
+- [x] Output Activation
 - [x] Output Norm
-- [ ] Parameter norms
+- [x] Parameter norms
 - [x] Loss/Metrics
 
 ## Frontend (metadata visualisation)
