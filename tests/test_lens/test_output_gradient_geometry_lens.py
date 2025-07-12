@@ -1,0 +1,95 @@
+import pytest
+import torch
+import torch.nn as nn
+
+from lenses_testing_utils import generic_lens_test, N_DIM
+from monitorch.inspector import PyTorchInspector
+from monitorch.lens import OutputGradientGeometry
+
+@pytest.mark.smoke
+@pytest.mark.parametrize(
+    ['module', 'loss_fn', 'vizualizer', 'lens_kwargs'],
+    [
+        ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'matplotlib', {}),
+        ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'tensorboard', {}),
+        ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'print', {}),
+
+        ( nn.Sequential(nn.Linear(N_DIM, 1), nn.Sigmoid()), nn.BCELoss(), 'matplotlib', {}),
+        ( nn.Sequential(nn.Linear(N_DIM, 1), nn.Sigmoid()), nn.BCELoss(), 'tensorboard', {}),
+        ( nn.Sequential(nn.Linear(N_DIM, 1), nn.Sigmoid()), nn.BCELoss(), 'print', {}),
+
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'matplotlib', {}),
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'tensorboard', {}),
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'print', {}),
+
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'matplotlib', {'inplace' : False}),
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'tensorboard', {'inplace' : False}),
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'print', {'inplace' : False}),
+
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'matplotlib', {'compute_adj_prod' : False}),
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'tensorboard', {'compute_adj_prod' : False}),
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'print', {'compute_adj_prod' : False}),
+
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'matplotlib', {'compute_adj_prod' : False, 'inplace' : False}),
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'tensorboard', {'compute_adj_prod' : False, 'inplace' : False}),
+        ( nn.Sequential(
+            nn.Linear(N_DIM, 32), nn.ReLU(),
+            nn.Linear(32, 1), nn.Sigmoid()
+        ), nn.BCELoss(), 'print', {'compute_adj_prod' : False, 'inplace' : False}),
+    ]
+)
+def test_output_gradient_geometry(module, loss_fn, vizualizer, lens_kwargs):
+
+    inspector = PyTorchInspector(
+        lenses = [
+            OutputGradientGeometry(**lens_kwargs)
+        ],
+        module = module,
+        vizualizer = vizualizer
+    )
+
+    optimizer = torch.optim.NAdam(
+        module.parameters()
+    )
+
+    generic_lens_test(
+        inspector,
+        module,
+        loss_fn,
+        optimizer
+    )
+
+
