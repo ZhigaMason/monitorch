@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from lenses_testing_utils import generic_lens_test, N_DIM
 from monitorch.inspector import PyTorchInspector
-from monitorch.lens import OutputNorm
+from monitorch.lens import ParameterGradientGeometry
 
 @pytest.mark.smoke
 @pytest.mark.parametrize(
@@ -47,35 +47,35 @@ from monitorch.lens import OutputNorm
         ( nn.Sequential(
             nn.Linear(N_DIM, 32), nn.ReLU(),
             nn.Linear(32, 1), nn.Sigmoid()
-        ), nn.BCELoss(), 'matplotlib', {'activation' : False}),
+        ), nn.BCELoss(), 'matplotlib', {'compute_adj_prod' : False}),
         ( nn.Sequential(
             nn.Linear(N_DIM, 32), nn.ReLU(),
             nn.Linear(32, 1), nn.Sigmoid()
-        ), nn.BCELoss(), 'tensorboard', {'activation' : False}),
+        ), nn.BCELoss(), 'tensorboard', {'compute_adj_prod' : False}),
         ( nn.Sequential(
             nn.Linear(N_DIM, 32), nn.ReLU(),
             nn.Linear(32, 1), nn.Sigmoid()
-        ), nn.BCELoss(), 'print', {'activation' : False}),
+        ), nn.BCELoss(), 'print', {'compute_adj_prod' : False}),
 
         ( nn.Sequential(
             nn.Linear(N_DIM, 32), nn.ReLU(),
             nn.Linear(32, 1), nn.Sigmoid()
-        ), nn.BCELoss(), 'matplotlib', {'include' : [nn.Linear]}),
+        ), nn.BCELoss(), 'matplotlib', {'compute_adj_prod' : False, 'inplace' : False}),
         ( nn.Sequential(
             nn.Linear(N_DIM, 32), nn.ReLU(),
             nn.Linear(32, 1), nn.Sigmoid()
-        ), nn.BCELoss(), 'tensorboard', {'include' : [nn.Linear]}),
+        ), nn.BCELoss(), 'tensorboard', {'compute_adj_prod' : False, 'inplace' : False}),
         ( nn.Sequential(
             nn.Linear(N_DIM, 32), nn.ReLU(),
             nn.Linear(32, 1), nn.Sigmoid()
-        ), nn.BCELoss(), 'print', {'include' : [nn.Linear]}),
+        ), nn.BCELoss(), 'print', {'compute_adj_prod' : False, 'inplace' : False}),
     ]
 )
-def test_output_norm_lens(module, loss_fn, vizualizer, lens_kwargs):
+def test_parameter_gradient_geometry(module, loss_fn, vizualizer, lens_kwargs):
 
     inspector = PyTorchInspector(
         lenses = [
-            OutputNorm(**lens_kwargs)
+            ParameterGradientGeometry(**lens_kwargs)
         ],
         module = module,
         vizualizer = vizualizer

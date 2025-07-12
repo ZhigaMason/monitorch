@@ -29,10 +29,6 @@ def generic_lens_test(inspector, module, loss_fn, optimizer):
 
     if isinstance(inspector.vizualizer, MatplotlibVizualizer):
         inspector.vizualizer.show_fig()
-    elif isinstance(inspector.vizualizer, TensorBoardVizualizer):
-        # shyte
-        filterwarnings("ignore")
-        shutil.rmtree("runs", ignore_errors=True)
 
 def train_xor(inspector : PyTorchInspector, module, loss_fn, optimizer, n_dim, n_epochs, push_loss : bool, push_loss_inplace : bool = False):
     raw_data = torch.tensor(_generate_xor_data(n_dim)).reshape(-1, n_dim)
