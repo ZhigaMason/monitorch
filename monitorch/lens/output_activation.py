@@ -1,7 +1,7 @@
 import numpy as np
 
 from collections import OrderedDict
-from typing import Iterable
+from typing import Iterable, Type
 from .abstract_lens import AbstractLens
 from torch.nn import Module
 from monitorch.gatherer import FeedForwardGatherer
@@ -9,7 +9,7 @@ from monitorch.preprocessor import AbstractPreprocessor, OutputActivation as Out
 from monitorch.vizualizer import AbstractVizualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point
 
-from .module_distinction import isactivation
+from .module_distinction import isactivation, isdropout
 
 
 class OutputActivation(AbstractLens):
@@ -22,7 +22,11 @@ class OutputActivation(AbstractLens):
         inplace : bool = True,
 
         skip_no_grad_pass : bool = True,
-        activation_only : bool = True,
+
+        activation : bool = True,
+        dropout : bool = True,
+        include : Iterable[Type[Module]] = tuple(),
+        exclude : Iterable[Type[Module]] = tuple(),
 
         warning_plot : bool = True,
 
@@ -38,7 +42,12 @@ class OutputActivation(AbstractLens):
         )
         self._data : OrderedDict[str, dict[str, float]] = OrderedDict()
 
-        self._activation_only = activation_only
+        self._activation = activation
+        self._dropout = dropout
+        self._include = include
+        self._exclude = exclude
+
+
         self._warning_plot = warning_plot
         if self._warning_plot:
             self._warning_data = {
@@ -53,7 +62,11 @@ class OutputActivation(AbstractLens):
 
 
     def register_module(self, module : Module, module_name : str):
-        if not(self._activation_only and isactivation(module)):
+        if module.__class__ in self._exclude or (
+            not (module.__class__ in self._include) and
+            not (self._activation and isactivation(module)) and
+            not (self._dropout and isdropout(module))
+        ):
             return
         ffg = FeedForwardGatherer(
             module, [self._preprocessor], module_name

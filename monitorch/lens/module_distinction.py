@@ -71,6 +71,15 @@ from torch.nn.modules import (
     FeatureAlphaDropout,
 )
 
+_DROPOUT = {
+    AlphaDropout,
+    Dropout,
+    Dropout1d,
+    Dropout2d,
+    Dropout3d,
+    FeatureAlphaDropout,
+}
+
 _ACTIVATION = {
     CELU,
     ELU,
@@ -105,5 +114,8 @@ _ACTIVATION = {
 
 def isactivation(module : Module) -> bool:
     return module.__class__ in _ACTIVATION
+
+def isdropout(module : Module) -> bool:
+    return module.__class__ in _DROPOUT
 
 

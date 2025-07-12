@@ -1,6 +1,6 @@
 from torch.nn import Module
 from collections import OrderedDict
-from typing import Iterable
+from typing import Iterable, Type
 
 from monitorch.preprocessor import AbstractPreprocessor, OutputNorm as OutputNormPreprocessor
 from monitorch.vizualizer import AbstractVizualizer, TagAttributes, TagType
@@ -23,7 +23,10 @@ class OutputNorm(AbstractLens):
             inplace : bool = True,
             skip_no_grad_pass : bool = True,
 
-            activation_only : bool = True,
+            activation : bool = True,
+
+            include : Iterable[Type[Module]] = tuple(),
+            exclude : Iterable[Type[Module]] = tuple(),
 
             comparison_plot : bool = True,
             comparison_aggregation : str|None = None,
@@ -48,7 +51,9 @@ class OutputNorm(AbstractLens):
         self._line_data  : OrderedDict[str, dict[str, float]] = OrderedDict()
         self._range_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
 
-        self._activation_only = activation_only
+        self._activation = activation
+        self._include = include
+        self._exclude = exclude
 
         self._line_aggregation : Iterable[str] = [line_aggregation] if isinstance(line_aggregation, str) else line_aggregation
         self._range_aggregation : Iterable[str]
@@ -68,7 +73,7 @@ class OutputNorm(AbstractLens):
 
 
     def register_module(self, module : Module, module_name : str):
-        if not self._activation_only or isactivation(module):
+        if module.__class__ not in self._exclude and ((self._activation and isactivation(module)) or module.__class__ in self._include):
             ffg = FeedForwardGatherer(
                 module, [self._preprocessor], module_name
             )
