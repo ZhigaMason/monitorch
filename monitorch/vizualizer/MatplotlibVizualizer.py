@@ -2,6 +2,7 @@ import numpy as np
 
 from typing_extensions import Self
 from collections import OrderedDict as odict
+from warnings import warn
 
 from .AbstractVizualizer import AbstractVizualizer, TagAttributes, TagType
 
@@ -55,6 +56,8 @@ class MatplotlibVizualizer(AbstractVizualizer):
     _SMALL_TAG_FACE_COLORS = [
         (1,1,1), (0.95, 0.92, 0.9)
     ]
+
+    NO_SMALL_TAGS_WARNING = "No small plots, but lenses plotting per layer values used"
 
     def __init__(self, **kwargs):
         self._to_plot = odict()
@@ -224,9 +227,12 @@ class MatplotlibVizualizer(AbstractVizualizer):
             fig.set_facecolor(colors[idx % len(colors)])
 
     def _plot_small_tag(self, fig : SubFigure, tag) -> None:
+        if self._n_max_plots_in_small_tags == 0:
+            warn(MatplotlibVizualizer.NO_SMALL_TAGS_WARNING)
+            return
         tag_dict = self._to_plot[tag]
         tag_attr = self._small_tag_attr[tag]
-        axes = fig.subplots(nrows=self._n_max_plots_in_small_tags, sharex=True)
+        axes = fig.subplots(nrows=self._n_max_plots_in_small_tags, sharex=True, squeeze=False).flatten()
         n_real_plots = len(tag_dict)
         fig.suptitle(tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT)
         for ax in axes[n_real_plots:]:
@@ -310,6 +316,8 @@ class MatplotlibVizualizer(AbstractVizualizer):
 
     @staticmethod
     def _plot_relations(ax, rel_dict) -> None:
+        if not rel_dict:
+            return
         l = len(next(iter(rel_dict.values())))
         first_record = []
         for relations in rel_dict.values():

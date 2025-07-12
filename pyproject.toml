@@ -35,3 +35,8 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["monitorch"]
+
+[tool.pytest.ini_options]
+markers = [
+    "smoke: tests only succesful runs, no functionality asserts",
+]
