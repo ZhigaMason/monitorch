@@ -4,7 +4,7 @@
 
 from typing import Any
 
-from monitorch.preprocessor.abstract.abstract_preprocessor import AbstractPreprocessor
+from .abstract.abstract_preprocessor import AbstractPreprocessor
 from monitorch.numerical import RunningMeanVar
 
 class ExplicitCall(AbstractPreprocessor):
