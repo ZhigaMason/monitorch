@@ -127,7 +127,7 @@ class OutputGradientGeometry(AbstractLens):
         if self._compute_adj_prod:
             vizualizer.plot_numerical_values(
                 epoch, OutputGradientGeometry.SMALL_PROD_TAG_NAME,
-                self._line_adj_prod_data, self._range_data
+                self._line_adj_prod_data, self._range_adj_prod_data
             )
 
     def reset_epoch(self):

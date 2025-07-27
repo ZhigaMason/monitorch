@@ -84,7 +84,8 @@ class ParameterGradientGeometry(AbstractLens):
                         logy=False,
                         big_plot=False,
                         annotate=True,
-                        type=TagType.NUMERICAL
+                        type=TagType.NUMERICAL,
+                        ylim=(-1, 1)
                     )
                 )
 
@@ -136,7 +137,7 @@ class ParameterGradientGeometry(AbstractLens):
             if self._compute_adj_prod:
                 vizualizer.plot_numerical_values(
                     epoch, f"{parameter_name} Gradient Adjacent Prod".title(),
-                    self._line_adj_prod_data[parameter_name], self._range_data[parameter_name]
+                    self._line_adj_prod_data[parameter_name], self._range_adj_prod_data[parameter_name]
                 )
 
     def reset_epoch(self):
