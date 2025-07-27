@@ -13,6 +13,11 @@ from matplotlib.figure import Figure, SubFigure
 class MatplotlibVizualizer(AbstractVizualizer):
 
     _GOLDEN_RATIO = 1.618 # plot w/h ratio
+    UNIT = 2
+    BIG_PLOT_AMP = 2
+    SMALL_TITLE_HEIGHT = 0.5
+    LEGEND_HEIGHT = 1
+    LEGEND_ANCHOR = (0.5, 1.2)
 
     _RANGE_COLORS = {
         ('min', 'max') : 'grey',
@@ -136,7 +141,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
         #                                :D
         pass
 
-    def _compute_figsize(self) -> tuple[int, int]:
+    def _compute_figsize(self) -> tuple[float, float]:
         if self._n_max_plots_in_small_tags == -1:
             self._compute_n_max_small_plots()
         n_small_tags = len(self._small_tag_attr)
@@ -145,11 +150,11 @@ class MatplotlibVizualizer(AbstractVizualizer):
         if self._big_tag_attr == -1:
             self._compute_n_max_small_plots()
 
-        width = 2 * int(max(
-            2 * MatplotlibVizualizer._GOLDEN_RATIO * n_big_tags,
+        width = MatplotlibVizualizer.UNIT * int(max(
+            MatplotlibVizualizer.BIG_PLOT_AMP * MatplotlibVizualizer._GOLDEN_RATIO * n_big_tags,
             MatplotlibVizualizer._GOLDEN_RATIO * n_small_tags
         ))
-        height = 2 * (3 + self._n_max_plots_in_small_tags)
+        height = MatplotlibVizualizer.UNIT * (MatplotlibVizualizer.SMALL_TITLE_HEIGHT + MatplotlibVizualizer.LEGEND_HEIGHT + self._n_max_plots_in_small_tags)
 
         return (width, height)
 
@@ -171,7 +176,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
         if self._n_max_plots_in_small_tags == -1:
             self._compute_n_max_small_plots()
 
-        height_ratios = (2, self._n_max_plots_in_small_tags + 1)
+        height_ratios = (MatplotlibVizualizer.BIG_PLOT_AMP, self._n_max_plots_in_small_tags + MatplotlibVizualizer.LEGEND_HEIGHT + MatplotlibVizualizer.SMALL_TITLE_HEIGHT)
         gs = GridSpec(2, 1, height_ratios=height_ratios, hspace=0.0)
 
         ret = {}
@@ -234,7 +239,12 @@ class MatplotlibVizualizer(AbstractVizualizer):
         tag_attr = self._small_tag_attr[tag]
         axes = fig.subplots(nrows=self._n_max_plots_in_small_tags, sharex=True, squeeze=False).flatten()
         n_real_plots = len(tag_dict)
-        fig.suptitle(tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT)
+        TOTAL_HEIGHT = MatplotlibVizualizer.SMALL_TITLE_HEIGHT + MatplotlibVizualizer.LEGEND_HEIGHT + self._n_max_plots_in_small_tags
+        fig.suptitle(
+            tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT,
+            y=1 - MatplotlibVizualizer.SMALL_TITLE_HEIGHT / TOTAL_HEIGHT,
+            va='baseline'
+        )
         for ax in axes[n_real_plots:]:
             ax.set_visible(False)
 
@@ -253,10 +263,10 @@ class MatplotlibVizualizer(AbstractVizualizer):
         if tag_attr.annotate:
             axes[0].legend(
                 loc='lower center',
-                bbox_to_anchor=(0.5, 1.1)
+                bbox_to_anchor=MatplotlibVizualizer.LEGEND_ANCHOR
             )
         axes[n_real_plots - 1].tick_params(labelbottom=True)
-        fig.subplots_adjust(top=0.92 * (1 - 1/(self._n_max_plots_in_small_tags + 1) ** 2),bottom=0)
+        fig.subplots_adjust(top=1 - (MatplotlibVizualizer.SMALL_TITLE_HEIGHT + MatplotlibVizualizer.LEGEND_HEIGHT) / TOTAL_HEIGHT, bottom=0)
 
     @staticmethod
     def _plot_numerical(ax, val_dict, range_dict) -> None:
