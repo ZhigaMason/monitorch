@@ -226,6 +226,9 @@ class MatplotlibVizualizer(AbstractVizualizer):
                         MatplotlibVizualizer._plot_relations(ax, values)
                 if self._big_tag_attr[tag].annotate:
                     ax.legend()
+                if self._big_tag_attr[tag].ylim is not None:
+                    bottom, top = self._big_tag_attr[tag].ylim
+                    ax.set_ylim(bottom, top)
 
         colors = MatplotlibVizualizer._SMALL_TAG_FACE_COLORS
         for idx, fig in enumerate(small_figs):
@@ -248,6 +251,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
         for ax in axes[n_real_plots:]:
             ax.set_visible(False)
 
+
         for ax, (plot_name, values) in zip(axes, tag_dict.items()):
             ax.set_title(plot_name)
             if tag_attr.logy:
@@ -260,6 +264,10 @@ class MatplotlibVizualizer(AbstractVizualizer):
                         MatplotlibVizualizer._plot_probability(ax, values)
                     case TagType.RELATIONS:
                         MatplotlibVizualizer._plot_relations(ax, values)
+            if self._small_tag_attr[tag].ylim is not None:
+                top, bottom= self._small_tag_attr[tag].ylim
+                ax.set_ylim(bottom, top)
+
         if tag_attr.annotate:
             axes[0].legend(
                 loc='lower center',
