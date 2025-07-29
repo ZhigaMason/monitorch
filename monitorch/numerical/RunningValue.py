@@ -49,6 +49,11 @@ def extract_point(raw_val, method) -> float:
                 return float(np.quantile(raw_val, 0.25))
             case 'Q3':
                 return float(np.quantile(raw_val, 0.25))
+            case 'IQR':
+                [q1, q3] = np.quantile(raw_val, [0.25, 0.75], method='closest_observation').tolist()
+                return q3 - q1
+            case 'std':
+                return float(np.std(raw_val))
             case _:
                 raise AttributeError("Unknown method passed to extract point")
     elif isinstance(raw_val, RunningMeanVar):
@@ -65,6 +70,10 @@ def extract_point(raw_val, method) -> float:
                 raise AttributeError("RunningMeanVar cannot track 3rd quantile of collection")
             case 'median':
                 raise AttributeError("RunningMeanVar cannot track median of collection")
+            case 'IQR':
+                raise AttributeError("RunningMeanVar cannot track IQR of collection")
+            case 'std':
+                return float(np.sqrt(raw_val.var))
             case _:
                 raise AttributeError("Unknown method passed to extract point")
     else:
