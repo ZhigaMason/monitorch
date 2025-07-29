@@ -24,22 +24,35 @@ class LossMetrics(AbstractLens):
             loss_fn : Module|None  = None,
             loss_fn_inplace : bool = True,
 
-            loss_line : str       = 'mean',
-            loss_range : str|None = 'std',
+            loss_line : str|Iterable[str]       = 'mean',
+            loss_range : str|Iterable[str]|None = 'std',
 
-            metrics_line : str       = 'mean',
-            metrics_range : str|None = None,
+            metrics_line : str|Iterable[str]       = 'mean',
+            metrics_range : str|Iterable[str]|None = None,
     ):
         self._loss = loss
         self._metrics : Iterable[str] = metrics if metrics else tuple()
         self._separate_loss_and_metrics = separate_loss_and_metrics
         self._call_preprocessor : ExplicitCall|None = None
 
-        self._loss_line  = loss_line
-        self._loss_range = loss_range
 
-        self._metrics_line  = metrics_line
-        self._metrics_range = metrics_range
+        self._loss_line : Iterable[str] = [loss_line] if isinstance(loss_line, str) else loss_line
+        self._loss_range : Iterable[str]
+        if isinstance(loss_range, str):
+            self._loss_range = [loss_range]
+        elif loss_range is None:
+            self._loss_range = []
+        else:
+            self._loss_range = loss_range
+
+        self._metrics_line  :Iterable[str] = [metrics_line] if isinstance(metrics_line, str) else metrics_line
+        self._metrics_range :Iterable[str]
+        if isinstance(metrics_range, str):
+            self._metrics_range = [metrics_range]
+        elif metrics_range is None:
+            self._metrics_range = []
+        else:
+            self._metrics_range = metrics_range
 
         if loss:
             self._loss_values : dict[str, float] = {}
@@ -96,7 +109,6 @@ class LossMetrics(AbstractLens):
 
         train_loss_str = self._call_preprocessor.train_loss_str
         non_train_loss_str = self._call_preprocessor.non_train_loss_str
-        lo_name, up_name = parse_range_name(self._loss_range)
 
         raw_train_loss = None
         raw_non_train_loss = None
@@ -111,29 +123,37 @@ class LossMetrics(AbstractLens):
         if not raw_non_train_loss:
             raw_non_train_loss = None
 
-        pt = extract_point(raw_train_loss, self._loss_line)
-        range_tuple = extract_range(raw_train_loss, self._loss_range)
+        # line aggregation
+        for loss_line in self._loss_line:
+            pt = extract_point(raw_train_loss, loss_line)
+            self._loss_values[train_loss_str + ' ' + loss_line] = pt
+            if raw_non_train_loss is not None:
+                pt = extract_point(raw_non_train_loss, loss_line)
+                self._loss_values[non_train_loss_str + ' ' + loss_line] = pt
 
-        self._loss_values[train_loss_str + ' ' + self._loss_line] = pt
-        self._loss_ranges[(train_loss_str + ' ' + lo_name, train_loss_str + ' ' + up_name)] = range_tuple
-        if raw_non_train_loss is not None:
-            pt = extract_point(raw_non_train_loss, self._loss_line)
-            range_tuple = extract_range(raw_non_train_loss, self._loss_range)
-
-            self._loss_values[non_train_loss_str + ' ' + self._loss_line] = pt
-            self._loss_ranges[(non_train_loss_str + ' ' + lo_name, non_train_loss_str + ' ' + up_name)] = range_tuple
+        # range aggreagation
+        for loss_range in self._loss_ranges:
+            range_tuple = extract_range(raw_train_loss, loss_range)
+            lo_name, up_name = parse_range_name(loss_range)
+            self._loss_ranges[(train_loss_str + ' ' + lo_name, train_loss_str + ' ' + up_name)] = range_tuple
+            if raw_non_train_loss is not None:
+                range_tuple = extract_range(raw_non_train_loss, loss_range)
+                self._loss_ranges[(non_train_loss_str + ' ' + lo_name, non_train_loss_str + ' ' + up_name)] = range_tuple
 
 
     def _finalize_metrics(self):
         assert self._call_preprocessor is not None
         for metric in self._metrics:
             raw_val = self._call_preprocessor.value[metric]
-            pt = extract_point(raw_val, self._metrics_line)
-            self._metrics_values[metric + ' ' + self._metrics_line] = pt
-            if self._metrics_range:
-                lo_name, up_name = parse_range_name(self._metrics_range)
-                range_tuple = extract_range(raw_val, self._metrics_range)
-                self._metrics_ranges[(metric + ' ' + lo_name, metric + ' ' + up_name)] = range_tuple
+            # line aggregation
+            for agg_line in self._metrics_line:
+                pt = extract_point(raw_val, agg_line)
+                self._loss_values[metric + ' ' + agg_line] = pt
+            # range aggreagation
+            for agg_range in self._metrics_ranges:
+                range_tuple = extract_range(raw_val, agg_range)
+                lo_name, up_name = parse_range_name(agg_range)
+                self._loss_ranges[(metric + ' ' + lo_name, metric + ' ' + up_name)] = range_tuple
 
     def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
         assert self._call_preprocessor is not None
