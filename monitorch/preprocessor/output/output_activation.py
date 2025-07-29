@@ -1,20 +1,20 @@
 
 from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates
 
-from torch import no_grad, isclose, tensor, is_grad_enabled, Tensor
+from torch import no_grad, is_grad_enabled, Tensor, abs as tabs
 from typing import Any
 from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
-from monitorch.numerical.threshold_for_module import threshold_for_module
 
 
 class OutputActivation(AbstractForwardPreprocessor):
 
-    def __init__(self, death : bool, inplace : bool, record_no_grad : bool):
+    def __init__(self, death : bool, inplace : bool, record_no_grad : bool, eps = 1e-8):
         self._death = death
         self._value = {} # Either name : activation or name : (activation, death_tensor)
         self._thresholds : dict[str, tuple[float, float]]= {}
         self._agg_class = RunningMeanVar if inplace else list
         self._record_no_grad = record_no_grad
+        self._eps = eps
 
     def process_fw(self, name : str, module, layer_input, layer_output) -> None:
         if not (self._record_no_grad or is_grad_enabled()):
@@ -24,14 +24,11 @@ class OutputActivation(AbstractForwardPreprocessor):
                 self._value[name] = (self._agg_class(), self._agg_class())
             else:
                 self._value[name] = self._agg_class()
-            self._thresholds[name] = threshold_for_module(module)
-
-        lo, up = self._thresholds[name]
 
         new_activation_tensor : Tensor
         new_activation_rate : Tensor
         with no_grad():
-            new_activation_tensor = (isclose(layer_output, tensor([lo])) | isclose(layer_output, tensor([up]))).logical_not()
+            new_activation_tensor = tabs(layer_output) > self._eps
             new_activation_rate = reduce_activation_to_activation_rates(new_activation_tensor, batch=True)
 
         if self._death:

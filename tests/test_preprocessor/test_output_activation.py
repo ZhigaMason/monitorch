@@ -30,7 +30,7 @@ class DumbModule(nn.Module):
             [1.893], [-13.469]]), 0.4666666666666667),
         (nn.Sigmoid(),  torch.tensor([
             [-1000], [-500], [-100], [-10], [-5], [-1], [0], [1], [5], [10], [100], [500], [1000 ]
-        ]), 0.5384615384615384)
+        ]), 0.7692307829856873)
     ]
 )
 def test_output_single_activation(module, X, activation):
@@ -46,28 +46,28 @@ def test_output_single_activation(module, X, activation):
 @pytest.mark.parametrize(
     ['module', 'activation_tensor_func', 'n_iter', 'inp_size', 'seed'],
     [
-        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 100), 0),
-        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 100), 0),
+        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 0),
+        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 100), 0),
         (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 0),
 
-        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 100), 42),
-        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 100), 42),
+        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 42),
+        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 100), 42),
         (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 42),
 
-        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 10, 10), 0),
-        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 10), 0),
+        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 0),
+        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 0),
         (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 0),
 
-        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 10, 10), 42),
-        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 10), 42),
+        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 42),
+        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 42),
         (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 42),
 
-        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 10, 2, 10), 0),
-        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 2, 10), 0),
+        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 0),
+        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 0),
         (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 0),
 
-        (nn.ReLU(),     lambda y: (y > 0),                    50, (100, 10, 2, 10), 42),
-        (nn.ReLU6(),    lambda y: ((y < 6) & (y > 0)),        50, (100, 10, 2, 10), 42),
+        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 42),
+        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 42),
         (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 42),
     ]
 )
