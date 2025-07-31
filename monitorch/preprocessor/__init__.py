@@ -1,10 +1,18 @@
+"""
+Submodule for aggregating and preprocessing raw data from neural net layers.
+
+Classes from this module implement computations of different variables that are collected during training.
+Those include but are not limited to activations of neurons and norms of vectorized tensors appearing in neural net.
+Those values can come from output, parameters or gradients of layers.
+It is expected that, preprocessors are called from one of objects in :mod:`monitorch.gatherer`.
+"""
 
 from .ExplicitCall import ExplicitCall
 
 from .abstract import (
     AbstractBackwardPreprocessor,
     AbstractForwardPreprocessor,
-    AbstractGradientPreprocessor,
+    AbstractTensorPreprocessor,
     AbstractModulePreprocessor,
     AbstractPreprocessor
 )
@@ -28,7 +36,7 @@ from .parameter import (
 __all__ = [
     "AbstractBackwardPreprocessor",
     "AbstractForwardPreprocessor",
-    "AbstractGradientPreprocessor",
+    "AbstractTensorPreprocessor",
     "AbstractModulePreprocessor",
     "AbstractPreprocessor",
     "GradientActivation",

@@ -1,5 +1,5 @@
 from .abstract_preprocessor import AbstractPreprocessor
 from .abstract_backward_preprocessor import AbstractBackwardPreprocessor
 from .abstract_forward_preprocessor import AbstractForwardPreprocessor
-from .abstract_gradient_preprocessor import AbstractGradientPreprocessor
+from .abstract_gradient_preprocessor import AbstractTensorPreprocessor
 from .abstract_module_preprocessor import AbstractModulePreprocessor

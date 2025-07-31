@@ -2,11 +2,11 @@ from typing import Any
 
 from torch import abs as tabs
 
-from monitorch.preprocessor.abstract.abstract_gradient_preprocessor import AbstractGradientPreprocessor
+from monitorch.preprocessor.abstract.abstract_gradient_preprocessor import AbstractTensorPreprocessor
 
 from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates
 
-class GradientActivation(AbstractGradientPreprocessor):
+class GradientActivation(AbstractTensorPreprocessor):
 
     def __init__(self, death : bool, inplace : bool, eps : float = 1e-8):
         self._death = death
@@ -14,7 +14,7 @@ class GradientActivation(AbstractGradientPreprocessor):
         self._agg_class = RunningMeanVar if inplace else list
         self._eps = eps
 
-    def process_grad(self, name : str, grad):
+    def process_tensor(self, name : str, grad):
         if name not in self._value:
             if self._death:
                 self._value[name] = (self._agg_class(), self._agg_class())

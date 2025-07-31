@@ -5,10 +5,10 @@ from copy import deepcopy
 from typing import Any
 from torch.linalg import vector_norm
 
-from monitorch.preprocessor.abstract.abstract_gradient_preprocessor import AbstractGradientPreprocessor
+from monitorch.preprocessor.abstract.abstract_gradient_preprocessor import AbstractTensorPreprocessor
 from monitorch.numerical import RunningMeanVar
 
-class GradientGeometry(AbstractGradientPreprocessor):
+class GradientGeometry(AbstractTensorPreprocessor):
 
     def __init__(self, adj_prod : bool, normalize : bool, inplace : bool):
         self._adj_prod = adj_prod
@@ -19,7 +19,7 @@ class GradientGeometry(AbstractGradientPreprocessor):
             self._prev_grad = {}
             self._prev_norm = {}
 
-    def process_grad(self, name : str, grad) -> None:
+    def process_tensor(self, name : str, grad) -> None:
         new_norm = vector_norm(grad).item()
         if self._normalize:
             new_norm /= sqrt(grad.numel())
