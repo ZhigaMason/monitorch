@@ -6,16 +6,22 @@
 Monitorch documentation
 =======================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+A modular tool to inspect, log, and visualize neural network internals during training in PyTorch.
 
+**Version**: 0.0.1
+**Author**: Maksym Khavil
+**Repository**: https://github.com/ZhigaMason/monitorch
+
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-.. automodule:: monitorch
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   api/inspector
+   api/lens
+   api/gatherer
+   api/preprocessor
+   api/vizualizer
+   api/numerical
