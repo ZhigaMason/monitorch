@@ -1,4 +1,4 @@
-Preprocessors
+preprocessors
 =============
 
 .. automodule:: monitorch.preprocessor

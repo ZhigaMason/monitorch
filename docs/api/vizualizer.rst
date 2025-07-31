@@ -1,4 +1,4 @@
-Vizualizers
+vizualizers
 ===========
 
 .. automodule:: monitorch.vizualizer

@@ -1,5 +1,5 @@
-Lenses
-======
+lens
+====
 
 .. automodule:: monitorch.lens
     :members:

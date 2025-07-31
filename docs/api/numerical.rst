@@ -1,4 +1,4 @@
-Numerical
+numerical
 =========
 
 .. automodule:: monitorch.numerical

@@ -1,4 +1,4 @@
-Inspector
+inspector
 =========
 
 .. automodule:: monitorch.inspector

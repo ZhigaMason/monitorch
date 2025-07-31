@@ -1,5 +1,5 @@
-Gatherers
-=========
+gatherer
+========
 
 .. automodule:: monitorch.gatherer
     :members:
