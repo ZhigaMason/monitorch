@@ -3,6 +3,23 @@ from monitorch.preprocessor import AbstractGradientPreprocessor
 from .abstract_gatherer import AbstractGatherer
 
 class ParameterGradientGatherer(AbstractGatherer):
+    """
+    Class to collect gradients from attributes of module.
+
+    Object of ``ParameterGradientGatherer`` gatherer is a stateful callback registered
+    onto ``torch.Tensor`` using ``register_post_accumulate_grad_hook``. On call hands over data to preprocessors.
+
+    Parameters
+    ----------
+    parameter : str
+        Name of learnable parameter in module to gather data from.
+    module : torch.nn.Module
+        Module from which the learnable parameter is obtained. The data will be collected from that learnable parameter.
+    preprocessors : list[:class:`AbstractGradientPreprocessor`]
+        Preprocessors that will aggregate data.
+    name : str
+        Name of the module.
+    """
 
     def __init__(self, parameter : str, module, preprocessors : list[AbstractGradientPreprocessor], name : str):
         self._preprocessors = preprocessors
@@ -14,4 +31,7 @@ class ParameterGradientGatherer(AbstractGatherer):
             preprocessor.process_grad(self._name, parameter.grad)
 
     def detach(self) -> None:
+        """
+        See base class
+        """
         self._handle.remove()
