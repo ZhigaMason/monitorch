@@ -63,3 +63,31 @@ def reduce_spatial_(act_tensor : Tensor, batch : bool) -> Tensor:
         if len(act_tensor.shape) > 1:
             return act_tensor.flatten(1, -1)
     return act_tensor
+
+def reduce_non_channels(tensor : Tensor, channel_dim : int) -> Tensor:
+    """
+    Flattens all dimension except for channel.
+
+    Parameters
+    ----------
+    tensor : torch.Tensor
+        Tensor to be reduced.
+    channel_dim : int
+        Number of dimension corresponding to channels.
+
+    Returns
+    -------
+    3D Tensor, where second dimension is channels and has as many channels as input tensor had.
+    """
+    ret = tensor
+    orig_shape = ret.shape
+    if channel_dim > 0:
+        ret = ret.flatten(0, channel_dim - 1)
+    if channel_dim < (len(orig_shape) - 1):
+        ret = ret.flatten(channel_dim - 1, -1)
+    else:
+        ret = ret.reshape(*ret.shape, 1)
+    if channel_dim == 0:
+        ret = ret.reshape(1, *ret.shape)
+    return ret
+
