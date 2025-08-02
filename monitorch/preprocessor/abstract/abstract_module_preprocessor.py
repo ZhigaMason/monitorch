@@ -7,7 +7,7 @@ class AbstractModulePreprocessor(AbstractPreprocessor):
     """
     Base class for all preprocessors that process module on its own.
 
-    Does not restrict usage by requiring inpuy, outputs or gradients of module.
+    Does not restrict usage by requiring inputs, outputs or gradients of module.
     """
 
     @abstractmethod
