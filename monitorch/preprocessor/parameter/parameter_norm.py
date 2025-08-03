@@ -23,6 +23,11 @@ class ParameterNorm(AbstractModulePreprocessor):
         If true computes RMS of tensor values, L2-norm otherwise.
     inplace : bool
         Flag indicating if :class:`RunningMeanVar` or ``list`` will be used.
+
+    Attributes
+    ----------
+    attrs_ : list[str]
+        List of attributes to compute norm for.
     """
 
     def __init__(self, attrs : list[str], normalize : bool, inplace : bool):

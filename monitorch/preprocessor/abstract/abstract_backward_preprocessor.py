@@ -10,7 +10,7 @@ class AbstractBackwardPreprocessor(AbstractPreprocessor):
     """
     Base class for all preprocessors that aggregate data obtain from backward pass.
 
-    Subclasses' of ``AbstractBackwardPreprocessor`` process gradients with respect to inputs or outputs of module.
+    Subclasses of ``AbstractBackwardPreprocessor`` process gradients with respect to inputs or outputs of module.
     """
 
     @abstractmethod

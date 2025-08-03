@@ -66,7 +66,9 @@ class GradientActivation(AbstractTensorPreprocessor):
 
     @property
     def value(self) -> dict[str, Any]:
+        """ See base class. """
         return self._value
 
     def reset(self) -> None:
+        """ See base class. """
         self._value = {}
