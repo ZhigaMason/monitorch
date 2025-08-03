@@ -13,21 +13,21 @@ from monitorch.gatherer import FeedForwardGatherer
 @pytest.mark.parametrize(
     ['module', 'inp_size', 'normalize', 'n_iter', 'seed'],
     [
-        (nn.Linear(10, 5),   (10,),       False, 100, 0),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), False, 100, 0),
-        (nn.Conv1d(1, 5, 2), (1, 16),     False, 100, 0),
+        (nn.Linear(10, 5),   (32, 10,),       False, 100, 0),
+        (nn.Conv2d(1, 5, 2), (32, 1, 16, 16), False, 100, 0),
+        (nn.Conv1d(1, 5, 2), (32, 1, 16),     False, 100, 0),
 
-        (nn.Linear(10, 5),   (10,),       True,  100, 0),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), True,  100, 0),
-        (nn.Conv1d(1, 5, 2), (1, 16),     True,  100, 0),
+        (nn.Linear(10, 5),   (32, 10,),       True,  100, 0),
+        (nn.Conv2d(1, 5, 2), (32, 1, 16, 16), True,  100, 0),
+        (nn.Conv1d(1, 5, 2), (32, 1, 16),     True,  100, 0),
 
-        (nn.Linear(10, 5),   (10,),       False, 100, 42),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), False, 100, 42),
-        (nn.Conv1d(1, 5, 2), (1, 16),     False, 100, 42),
+        (nn.Linear(10, 5),   (32, 10,),       False, 100, 42),
+        (nn.Conv2d(1, 5, 2), (32, 1, 16, 16), False, 100, 42),
+        (nn.Conv1d(1, 5, 2), (32, 1, 16),     False, 100, 42),
 
-        (nn.Linear(10, 5),   (10,),       True,  100, 42),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), True,  100, 42),
-        (nn.Conv1d(1, 5, 2), (1, 16),     True,  100, 42),
+        (nn.Linear(10, 5),   (32, 10,),       True,  100, 42),
+        (nn.Conv2d(1, 5, 2), (32, 1, 16, 16), True,  100, 42),
+        (nn.Conv1d(1, 5, 2), (32, 1, 16),     True,  100, 42),
     ]
 )
 def test_sequence_output_norm(module, inp_size, normalize, n_iter, seed):
@@ -46,9 +46,9 @@ def test_sequence_output_norm(module, inp_size, normalize, n_iter, seed):
         x.cauchy_()
         y = module(x)
 
-        norm = vector_norm(y).item()
+        norm = vector_norm(y.flatten(1, -1), dim=-1).mean().item()
         if normalize:
-            norm /= sqrt(y.numel())
+            norm /= sqrt(y[0].numel())
 
         assert np.isclose(norm, onm.value['standalone_test'][-1])
 
@@ -63,21 +63,21 @@ def test_sequence_output_norm(module, inp_size, normalize, n_iter, seed):
 @pytest.mark.parametrize(
     ['module', 'inp_size', 'record_no_grad'],
     [
-        (nn.Linear(10, 5),   (10,),       False,),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), False,),
-        (nn.Conv1d(1, 5, 2), (1, 16),     False,),
+        (nn.Linear(10, 5),   (32, 10,),       False,),
+        (nn.Conv2d(1, 5, 2), (32, 1, 16, 16), False,),
+        (nn.Conv1d(1, 5, 2), (32, 1, 16),     False,),
 
-        (nn.Linear(10, 5),   (10,),       True, ),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), True, ),
-        (nn.Conv1d(1, 5, 2), (1, 16),     True, ),
+        (nn.Linear(10, 5),   (32, 10,),       True, ),
+        (nn.Conv2d(1, 5, 2), (32, 1, 16, 16), True, ),
+        (nn.Conv1d(1, 5, 2), (32, 1, 16),     True, ),
 
-        (nn.Linear(10, 5),   (10,),       False,),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), False,),
-        (nn.Conv1d(1, 5, 2), (1, 16),     False,),
+        (nn.Linear(10, 5),   (32, 10,),       False,),
+        (nn.Conv2d(1, 5, 2), (32, 1, 16, 16), False,),
+        (nn.Conv1d(1, 5, 2), (32, 1, 16),     False,),
 
-        (nn.Linear(10, 5),   (10,),       True, ),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), True, ),
-        (nn.Conv1d(1, 5, 2), (1, 16),     True, ),
+        (nn.Linear(10, 5),   (32, 10,),       True, ),
+        (nn.Conv2d(1, 5, 2), (32, 1, 16, 16), True, ),
+        (nn.Conv1d(1, 5, 2), (32, 1, 16),     True, ),
     ]
 )
 def test_record_no_grad(module, inp_size, record_no_grad):

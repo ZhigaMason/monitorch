@@ -19,13 +19,13 @@ class OutputNorm(AbstractForwardPreprocessor):
     def process_fw(self, name : str, module, layer_input, layer_output):
         if not (self._record_no_grad or is_grad_enabled()):
             return
-        norm = self._value.setdefault(name, self._agg_class())
+        norm_container = self._value.setdefault(name, self._agg_class())
 
         with no_grad():
+            norm_mean = vector_norm(layer_output.flatten(1, -1), dim=-1).mean().item()
             if self._normalize:
-                norm.append(vector_norm(layer_output).item() / sqrt(layer_output.numel()))
-            else:
-                norm.append(vector_norm(layer_output).item())
+                norm_mean /= sqrt(layer_output[0].numel())
+            norm_container.append(norm_mean)
 
     @property
     def value(self) -> dict[str, Any]:
