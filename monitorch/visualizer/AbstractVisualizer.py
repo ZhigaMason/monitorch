@@ -21,7 +21,7 @@ class TagAttributes:
         return f"TagAttributes(logy={self.logy}, big_plot={self.big_plot}, annotate={self.annotate}, type={self.type.name}, ylim={self.ylim})"
 
 
-class AbstractVizualizer(ABC):
+class AbstractVisualizer(ABC):
 
     @abstractmethod
     def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:

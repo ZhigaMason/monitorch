@@ -4,13 +4,13 @@ from typing_extensions import Self
 from collections import OrderedDict as odict
 from warnings import warn
 
-from .AbstractVizualizer import AbstractVizualizer, TagAttributes, TagType
+from .AbstractVisualizer import AbstractVisualizer, TagAttributes, TagType
 
 from matplotlib import  pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.figure import Figure, SubFigure
 
-class MatplotlibVizualizer(AbstractVizualizer):
+class MatplotlibVisualizer(AbstractVisualizer):
 
     _GOLDEN_RATIO = 1.618 # plot w/h ratio
     UNIT = 2
@@ -150,11 +150,11 @@ class MatplotlibVizualizer(AbstractVizualizer):
         if self._big_tag_attr == -1:
             self._compute_n_max_small_plots()
 
-        width = MatplotlibVizualizer.UNIT * int(max(
-            MatplotlibVizualizer.BIG_PLOT_AMP * MatplotlibVizualizer._GOLDEN_RATIO * n_big_tags,
-            MatplotlibVizualizer._GOLDEN_RATIO * n_small_tags
+        width = MatplotlibVisualizer.UNIT * int(max(
+            MatplotlibVisualizer.BIG_PLOT_AMP * MatplotlibVisualizer._GOLDEN_RATIO * n_big_tags,
+            MatplotlibVisualizer._GOLDEN_RATIO * n_small_tags
         ))
-        height = MatplotlibVizualizer.UNIT * (MatplotlibVizualizer.SMALL_TITLE_HEIGHT + MatplotlibVizualizer.LEGEND_HEIGHT + self._n_max_plots_in_small_tags)
+        height = MatplotlibVisualizer.UNIT * (MatplotlibVisualizer.SMALL_TITLE_HEIGHT + MatplotlibVisualizer.LEGEND_HEIGHT + self._n_max_plots_in_small_tags)
 
         return (width, height)
 
@@ -176,7 +176,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
         if self._n_max_plots_in_small_tags == -1:
             self._compute_n_max_small_plots()
 
-        height_ratios = (MatplotlibVizualizer.BIG_PLOT_AMP, self._n_max_plots_in_small_tags + MatplotlibVizualizer.LEGEND_HEIGHT + MatplotlibVizualizer.SMALL_TITLE_HEIGHT)
+        height_ratios = (MatplotlibVisualizer.BIG_PLOT_AMP, self._n_max_plots_in_small_tags + MatplotlibVisualizer.LEGEND_HEIGHT + MatplotlibVisualizer.SMALL_TITLE_HEIGHT)
         gs = GridSpec(2, 1, height_ratios=height_ratios, hspace=0.0)
 
         ret = {}
@@ -212,40 +212,40 @@ class MatplotlibVizualizer(AbstractVizualizer):
                 self._plot_small_tag(subfig, tag)
                 small_figs.append(subfig)
             elif tag in self._big_tag_attr:
-                subfig.suptitle(tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT)
+                subfig.suptitle(tag, fontweight=MatplotlibVisualizer._SUPTITLE_WEIGHT)
                 ax = subfig.subplots()
                 values = self._to_plot[tag][tag]
                 if self._big_tag_attr[tag].logy:
                     ax.set_yscale('log', base=10)
                 match self._big_tag_attr[tag].type:
                     case TagType.NUMERICAL:
-                        MatplotlibVizualizer._plot_numerical(ax, values[0], values[1])
+                        MatplotlibVisualizer._plot_numerical(ax, values[0], values[1])
                     case TagType.PROBABILITY:
-                        MatplotlibVizualizer._plot_probability(ax, values)
+                        MatplotlibVisualizer._plot_probability(ax, values)
                     case TagType.RELATIONS:
-                        MatplotlibVizualizer._plot_relations(ax, values)
+                        MatplotlibVisualizer._plot_relations(ax, values)
                 if self._big_tag_attr[tag].annotate:
                     ax.legend()
                 if self._big_tag_attr[tag].ylim is not None:
                     bottom, top = self._big_tag_attr[tag].ylim
                     ax.set_ylim(bottom, top)
 
-        colors = MatplotlibVizualizer._SMALL_TAG_FACE_COLORS
+        colors = MatplotlibVisualizer._SMALL_TAG_FACE_COLORS
         for idx, fig in enumerate(small_figs):
             fig.set_facecolor(colors[idx % len(colors)])
 
     def _plot_small_tag(self, fig : SubFigure, tag) -> None:
         if self._n_max_plots_in_small_tags == 0:
-            warn(MatplotlibVizualizer.NO_SMALL_TAGS_WARNING)
+            warn(MatplotlibVisualizer.NO_SMALL_TAGS_WARNING)
             return
         tag_dict = self._to_plot[tag]
         tag_attr = self._small_tag_attr[tag]
         axes = fig.subplots(nrows=self._n_max_plots_in_small_tags, sharex=True, squeeze=False).flatten()
         n_real_plots = len(tag_dict)
-        TOTAL_HEIGHT = MatplotlibVizualizer.SMALL_TITLE_HEIGHT + MatplotlibVizualizer.LEGEND_HEIGHT + self._n_max_plots_in_small_tags
+        TOTAL_HEIGHT = MatplotlibVisualizer.SMALL_TITLE_HEIGHT + MatplotlibVisualizer.LEGEND_HEIGHT + self._n_max_plots_in_small_tags
         fig.suptitle(
-            tag, fontweight=MatplotlibVizualizer._SUPTITLE_WEIGHT,
-            y=1 - MatplotlibVizualizer.SMALL_TITLE_HEIGHT / TOTAL_HEIGHT,
+            tag, fontweight=MatplotlibVisualizer._SUPTITLE_WEIGHT,
+            y=1 - MatplotlibVisualizer.SMALL_TITLE_HEIGHT / TOTAL_HEIGHT,
             va='baseline'
         )
         for ax in axes[n_real_plots:]:
@@ -259,11 +259,11 @@ class MatplotlibVizualizer(AbstractVizualizer):
             match tag_attr.type:
                     case TagType.NUMERICAL:
                         val_dict, range_dict = values
-                        MatplotlibVizualizer._plot_numerical(ax, val_dict, range_dict)
+                        MatplotlibVisualizer._plot_numerical(ax, val_dict, range_dict)
                     case TagType.PROBABILITY:
-                        MatplotlibVizualizer._plot_probability(ax, values)
+                        MatplotlibVisualizer._plot_probability(ax, values)
                     case TagType.RELATIONS:
-                        MatplotlibVizualizer._plot_relations(ax, values)
+                        MatplotlibVisualizer._plot_relations(ax, values)
             if self._small_tag_attr[tag].ylim is not None:
                 top, bottom= self._small_tag_attr[tag].ylim
                 ax.set_ylim(bottom, top)
@@ -271,34 +271,34 @@ class MatplotlibVizualizer(AbstractVizualizer):
         if tag_attr.annotate:
             axes[0].legend(
                 loc='lower center',
-                bbox_to_anchor=MatplotlibVizualizer.LEGEND_ANCHOR
+                bbox_to_anchor=MatplotlibVisualizer.LEGEND_ANCHOR
             )
         axes[n_real_plots - 1].tick_params(labelbottom=True)
-        fig.subplots_adjust(top=1 - (MatplotlibVizualizer.SMALL_TITLE_HEIGHT + MatplotlibVizualizer.LEGEND_HEIGHT) / TOTAL_HEIGHT, bottom=0)
+        fig.subplots_adjust(top=1 - (MatplotlibVisualizer.SMALL_TITLE_HEIGHT + MatplotlibVisualizer.LEGEND_HEIGHT) / TOTAL_HEIGHT, bottom=0)
 
     @staticmethod
     def _plot_numerical(ax, val_dict, range_dict) -> None:
         for range_name, (lo, up) in range_dict.items():
             assert len(lo) == len(up)
-            if range_name in MatplotlibVizualizer._RANGE_COLORS:
+            if range_name in MatplotlibVisualizer._RANGE_COLORS:
                 ax.fill_between(
                     range(len(lo)), lo, up,
-                    color = MatplotlibVizualizer._RANGE_COLORS[range_name],
-                    alpha = MatplotlibVizualizer._RANGE_ALPHA,
+                    color = MatplotlibVisualizer._RANGE_COLORS[range_name],
+                    alpha = MatplotlibVisualizer._RANGE_ALPHA,
                     label = f"{range_name[0]} -- {range_name[1]}"
                 )
             else:
                 ax.fill_between(
                     range(len(lo)), lo, up,
-                    alpha = MatplotlibVizualizer._RANGE_ALPHA,
+                    alpha = MatplotlibVisualizer._RANGE_ALPHA,
                     label = f"{range_name[0]} -- {range_name[1]}"
                 )
 
         for val_name, values in val_dict.items():
-            if val_name in MatplotlibVizualizer._LINE_COLORS:
+            if val_name in MatplotlibVisualizer._LINE_COLORS:
                 ax.plot(
                     range(len(values)), values,
-                    color = MatplotlibVizualizer._LINE_COLORS[val_name],
+                    color = MatplotlibVisualizer._LINE_COLORS[val_name],
                     label=val_name
                 )
             else:
@@ -310,21 +310,21 @@ class MatplotlibVizualizer(AbstractVizualizer):
     @staticmethod
     def _plot_probability(ax, prob_dict) -> None:
         for prob_name, probs in prob_dict.items():
-            if prob_name in MatplotlibVizualizer._LINE_COLORS:
+            if prob_name in MatplotlibVisualizer._LINE_COLORS:
                 ax.fill_between(
                     range(len(probs)), probs, np.zeros_like(probs),
-                    color = MatplotlibVizualizer._LINE_COLORS[prob_name],
-                    alpha = MatplotlibVizualizer._RANGE_ALPHA
+                    color = MatplotlibVisualizer._LINE_COLORS[prob_name],
+                    alpha = MatplotlibVisualizer._RANGE_ALPHA
                 )
                 ax.plot(
                     range(len(probs)), probs,
-                    color = MatplotlibVizualizer._LINE_COLORS[prob_name],
+                    color = MatplotlibVisualizer._LINE_COLORS[prob_name],
                     label=prob_name
                 )
             else:
                 ax.fill_between(
                     range(len(probs)), probs, np.zeros_like(probs),
-                    alpha = MatplotlibVizualizer._RANGE_ALPHA
+                    alpha = MatplotlibVisualizer._RANGE_ALPHA
                 )
                 ax.plot(
                     range(len(probs)), probs,
@@ -341,7 +341,7 @@ class MatplotlibVizualizer(AbstractVizualizer):
         for relations in rel_dict.values():
             assert l == len(relations), "All relations must have same number of epochs recorded"
             first_record.append(relations[0])
-        ax.stackplot(range(l), *rel_dict.values(), colors=MatplotlibVizualizer._RELATION_COLORS)
+        ax.stackplot(range(l), *rel_dict.values(), colors=MatplotlibVisualizer._RELATION_COLORS)
         arr = np.array(first_record)
         pos_arr = np.cumsum(arr) - arr / 2
         for pos, rel_name in zip(pos_arr, rel_dict.keys()):

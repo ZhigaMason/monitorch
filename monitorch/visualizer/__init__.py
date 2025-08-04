@@ -17,19 +17,19 @@ Examples
 ... )
 """
 from typing import Type
-from .AbstractVizualizer import AbstractVizualizer, TagAttributes, TagType
-from .PrintVizualizer import PrintVizualizer
-from .TensorBoardVizualizer import TensorBoardVizualizer
-from .MatplotlibVizualizer import MatplotlibVizualizer
+from .AbstractVisualizer import AbstractVisualizer, TagAttributes, TagType
+from .PrintVisualizer import PrintVisualizer
+from .TensorBoardVisualizer import TensorBoardVisualizer
+from .MatplotlibVisualizer import MatplotlibVisualizer
 
-_vizualizer_dict : dict[str, Type[AbstractVizualizer]] = {
-    'print'       : PrintVizualizer,
-    'tensorboard' : TensorBoardVizualizer,
-    'matplotlib'  : MatplotlibVizualizer
+_vizualizer_dict : dict[str, Type[AbstractVisualizer]] = {
+    'print'       : PrintVisualizer,
+    'tensorboard' : TensorBoardVisualizer,
+    'matplotlib'  : MatplotlibVisualizer
 }
 
 __all__ = [
-    "PrintVizualizer",
-    "TensorBoardVizualizer",
-    "MatplotlibVizualizer"
+    "PrintVisualizer",
+    "TensorBoardVisualizer",
+    "MatplotlibVisualizer"
 ]

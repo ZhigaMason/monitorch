@@ -9,7 +9,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from lenses_testing_utils import generic_lens_test, N_DIM, N_EPOCHS, _generate_xor_data, _xor_ground_truth
 from monitorch.inspector import PyTorchInspector
 from monitorch.lens import LossMetrics
-from monitorch.vizualizer import MatplotlibVizualizer
+from monitorch.visualizer import MatplotlibVisualizer
 
 @pytest.mark.smoke
 @pytest.mark.parametrize(
@@ -116,10 +116,10 @@ def test_explicit_loss_accuracy_accumulation(module, loss_fn, vizualizer, lens_k
         optimizer
     )
 
-    if isinstance(inspector.vizualizer, MatplotlibVizualizer):
+    if isinstance(inspector.vizualizer, MatplotlibVisualizer):
         filterwarnings(
             "ignore",
-            message=MatplotlibVizualizer.NO_SMALL_TAGS_WARNING,
+            message=MatplotlibVisualizer.NO_SMALL_TAGS_WARNING,
             category=UserWarning
         )
 
@@ -157,6 +157,6 @@ def test_explicit_loss_accuracy_accumulation(module, loss_fn, vizualizer, lens_k
                 inspector.push_loss(loss, train=False, running=lens_kwargs.get('inplace', True))
         inspector.tick_epoch()
 
-    if isinstance(inspector.vizualizer, MatplotlibVizualizer):
+    if isinstance(inspector.vizualizer, MatplotlibVisualizer):
         fig = inspector.vizualizer.show_fig()
         plt.close(fig) # otherwise figs comsume all the memory due to pytest running tests in parallel

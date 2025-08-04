@@ -1,5 +1,5 @@
-preprocessors
-=============
+preprocessor
+============
 
 .. automodule:: monitorch.preprocessor
     :members:

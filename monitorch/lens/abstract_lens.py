@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from torch.nn import Module
 from monitorch.preprocessor import AbstractPreprocessor
-from monitorch.vizualizer import AbstractVizualizer
+from monitorch.visualizer import AbstractVisualizer
 
 
 class AbstractLens(ABC):
@@ -20,7 +20,7 @@ class AbstractLens(ABC):
         pass
 
     @abstractmethod
-    def introduce_tags(self, vizualizer : AbstractVizualizer):
+    def introduce_tags(self, vizualizer : AbstractVisualizer):
         pass
 
     @abstractmethod
@@ -28,7 +28,7 @@ class AbstractLens(ABC):
         pass
 
     @abstractmethod
-    def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
+    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
         pass
 
     @abstractmethod

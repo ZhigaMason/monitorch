@@ -3,7 +3,7 @@ from collections import OrderedDict
 from .abstract_lens import AbstractLens
 from torch.nn import Module
 from monitorch.preprocessor import AbstractPreprocessor, OutputGradientGeometry as OutputGradientGeometryPreprocessor
-from monitorch.vizualizer import AbstractVizualizer, TagAttributes, TagType
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.gatherer import BackwardGatherer
 from monitorch.numerical import extract_point, extract_range, parse_range_name
 
@@ -67,7 +67,7 @@ class OutputGradientGeometry(AbstractLens):
         """ no external data collection """
         pass
 
-    def introduce_tags(self, vizualizer : AbstractVizualizer):
+    def introduce_tags(self, vizualizer : AbstractVisualizer):
         vizualizer.register_tags(
             OutputGradientGeometry.SMALL_NORM_TAG_NAME,
             TagAttributes(
@@ -119,7 +119,7 @@ class OutputGradientGeometry(AbstractLens):
 
 
 
-    def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
+    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
         vizualizer.plot_numerical_values(
             epoch, OutputGradientGeometry.SMALL_NORM_TAG_NAME,
             self._line_data, self._range_data

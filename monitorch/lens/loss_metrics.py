@@ -10,7 +10,7 @@ from monitorch.preprocessor import (
         ExplicitCall,
         LossModule
 )
-from monitorch.vizualizer import AbstractVizualizer, TagAttributes, TagType
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point, extract_range, parse_range_name
 
 class LossMetrics(AbstractLens):
@@ -88,7 +88,7 @@ class LossMetrics(AbstractLens):
 
                 )
 
-    def introduce_tags(self, vizualizer : AbstractVizualizer):
+    def introduce_tags(self, vizualizer : AbstractVisualizer):
         if self._separate_loss_and_metrics:
             if self._loss:
                 vizualizer.register_tags('Loss',    TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.NUMERICAL))
@@ -155,7 +155,7 @@ class LossMetrics(AbstractLens):
                 lo_name, up_name = parse_range_name(agg_range)
                 self._loss_ranges[(metric + ' ' + lo_name, metric + ' ' + up_name)] = range_tuple
 
-    def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
+    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
         assert self._call_preprocessor is not None
         loss_tag, metrics_tag = 'Loss', 'Metrics'
         if not self._separate_loss_and_metrics:

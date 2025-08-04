@@ -3,7 +3,7 @@ from collections import OrderedDict
 from .abstract_lens import AbstractLens
 from torch.nn import Module
 from monitorch.preprocessor import AbstractPreprocessor, GradientActivation
-from monitorch.vizualizer import AbstractVizualizer, TagAttributes, TagType
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.gatherer import ParameterGradientGatherer
 from monitorch.numerical import extract_point
 
@@ -60,7 +60,7 @@ class ParameterGradientActivation(AbstractLens):
         """ no external data collection """
         pass
 
-    def introduce_tags(self, vizualizer : AbstractVizualizer):
+    def introduce_tags(self, vizualizer : AbstractVisualizer):
         for parameter_name in self._preprocessors:
             vizualizer.register_tags(
                 f"{parameter_name} Gradient Activation".title(),
@@ -100,7 +100,7 @@ class ParameterGradientActivation(AbstractLens):
             self._warning_data['worst death_rate'] = worst_death
 
 
-    def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
+    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
         for parameter_name in self._preprocessors:
             vizualizer.plot_probabilities(
                 epoch, f"{parameter_name} Gradient Activation".title(),

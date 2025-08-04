@@ -5,7 +5,7 @@ from torch.nn import Module
 
 from monitorch.gatherer import EpochModuleGatherer
 from monitorch.preprocessor import AbstractPreprocessor, ParameterNorm as ParameterNormPreprocessor
-from monitorch.vizualizer import AbstractVizualizer, TagAttributes, TagType
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point
 
 
@@ -61,7 +61,7 @@ class ParameterNorm(AbstractLens):
         """ does not collect extern data """
         pass
 
-    def introduce_tags(self, vizualizer : AbstractVizualizer):
+    def introduce_tags(self, vizualizer : AbstractVisualizer):
         for parameter_name in self._parameters:
             vizualizer.register_tags(
                 f'{parameter_name} Norm'.title(),
@@ -106,7 +106,7 @@ class ParameterNorm(AbstractLens):
                 for module_name in comparison_dict:
                     comparison_dict[module_name] /= total_sum
 
-    def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
+    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
         for parameter_name in self._parameters:
             vizualizer.plot_numerical_values(
                 epoch, f'{parameter_name} Norm'.title(),

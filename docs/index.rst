@@ -8,7 +8,6 @@ Monitorch documentation
 
 A modular tool to inspect, log, and visualize neural network internals during training in PyTorch.
 
-**Version**: 0.0.1
 **Author**: Maksym Khavil
 **Repository**: https://github.com/ZhigaMason/monitorch
 
@@ -23,5 +22,5 @@ Contents
    api/lens
    api/gatherer
    api/preprocessor
-   api/vizualizer
+   api/visualizer
    api/numerical

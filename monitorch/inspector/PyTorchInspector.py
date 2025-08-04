@@ -6,14 +6,14 @@ from typing_extensions import Self
 
 from monitorch.lens import AbstractLens
 from monitorch.preprocessor import ExplicitCall
-from monitorch.vizualizer import _vizualizer_dict, AbstractVizualizer
+from monitorch.visualizer import _vizualizer_dict, AbstractVisualizer
 
 class PyTorchInspector:
 
     def __init__(
             self,
             lenses : list[AbstractLens], *,
-            vizualizer : str|AbstractVizualizer = 'matplotlib',
+            vizualizer : str|AbstractVisualizer = 'matplotlib',
             module : None|Module = None,
             depth : int = -1,
             module_name_prefix : str = '.',
@@ -31,7 +31,7 @@ class PyTorchInspector:
                 raise AttributeError(f"Unknown vizualizer, string defined vizualizer must be one of {list(_vizualizer_dict.keys())} ")
             self.vizualizer = _vizualizer_dict[vizualizer]()
         else:
-            self.vizualizer : AbstractVizualizer = vizualizer
+            self.vizualizer : AbstractVisualizer = vizualizer
 
         for lens in self._lenses:
             lens.register_foreign_preprocessor(self._call_preprocessor)

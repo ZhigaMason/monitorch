@@ -6,7 +6,7 @@ from .abstract_lens import AbstractLens
 from torch.nn import Module
 from monitorch.gatherer import FeedForwardGatherer
 from monitorch.preprocessor import AbstractPreprocessor, OutputActivation as OutputActivationPreprocessor
-from monitorch.vizualizer import AbstractVizualizer, TagAttributes, TagType
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point
 
 from .module_distinction import isactivation, isdropout
@@ -83,7 +83,7 @@ class OutputActivation(AbstractLens):
         """ does not interact with foreign preprocessor """
         pass
 
-    def introduce_tags(self, vizualizer : AbstractVizualizer):
+    def introduce_tags(self, vizualizer : AbstractVisualizer):
         vizualizer.register_tags(
             OutputActivation.SMALL_TAG_NAME,
             TagAttributes(
@@ -117,7 +117,7 @@ class OutputActivation(AbstractLens):
 
 
 
-    def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
+    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
         vizualizer.plot_probabilities(
             epoch, OutputActivation.SMALL_TAG_NAME,
             self._data

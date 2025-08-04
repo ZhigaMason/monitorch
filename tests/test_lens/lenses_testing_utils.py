@@ -5,17 +5,17 @@ import matplotlib.pyplot as plt
 from torch.utils.data import TensorDataset, DataLoader
 from monitorch.inspector import PyTorchInspector
 from warnings import filterwarnings
-from monitorch.vizualizer import MatplotlibVizualizer
+from monitorch.visualizer import MatplotlibVisualizer
 
 N_DIM = 10
 N_EPOCHS = 3
 
 def generic_lens_test(inspector, module, loss_fn, optimizer):
 
-    if isinstance(inspector.vizualizer, MatplotlibVizualizer):
+    if isinstance(inspector.vizualizer, MatplotlibVisualizer):
         filterwarnings(
             "ignore",
-            message=MatplotlibVizualizer.NO_SMALL_TAGS_WARNING,
+            message=MatplotlibVisualizer.NO_SMALL_TAGS_WARNING,
             category=UserWarning
         )
     train_xor(
@@ -28,7 +28,7 @@ def generic_lens_test(inspector, module, loss_fn, optimizer):
         push_loss=False
     )
 
-    if isinstance(inspector.vizualizer, MatplotlibVizualizer):
+    if isinstance(inspector.vizualizer, MatplotlibVisualizer):
         fig = inspector.vizualizer.show_fig()
         plt.close(fig) # otherwise figs comsume all the memory due to pytest running tests in parallel
 

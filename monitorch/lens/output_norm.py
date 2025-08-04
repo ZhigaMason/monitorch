@@ -3,7 +3,7 @@ from collections import OrderedDict
 from typing import Iterable, Type
 
 from monitorch.preprocessor import AbstractPreprocessor, OutputNorm as OutputNormPreprocessor
-from monitorch.vizualizer import AbstractVizualizer, TagAttributes, TagType
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.gatherer import FeedForwardGatherer
 from monitorch.numerical import extract_point, extract_range, parse_range_name
 
@@ -90,7 +90,7 @@ class OutputNorm(AbstractLens):
         """ does not interact with explicit call ppr """
         pass
 
-    def introduce_tags(self, vizualizer : AbstractVizualizer):
+    def introduce_tags(self, vizualizer : AbstractVisualizer):
         vizualizer.register_tags(
             OutputNorm.SMALL_TAG_NAME, self._small_tag_attr
         )
@@ -122,7 +122,7 @@ class OutputNorm(AbstractLens):
                 self._comparison_data[module_name] /= total_sum
 
 
-    def vizualize(self, vizualizer : AbstractVizualizer, epoch : int):
+    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
         vizualizer.plot_numerical_values(
             epoch, OutputNorm.SMALL_TAG_NAME, self._line_data, self._range_data
         )

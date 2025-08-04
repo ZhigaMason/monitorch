@@ -1,7 +1,7 @@
-from .AbstractVizualizer import AbstractVizualizer, TagAttributes
+from .AbstractVisualizer import AbstractVisualizer, TagAttributes
 from collections import OrderedDict as odict
 
-class PrintVizualizer(AbstractVizualizer):
+class PrintVisualizer(AbstractVisualizer):
 
     def __init__(self):
         pass
