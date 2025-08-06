@@ -3,8 +3,8 @@ Submodule implementing data visualizations.
 
 Classes from this module encapsulate interaction with visualisation engines like Matplotlib and TensorBoard.
 All interactions with vizualizers are done from :mod:`monitorch.lens` and :class:`PyTorchInspector`.
-:class:`AbstractVizualizer` defines methods for vizualizers. To pass visualizer to a :class:`PyTorchInspector`,
-one could pass an instance of :class:`AbstractVizualizer` or a string ``"matplotlib"``, ``"tensorboard"`` or ``"print"`` as a ``vizualizer`` argument.
+:class:`AbstractVisualizer` defines methods for vizualizers. To pass visualizer to a :class:`PyTorchInspector`,
+one could pass an instance of :class:`AbstractVisualizer` or a string ``"matplotlib"``, ``"tensorboard"`` or ``"print"`` as a ``vizualizer`` argument.
 
 Examples
 --------
@@ -31,5 +31,8 @@ _vizualizer_dict : dict[str, Type[AbstractVisualizer]] = {
 __all__ = [
     "PrintVisualizer",
     "TensorBoardVisualizer",
-    "MatplotlibVisualizer"
+    "MatplotlibVisualizer",
+    "AbstractVisualizer",
+    "TagAttributes",
+    "TagType",
 ]

@@ -73,9 +73,9 @@ Tests can be run with `pytest` from root project directory. Lens test have no as
 # TODO
 
 - [ ] Documentation
-    - [ ] Setup sphinx
+    - [x] Setup sphinx
     - [ ] Write docstrings
     - [ ] Create demo notebooks
 - [ ] Recurrent Neural Networks output collection
 - [ ] Transformer output collection (value vector vs state vector)
-- [ ] Debug Lens
+- [ ] attach for gatherers and vizualizers
