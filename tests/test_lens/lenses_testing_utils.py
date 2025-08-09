@@ -12,10 +12,10 @@ N_EPOCHS = 3
 
 def generic_lens_test(inspector, module, loss_fn, optimizer):
 
-    if isinstance(inspector.vizualizer, MatplotlibVisualizer):
+    if isinstance(inspector.visualizer, MatplotlibVisualizer):
         filterwarnings(
             "ignore",
-            message=MatplotlibVisualizer.NO_SMALL_TAGS_WARNING,
+            message=MatplotlibVisualizer._NO_SMALL_TAGS_WARNING,
             category=UserWarning
         )
     train_xor(
@@ -28,8 +28,8 @@ def generic_lens_test(inspector, module, loss_fn, optimizer):
         push_loss=False
     )
 
-    if isinstance(inspector.vizualizer, MatplotlibVisualizer):
-        fig = inspector.vizualizer.show_fig()
+    if isinstance(inspector.visualizer, MatplotlibVisualizer):
+        fig = inspector.visualizer.show_fig()
         plt.close(fig) # otherwise figs comsume all the memory due to pytest running tests in parallel
 
 def train_xor(inspector : PyTorchInspector, module, loss_fn, optimizer, n_dim, n_epochs, push_loss : bool, push_loss_inplace : bool = False):

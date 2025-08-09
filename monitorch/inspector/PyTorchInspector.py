@@ -13,7 +13,7 @@ class PyTorchInspector:
     def __init__(
             self,
             lenses : list[AbstractLens], *,
-            vizualizer : str|AbstractVisualizer = 'matplotlib',
+            visualizer : str|AbstractVisualizer = 'matplotlib',
             module : None|Module = None,
             depth : int = -1,
             module_name_prefix : str = '.',
@@ -26,16 +26,16 @@ class PyTorchInspector:
 
         self.epoch_counter = 0
 
-        if isinstance(vizualizer, str):
-            if vizualizer not in _vizualizer_dict:
+        if isinstance(visualizer, str):
+            if visualizer not in _vizualizer_dict:
                 raise AttributeError(f"Unknown vizualizer, string defined vizualizer must be one of {list(_vizualizer_dict.keys())} ")
-            self.vizualizer = _vizualizer_dict[vizualizer]()
+            self.visualizer = _vizualizer_dict[visualizer]()
         else:
-            self.vizualizer : AbstractVisualizer = vizualizer
+            self.visualizer : AbstractVisualizer = visualizer
 
         for lens in self._lenses:
             lens.register_foreign_preprocessor(self._call_preprocessor)
-            lens.introduce_tags(self.vizualizer)
+            lens.introduce_tags(self.visualizer)
         if module is not None:
             self.attach(module, depth, module_name_prefix)
 
@@ -65,7 +65,7 @@ class PyTorchInspector:
             self.epoch_counter = epoch
         for lens in self._lenses:
             lens.finalize_epoch()
-            lens.vizualize(self.vizualizer, self.epoch_counter)
+            lens.vizualize(self.visualizer, self.epoch_counter)
             lens.reset_epoch()
         self._call_preprocessor.reset()
         self.epoch_counter += 1

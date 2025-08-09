@@ -8,7 +8,7 @@ from monitorch.lens import OutputGradientGeometry
 
 @pytest.mark.smoke
 @pytest.mark.parametrize(
-    ['module', 'loss_fn', 'vizualizer', 'lens_kwargs'],
+    ['module', 'loss_fn', 'visualizer', 'lens_kwargs'],
     [
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'matplotlib', {}),
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'tensorboard', {}),
@@ -71,14 +71,14 @@ from monitorch.lens import OutputGradientGeometry
         ), nn.BCELoss(), 'print', {'compute_adj_prod' : False, 'inplace' : False}),
     ]
 )
-def test_output_gradient_geometry(module, loss_fn, vizualizer, lens_kwargs):
+def test_output_gradient_geometry(module, loss_fn, visualizer, lens_kwargs):
 
     inspector = PyTorchInspector(
         lenses = [
             OutputGradientGeometry(**lens_kwargs)
         ],
         module = module,
-        vizualizer = vizualizer
+        visualizer = visualizer
     )
 
     optimizer = torch.optim.NAdam(

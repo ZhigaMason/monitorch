@@ -8,7 +8,7 @@ from monitorch.lens import OutputNorm
 
 @pytest.mark.smoke
 @pytest.mark.parametrize(
-    ['module', 'loss_fn', 'vizualizer', 'lens_kwargs'],
+    ['module', 'loss_fn', 'visualizer', 'lens_kwargs'],
     [
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'matplotlib', {}),
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'tensorboard', {}),
@@ -71,14 +71,14 @@ from monitorch.lens import OutputNorm
         ), nn.BCELoss(), 'print', {'include' : [nn.Linear]}),
     ]
 )
-def test_output_norm_lens(module, loss_fn, vizualizer, lens_kwargs):
+def test_output_norm_lens(module, loss_fn, visualizer, lens_kwargs):
 
     inspector = PyTorchInspector(
         lenses = [
             OutputNorm(**lens_kwargs)
         ],
         module = module,
-        vizualizer = vizualizer
+        visualizer = visualizer
     )
 
     optimizer = torch.optim.NAdam(

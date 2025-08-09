@@ -8,7 +8,7 @@ from monitorch.lens import ParameterGradientActivation
 
 @pytest.mark.smoke
 @pytest.mark.parametrize(
-    ['module', 'loss_fn', 'vizualizer', 'lens_kwargs'],
+    ['module', 'loss_fn', 'visualizer', 'lens_kwargs'],
     [
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'matplotlib', {}),
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'tensorboard', {}),
@@ -68,14 +68,14 @@ from monitorch.lens import ParameterGradientActivation
 
     ]
 )
-def test_parameter_gradient_activation(module, loss_fn, vizualizer, lens_kwargs):
+def test_parameter_gradient_activation(module, loss_fn, visualizer, lens_kwargs):
 
     inspector = PyTorchInspector(
         lenses = [
             ParameterGradientActivation(**lens_kwargs)
         ],
         module = module,
-        vizualizer = vizualizer
+        visualizer = visualizer
     )
 
     optimizer = torch.optim.NAdam(

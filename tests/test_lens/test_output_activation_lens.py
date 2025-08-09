@@ -106,7 +106,7 @@ def test_output_activation_lens(module, loss_fn, vizualizer, lens_kwargs):
             OutputActivation(**lens_kwargs)
         ],
         module = module,
-        vizualizer = vizualizer
+        visualizer = vizualizer
     )
 
     optimizer = torch.optim.NAdam(

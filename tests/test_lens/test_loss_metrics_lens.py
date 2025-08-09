@@ -13,7 +13,7 @@ from monitorch.visualizer import MatplotlibVisualizer
 
 @pytest.mark.smoke
 @pytest.mark.parametrize(
-    ['module', 'loss_fn', 'vizualizer', 'lens_kwargs'],
+    ['module', 'loss_fn', 'visualizer', 'lens_kwargs'],
     [
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'matplotlib', {}),
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'tensorboard', {}),
@@ -37,13 +37,13 @@ from monitorch.visualizer import MatplotlibVisualizer
         ), nn.BCELoss(), 'print', {}),
     ]
 )
-def test_implicit_loss_accumulation(module, loss_fn, vizualizer, lens_kwargs):
+def test_implicit_loss_accumulation(module, loss_fn, visualizer, lens_kwargs):
     inspector = PyTorchInspector(
         lenses = [
             LossMetrics(loss_fn=loss_fn, **lens_kwargs)
         ],
         module = module,
-        vizualizer = vizualizer
+        visualizer = visualizer
     )
 
     optimizer = torch.optim.NAdam(
@@ -59,7 +59,7 @@ def test_implicit_loss_accumulation(module, loss_fn, vizualizer, lens_kwargs):
 
 @pytest.mark.smoke
 @pytest.mark.parametrize(
-    ['module', 'loss_fn', 'vizualizer', 'lens_kwargs'],
+    ['module', 'loss_fn', 'visualizer', 'lens_kwargs'],
     [
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'matplotlib', {}),
         ( nn.Sequential(nn.Linear(N_DIM, 1)), nn.L1Loss(), 'tensorboard', {}),
@@ -96,13 +96,13 @@ def test_implicit_loss_accumulation(module, loss_fn, vizualizer, lens_kwargs):
         ), nn.BCELoss(), 'print', {'separate_loss_and_metrics' : True}),
     ]
 )
-def test_explicit_loss_accuracy_accumulation(module, loss_fn, vizualizer, lens_kwargs):
+def test_explicit_loss_accuracy_accumulation(module, loss_fn, visualizer, lens_kwargs):
     inspector = PyTorchInspector(
         lenses = [
             LossMetrics(loss_fn=loss_fn, **lens_kwargs)
         ],
         module = module,
-        vizualizer = vizualizer
+        visualizer = visualizer
     )
 
     optimizer = torch.optim.NAdam(
@@ -116,10 +116,10 @@ def test_explicit_loss_accuracy_accumulation(module, loss_fn, vizualizer, lens_k
         optimizer
     )
 
-    if isinstance(inspector.vizualizer, MatplotlibVisualizer):
+    if isinstance(inspector.visualizer, MatplotlibVisualizer):
         filterwarnings(
             "ignore",
-            message=MatplotlibVisualizer.NO_SMALL_TAGS_WARNING,
+            message=MatplotlibVisualizer._NO_SMALL_TAGS_WARNING,
             category=UserWarning
         )
 
@@ -157,6 +157,6 @@ def test_explicit_loss_accuracy_accumulation(module, loss_fn, vizualizer, lens_k
                 inspector.push_loss(loss, train=False, running=lens_kwargs.get('inplace', True))
         inspector.tick_epoch()
 
-    if isinstance(inspector.vizualizer, MatplotlibVisualizer):
-        fig = inspector.vizualizer.show_fig()
+    if isinstance(inspector.visualizer, MatplotlibVisualizer):
+        fig = inspector.visualizer.show_fig()
         plt.close(fig) # otherwise figs comsume all the memory due to pytest running tests in parallel
