@@ -1,6 +1,8 @@
 lens
 ====
 
+.. automodule:: monitorch.lens
+
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
