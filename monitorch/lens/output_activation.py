@@ -59,7 +59,7 @@ class OutputActivation(AbstractLens):
 
     >>> inspector = PyTorchInspector(
     ...     lenses = [
-    ...         ParameterGradientActivation(),
+    ...         OutputActivation(),
     ...     ],
     ...     module = mynet,
     ...     visualizer='matplotlib'
@@ -203,7 +203,7 @@ class OutputActivation(AbstractLens):
 
     def finalize_epoch(self):
         """
-        Finaizes computations done thorugh epoch.
+        Finaizes computations done through epoch.
 
         Aggregates activations and death rates according to ``activation_aggregation`` and ``death_aggregation``
         and computes worst activation (minimal) and worst death rates (maximal).
