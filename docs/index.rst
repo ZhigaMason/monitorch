@@ -18,6 +18,8 @@ Contents
    :maxdepth: 2
    :caption: Contents:
 
+   notebooks/title_page
+
    api/inspector
    api/lens
    api/gatherer
