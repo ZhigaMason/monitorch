@@ -256,7 +256,7 @@ class LossMetrics(AbstractLens):
                 self._loss_values[non_train_loss_str + ' ' + loss_line] = pt
 
         # range aggreagation
-        for loss_range in self._loss_ranges:
+        for loss_range in self._loss_range:
             range_tuple = extract_range(raw_train_loss, loss_range)
             lo_name, up_name = parse_range_name(loss_range)
             self._loss_ranges[(train_loss_str + ' ' + lo_name, train_loss_str + ' ' + up_name)] = range_tuple
@@ -272,12 +272,12 @@ class LossMetrics(AbstractLens):
             # line aggregation
             for agg_line in self._metrics_line:
                 pt = extract_point(raw_val, agg_line)
-                self._loss_values[metric + ' ' + agg_line] = pt
+                self._metrics_values[metric + ' ' + agg_line] = pt
             # range aggreagation
             for agg_range in self._metrics_ranges:
                 range_tuple = extract_range(raw_val, agg_range)
                 lo_name, up_name = parse_range_name(agg_range)
-                self._loss_ranges[(metric + ' ' + lo_name, metric + ' ' + up_name)] = range_tuple
+                self._metrics_ranges[(metric + ' ' + lo_name, metric + ' ' + up_name)] = range_tuple
 
     def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
         """

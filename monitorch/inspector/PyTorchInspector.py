@@ -3,7 +3,7 @@ from typing_extensions import Self
 
 from monitorch.lens import AbstractLens
 from monitorch.preprocessor import ExplicitCall
-from monitorch.visualizer import _vizualizer_dict, AbstractVisualizer
+from monitorch.visualizer import _vizualizer_dict, AbstractVisualizer, MatplotlibVisualizer
 
 class PyTorchInspector:
     """
@@ -50,6 +50,9 @@ class PyTorchInspector:
 
     visualizer : AbstractVisualizer
         Visualizaer object that draws all plots. Can be hot-swapped.
+
+    attached : bool
+        Flag indicating if inspector is attached.
 
     epoch_counter : int
         Internal epoch counter used in :meth:`tick_epoch`, increments on call.
@@ -112,6 +115,7 @@ class PyTorchInspector:
         self._call_preprocessor = ExplicitCall(train_loss_str, non_train_loss_str)
         self.depth = depth
         self.module_name_prefix = module_name_prefix
+        self.attached = False
 
         self.epoch_counter = 0
 
@@ -145,10 +149,13 @@ class PyTorchInspector:
         Self
             Builder pattern.
         """
+        if self.attached:
+            self.detach()
         module_names = PyTorchInspector._module_leaves(module, self.depth, self.module_name_prefix)
         for module, name in module_names:
             for lens in self.lenses:
                 lens.register_module(module, name)
+        self.attached = True
         return self
 
     def detach(self) -> Self:
@@ -160,8 +167,14 @@ class PyTorchInspector:
         Self
             Builder pattern.
         """
+        assert self.attached, "Inspector must be attached to module before detaching"
+        self.epoch_counter = 0
+        self._call_preprocessor.reset()
         for lens in self.lenses:
             lens.detach_from_module()
+        if isinstance(self.visualizer, MatplotlibVisualizer):
+            self.visualizer.reset_fig()
+        self.attached = False
         return self
 
     def push_metric(self, name : str, value : float, *, running : bool=True):

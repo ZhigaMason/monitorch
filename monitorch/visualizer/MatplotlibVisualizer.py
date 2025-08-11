@@ -95,13 +95,10 @@ class MatplotlibVisualizer(AbstractVisualizer):
     _NO_SMALL_TAGS_WARNING = "No small plots, but lenses plotting per layer values used"
 
     def __init__(self, **kwargs):
-        self._to_plot = odict()
-        self._small_tag_attr : odict[str, TagAttributes] = odict()
-        self._big_tag_attr : odict[str, TagAttributes] = odict()
-        self._n_max_small_plots : int = -1
-        self.figure_ : Figure|None = None
         self._kwargs = kwargs
-        self._n_max_plots_in_small_tags : int = -1
+        self._small_tag_attr = odict()
+        self._big_tag_attr = odict()
+        self.reset_fig()
 
     def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:
         """ See base class. """
@@ -189,6 +186,8 @@ class MatplotlibVisualizer(AbstractVisualizer):
         -------
         Self
         """
+        self._to_plot = odict()
+        self._n_max_small_plots = -1
         self.figure_ = None
         self._n_max_plots_in_small_tags = -1
         return self
