@@ -433,8 +433,8 @@ options, than Matplotlib does, so band plots are split into upper and
 lower bound, while relation plots create new “runs” for every subtag
 (i.e. layer).
 
-What Next
----------
+Next Steps
+----------
 
 -  Try monitorch on your favourite dataset.
 -  Take a look at other demonstration notebooks and documentation.
