@@ -140,7 +140,7 @@ class LossMetrics(AbstractLens):
         self._call_preprocessor : ExplicitCall|None = None
 
 
-        self._loss_line : Iterable[str] = [loss_line] if isinstance(loss_line, str) else loss_line
+        self._loss_line : list[str] = [loss_line] if isinstance(loss_line, str) else list(loss_line)
         self._loss_range : Iterable[str]
         if isinstance(loss_range, str):
             self._loss_range = [loss_range]
@@ -173,12 +173,45 @@ class LossMetrics(AbstractLens):
                 loss_fn, [self._preprocessor], 'loss'
             )
 
+    def loss(self, *, train : bool, method : str|None = None) -> float:
+        """
+        Get loss from last finalization (epoch tick).
+
+        Parameters
+        ----------
+        train : bool
+            Flag indicating if train loss must be returned
+        method : str|None = None
+            Optional method of loss aggregation, default is the first provided during initialization.
+
+        Returns
+        -------
+        float
+            loss value
+
+        Raises
+        ------
+        AttributeError
+            If lens cannot get loss strings, most probably the lens was not registered with :class:`ExplicitCall` preprocessor.
+        """
+        if method is None:
+            method = self._loss_line[0]
+
+        if self._call_preprocessor is None:
+            raise AttributeError("Cannot get loss strings.")
+        loss_str = self._call_preprocessor.non_train_loss_str
+        if train:
+            loss_str = self._call_preprocessor.train_loss_str
+        return self._loss_values[loss_str + ' ' + method]
+
     def register_module(self, module : Module, module_name : str):
         """ Does not interact with estimator network. """
         pass
 
     def detach_from_module(self):
-        """ Does not interact with estimator network. """
+        """
+        Does not interact with estimator network. Does not detach from loss function module.
+        """
         #if self._is_loss_fn:
         #    self._loss_gatherer.detach()
 
