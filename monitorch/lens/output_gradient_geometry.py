@@ -138,6 +138,12 @@ class OutputGradientGeometry(AbstractLens):
             gatherer.detach()
         self._gatherers = []
 
+        self._line_data : OrderedDict[str, dict[str, float]] = OrderedDict()
+        self._range_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+        if self._compute_adj_prod:
+            self._line_adj_prod_data : OrderedDict[str, dict[str, float]] = OrderedDict()
+            self._range_adj_prod_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+
     def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor):
         """ Does not interact with foreign preprocessor. """
         pass

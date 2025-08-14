@@ -176,6 +176,11 @@ class OutputNorm(AbstractLens):
             ffg.detach()
         self._gatherers = []
 
+        self._line_data  : OrderedDict[str, dict[str, float]] = OrderedDict()
+        self._range_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+        if self._comparison_plot:
+            self._comparison_data : OrderedDict[str, float]= OrderedDict()
+
     def register_foreign_preprocessor(self, _ : AbstractPreprocessor):
         """ Does not interact with foreign preprocessor. """
         pass

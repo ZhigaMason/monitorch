@@ -150,6 +150,14 @@ class ParameterNorm(AbstractLens):
             gatherer.detach()
         self._gatherers = []
 
+        self._data : OrderedDict[str, OrderedDict[str, dict[str, float]]]= OrderedDict([
+            (parameter_name, OrderedDict()) for parameter_name in self._parameters
+        ])
+        if self._comparison_plot:
+            self._comparison_data : OrderedDict[str, OrderedDict[str, float]] = OrderedDict([
+                (parameter_name, OrderedDict()) for parameter_name in self._parameters
+            ])
+
     def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor):
         """ Does not interact with foreign preprocessor. """
         pass

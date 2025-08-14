@@ -166,6 +166,12 @@ class OutputActivation(AbstractLens):
         for gatherer in self._gatherers:
             gatherer.detach()
         self._gatherers = []
+        self._data = OrderedDict()
+        if self._warning_plot:
+            self._warning_data = {
+                'worst activation_rate' : float('nan'),
+                'worst death_rate'      : float('nan'),
+            }
 
     def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor):
         """ Does not interact with foreign preprocessor. """
