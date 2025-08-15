@@ -4,6 +4,14 @@ Activations
 Abstract
 --------
 
+In this notebook we discuss tracking of activations of layers by outputs
+and by parameter gradients. Firstly we analyse binary classification of
+linearly separable data and then we proceed to examine effect of dropout
+layers on deep convolutional layer for classification on MNIST dataset.
+For a much deeper dive see `Neuron Death in ANNs: detecting and
+troubleshooting <https://ai.gopubby.com/neuron-death-in-anns-detecting-and-troubleshooting-4a7b5cc2f099>`__
+by Malcolm Lett.
+
 Imports
 -------
 
@@ -33,6 +41,44 @@ Imports
 Activation Lenses
 -----------------
 
+The whole idea of activation stems from the ReLU and sigmoid activations
+functions being zero or near-zero for a subset of real numbers. Zeros
+being multiplicatevily absorbing and additively neutral element does not
+interact with linear combinations, thus not propagating any information
+further. Thus a dead neuron is a neuron that does not propagate any
+information for all of the samples in a training iteration (batch),
+death rate is a proportion of dead neurons, activation rate is a
+proportion of outputs activited thorugh a dataset pass. This idea is
+represented by ``OutputActivation`` lens, on every forward pass through
+a layer outputs are put to be either active or inactive; death and
+activation rates are then calculated.
+
+``OutputNorm`` records data for all activations functions and dropout by
+default. Its behavious can be configured by ``activation``, ``dropout``,
+``include`` and ``exclude`` flags.
+
+If neuron is dead, i.e., its outputs are constant, it will have a zero
+gradient; therefore both activation and death rate can be reconstructed
+from gradients with respect to neuron’s parameters. This idea is
+implemented in ``ParameterGradientActivation`` lens. Note that it does
+not hook onto a module, but on parameter tensors, and PyTorch allows to
+hook only onto non-lazy tensors, hence lazy modules’ gradients (such as
+``nn.LazyLinear``) cannot be tracked by this lens.
+
+``ParameterGradientActivation`` records data for all layer that have all
+of the parameters listed in ``parameters`` initialization arguments,
+default are ``"weight"`` and ``"bias"``.
+
+Both plots allow for warning plot that plots minimal activation rate and
+maximal death rate accross all layers (and parameters).
+
+It is common to implement activation functions as a functional calls to
+``torch.nn.functional``, that way no output data can be captured using
+callbacks, ``ParameterGradientActivation`` then might help you examine
+your network.
+
+Let us define the inspector with those lenses.
+
 .. code:: ipython3
 
     from monitorch.inspector import PyTorchInspector
@@ -52,14 +98,7 @@ Activation Lenses
         ]
     )
 
-
-.. parsed-literal::
-
-    2025-08-14 14:19:14.117370: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
-    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-    E0000 00:00:1755181154.332141      19 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-    E0000 00:00:1755181154.395725      19 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-
+We will also define generic functions for training and validation.
 
 .. code:: ipython3
 
@@ -90,6 +129,22 @@ Activation Lenses
 
 2D Examples
 -----------
+
+Activation rate can be seen as a measure of entropy of a layer, because
+task-relative informative features requires model to differentiate more
+complex and less common patterns. A notorious example would be that
+first layers of convolutional networks learn to distinguish between
+lines and angles, while the last can detect parts of face.
+
+Death rate on the other hand can be interpreted as a measure of layer’s
+overcapacity under given architecture. Gradient-based optimization
+methods are well-known to find the easiest solution for a problem, sadly
+sometimes the easiest solution is to kill a neuron.
+
+To illustrate our take we will train highly overparameterized network
+for a linearly separable case.
+
+Let us define function for further ease of use.
 
 .. code:: ipython3
 
@@ -156,7 +211,12 @@ Activation Lenses
         train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
         val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False)
         return train_loader, val_loader
-    
+
+We will create two 2D populations both coming from a scaled gaussian
+distribution with different means.
+
+.. code:: ipython3
+
     np.random.seed(RND_SEED)
     pos = np.random.standard_normal(size=(40, 2))*0.5 -1
     neg = np.random.standard_normal(size=(40, 2))*0.5 +1
@@ -168,11 +228,14 @@ Activation Lenses
 
 
 
+.. image:: output_9_0.png
 
-.. image:: output_6_0.png
 
-
-lin separable case
+We see that data is clearly linearly separable, therefore a 3-parameter
+1-layer neural network (logistic regression) would be able to learn to
+classify these data perfectly. Instead we will define a model with
+additional layer with 16 neurons, pumping number of parameters to be
+over three hundread.
 
 .. code:: ipython3
 
@@ -203,34 +266,26 @@ lin separable case
 
 
 
-.. image:: output_8_0.png
+.. image:: output_11_0.png
 
 
 
-.. image:: output_8_1.png
+.. image:: output_11_1.png
 
+
+We see that both gradient and output death rates of the second
+(redundant) layer are high, though they do not converge to give minimal
+possible result of 81.5%, where the second layer would effectively have
+2 neurons.
 
 MNIST
 -----
 
-.. code:: ipython3
+Now we will show how activations work on an example where it is not as
+easy to come up with correct number of parameters and how one could
+influence model’s activations.
 
-    from monitorch.inspector import PyTorchInspector
-    from monitorch.lens import LossMetrics, OutputActivation, ParameterGradientActivation
-    
-    loss_fn = nn.CrossEntropyLoss()
-    
-    inspector = PyTorchInspector(
-        lenses = [
-            LossMetrics(
-                loss_fn=loss_fn,
-                separate_loss_and_metrics=False,
-                metrics=['val_accuracy']
-            ),
-            OutputActivation(),
-            ParameterGradientActivation()
-        ]
-    )
+Firstly we will download MNIST dataset.
 
 .. code:: ipython3
 
@@ -269,6 +324,10 @@ MNIST
     100%|██████████| 4.54k/4.54k [00:00<00:00, 6.47MB/s]
 
 
+We will define custom convolutional network with controllable dropout
+parameter between two convolutional layers, convolutional and fully
+connected part and before the output layer.
+
 .. code:: ipython3
 
     class CNN(nn.Module):
@@ -300,6 +359,8 @@ MNIST
             t = torch.flatten(self.conv(X), start_dim=1)
             return self.dense(t)
 
+We will also use an early stopping mechanism.
+
 .. code:: ipython3
 
     class EarlyStopper:
@@ -316,6 +377,9 @@ MNIST
                 return False
             self.timer += 1
             return self.timer >= self.patience
+
+Finally let us train a network without dropout and see its activation
+and death rates.
 
 .. code:: ipython3
 
@@ -344,8 +408,20 @@ MNIST
 
 
 
-.. image:: output_14_1.png
+.. image:: output_19_1.png
 
+
+Our network has reached impressive accuracy and at the same time second
+convolutional and first dense layers are half dead. Another peculiar
+feature of this plot is a steady decline of output activation as model
+learns to distinguish between digits. It is even more interesting with a
+softmax layer, as its activation rate falls steadily and reaches
+approximately 10%, coinciding with the last elbow on a loss and metrics
+plot. 10% activation is exactly one output of softmax layer being
+non-zero, thus predicting correct digit.
+
+Let us now train the very same network, but heavily regulirize half dead
+layers and put a weak constrain on the output layer.steadily
 
 .. code:: ipython3
 
@@ -374,12 +450,34 @@ MNIST
 
 
 
-.. image:: output_15_1.png
+.. image:: output_21_1.png
 
+
+Firsly we see a that the first dense layer had almost no dead gradient,
+as well as, its activation function stopped producing dead outputs. Both
+activations and death rate of the second convolutional layer declined.
+Loss plots show less variance and softmax activation rate declined
+smoother with no hard elbows. All of that is a result of dropout
+reducing effective size of a model and its variance.
 
 What to Look for
 ----------------
 
+-  Keep death rates low possible using dropout, dead neuron does not
+   contribute to network at all. Occasionally dropped out neuron helps
+   to generalize.
+-  Output (ReLU) and gradient activations start at roughly 50% and 100%
+   activations. Layers closer to the output should drive their
+   activation rates lower, because they need to accept and reject more
+   often.
+
 Next Steps
 ----------
+
+-  Read `an
+   article <https://ai.gopubby.com/neuron-death-in-anns-detecting-and-troubleshooting-4a7b5cc2f099>`__
+   by Malcolm Lett.
+-  Take a look at other demonstration notebooks and documentation.
+-  Experiment with dropout at different parts of network.
+-  Find what activation flavour fits your codebase and habits best.
 
