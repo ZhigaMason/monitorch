@@ -6,3 +6,4 @@ Demo notebooks
    introduction/introduction.rst
    loss_metrics/loss_metrics.rst
    activations/activations.rst
+   gradient_geometry/gradient_geometry.rst
