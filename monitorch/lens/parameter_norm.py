@@ -220,7 +220,7 @@ class ParameterNorm(AbstractLens):
             if self._comparison_plot:
                 comparison_dict = self._comparison_data[parameter_name]
             tag_data_dict = self._data[parameter_name]
-            total_sum = 0
+            total_sum = 1e-7
             for module_name, module_data in self._preprocessor.value.items():
                 pt_val = extract_point(module_data[parameter_name], self._aggregation_method)
                 tag_data_dict.setdefault(module_name, {})[self._aggregation_method] = pt_val

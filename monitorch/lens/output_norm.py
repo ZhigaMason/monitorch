@@ -226,7 +226,7 @@ class OutputNorm(AbstractLens):
                 range_values[parse_range_name(method)] = extract_range(module_data, method)
 
         if self._comparison_plot:
-            total_sum = 0
+            total_sum = 1e-7
             for module_name, module_data in self._preprocessor.value.items():
                 self._comparison_data[module_name] = extract_point(module_data, self._comparison_aggregation)
                 total_sum += self._comparison_data[module_name]
