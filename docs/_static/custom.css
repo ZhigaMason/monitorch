@@ -1,0 +1,12 @@
+.columns {
+  display: flex;
+  gap: 2rem;
+}
+
+.column-left {
+  flex: 1;
+}
+
+.column-right {
+  flex: 1;
+}

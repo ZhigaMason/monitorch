@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'Monitorch'
 copyright = '2025, Maksym Khavil'
 author = 'Maksym Khavil'
-release = '0.0.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -36,3 +35,6 @@ napoleon_google_docstring = False
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ['_static']
+
+def setup(app):
+    app.add_css_file("custom.css")
