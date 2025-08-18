@@ -69,13 +69,3 @@ Currently module supports gradient and parameter collection for arbitrary PyTorc
 ## Tests
 
 Tests can be run with `pytest` from root project directory. Lens test have no assertions or other critical functionality tests, but are rather smoke tests to catch unhandled exceptions. To run functionality tests run `pytest -k "not smoke"`.
-
-# TODO
-
-- [ ] Documentation
-    - [x] Setup sphinx
-    - [ ] Write docstrings
-    - [ ] Create demo notebooks
-- [ ] Recurrent Neural Networks output collection
-- [ ] Transformer output collection (value vector vs state vector)
-- [ ] attach for gatherers and vizualizers
