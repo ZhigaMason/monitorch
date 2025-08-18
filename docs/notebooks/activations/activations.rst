@@ -1,5 +1,5 @@
-Activations
-===========
+Activations: MNIST
+==================
 
 Abstract
 --------

@@ -1,5 +1,5 @@
-Loss and Metrics
-================
+Loss and Metrics: Ecommerece Text Classification
+================================================
 
 Abstract
 --------
