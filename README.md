@@ -9,7 +9,7 @@ A plug-and-use python module to monitor learning of PyTorch neural networks. Hea
 
 Monitorch manages layer separation, data collection and vizualization with simple exposed methods and classes, so the code is concise and expressive without sacrificing informativness of the vizualizations and broad scope of its application. It also allows user to choose between static matplotlib and dynamic tensorboard plotting to help investigate both small models and keep track of large machines.
 
-Documentation can be found under [this link](https://monitorch.readthedocs.io/en/latest/index.html).
+Documentation can be found under [this link](https://monitorch.readthedocs.io/en/latest/).
 
 # Usage
 

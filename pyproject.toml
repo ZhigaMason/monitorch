@@ -1,6 +1,6 @@
 [project]
 name = "monitorch"
-version = "0.0.2"
+version = "0.0.2.0"
 description = "A plug-and-use python library to monitor learning of PyTorch neural networks"
 readme = "README.md"
 authors = [
