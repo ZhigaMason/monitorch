@@ -9,14 +9,9 @@ A plug-and-use python module to monitor learning of PyTorch neural networks. Hea
 
 Monitorch manages layer separation, data collection and vizualization with simple exposed methods and classes, so the code is concise and expressive without sacrificing informativness of the vizualizations and broad scope of its application. It also allows user to choose between static matplotlib and dynamic tensorboard plotting to help investigate both small models and keep track of large machines.
 
+Documentation can be found under [this link](https://monitorch.readthedocs.io/en/latest/index.html).
+
 # Usage
-
-## Requirments
-
-- python>=3.10
-- torch>=2.0.0
-- matplotlib>=3.10.0
-- tensorboard>=2.19.0
 
 ## Installation
 
@@ -64,6 +59,13 @@ inspector.vizualizer.show_fig()
 You can choose other vizualizers by passing `"tensorboard"`, `"print"` or an instance of vizualizer's class from `monitorch.vizualizers`. Note that matplotlib vizualier requires `show_fig()` call to plot.
 
 Currently module supports gradient and parameter collection for arbitrary PyTorch module and output collection for single output architectures (feedforward, convolution, non-transformer autoencoders etc).
+
+## Requirments
+
+- python>=3.10
+- torch>=2.0.0
+- matplotlib>=3.10.0
+- tensorboard>=2.19.0
 
 
 ## Tests
