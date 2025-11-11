@@ -50,6 +50,8 @@ class RunningMeanVar:
         new_value : float
             The value to update statistics with.
         """
+        if hasattr(new_value, "detach"):
+            new_value = new_value.detach()
         new_value = float(new_value)
         self.count += 1
         delta1 = new_value - self.mean
