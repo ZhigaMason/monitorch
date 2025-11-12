@@ -125,8 +125,8 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
         if normalize:
             w_norm /= sqrt(module.weight.grad.numel())
             b_norm /= sqrt(module.bias.grad.numel())
-        w_prod = (prev_w_grad * module.weight.grad).sum().item() / (w_norm * w_norms[-1])
-        b_prod = (prev_b_grad * module.bias.grad).sum().item()   / (b_norm * b_norms[-1])
+        w_prod = (prev_w_grad * module.weight.grad).sum().item() / (w_norm * w_norms[-1] + 1e-8)
+        b_prod = (prev_b_grad * module.bias.grad).sum().item()   / (b_norm * b_norms[-1] + 1e-8)
 
         if normalize:
             w_prod /= module.weight.grad.numel()

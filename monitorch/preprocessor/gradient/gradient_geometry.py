@@ -52,7 +52,7 @@ class GradientGeometry(AbstractTensorPreprocessor):
         if self._normalize:
             new_norm /= sqrt(grad.numel())
         if self._adj_prod:
-            new_prod = (grad * self._prev_grad.get(name, 0.0)).sum().item() / (new_norm * self._prev_norm.get(name, 1.0))
+            new_prod = (grad * self._prev_grad.get(name, 0.0)).sum().item() / (new_norm * self._prev_norm.get(name, 1.0) + 1e-8)
             if self._normalize:
                 new_prod /= grad.numel()
 

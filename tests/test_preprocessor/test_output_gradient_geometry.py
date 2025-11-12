@@ -61,7 +61,7 @@ def test_sequence_output_gradient_norm(module, inp_size, normalize, n_iter, seed
         norm = vector_norm(grads[-1]).item()
         if normalize:
             norm /= sqrt(grads[-1].numel())
-        prod = (grads[-2] * grads[-1]).sum().item() / (norm * norms[-1])
+        prod = (grads[-2] * grads[-1]).sum().item() / (norm * norms[-1] + 1e-8)
         if normalize:
             prod /= grads[-1].numel()
 
