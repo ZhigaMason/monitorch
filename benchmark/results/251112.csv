@@ -1,0 +1,13 @@
+,lens_list,inspector_kwargs,loss_fn,lenses,wall_time_s,cpu_mem_used_MB,peak_cpu_mem_MB,peak_gpu_mem_MB,num_params_M
+0,[],{'visualizer': 'print'},CrossEntropyLoss(),['None'],690.483,5548.81,6581.51,0,85.95
+1,[<monitorch.lens.loss_metrics.LossMetrics object at 0x7ad15fb39970>],{'visualizer': 'print'},CrossEntropyLoss(),['LossMetrics'],671.736,1975.95,6568.91,0,85.95
+2,[<monitorch.lens.output_activation.OutputActivation object at 0x7ad146500290>],{'visualizer': 'print'},CrossEntropyLoss(),['OutputActivation'],715.361,2013.29,6606.51,0,85.95
+3,[<monitorch.lens.parameter_gradient_geometry.ParameterGradientGeometry object at 0x7ad02995a7b0>],{'visualizer': 'print'},CrossEntropyLoss(),['ParameterGradientGeometry'],677.608,1441.23,6477.83,0,85.95
+4,[<monitorch.lens.parameter_gradient_activation.ParameterGradientActivation object at 0x7ad029959670>],{'visualizer': 'print'},CrossEntropyLoss(),['ParameterGradientActivation'],696.611,777.96,6421.98,0,85.95
+5,[<monitorch.lens.output_norm.OutputNorm object at 0x7ad02995a900>],{'visualizer': 'print'},CrossEntropyLoss(),['OutputNorm'],671.014,1754.25,6496.04,0,85.95
+6,[<monitorch.lens.parameter_norm.ParameterNorm object at 0x7ad02995a9c0>],{'visualizer': 'print'},CrossEntropyLoss(),['ParameterNorm'],669.195,1496.06,6367.19,0,85.95
+7,[<monitorch.lens.output_activation.OutputActivation object at 0x7ad02995aa50>],{'visualizer': 'print'},CrossEntropyLoss(),['OutputActivation'],711.29,1108.18,7290.68,0,85.95
+8,[<monitorch.lens.parameter_gradient_geometry.ParameterGradientGeometry object at 0x7ad02995aae0>],{'visualizer': 'print'},CrossEntropyLoss(),['ParameterGradientGeometry'],676.341,887.52,7070.08,0,85.95
+9,[<monitorch.lens.parameter_gradient_activation.ParameterGradientActivation object at 0x7ad02995aba0>],{'visualizer': 'print'},CrossEntropyLoss(),['ParameterGradientActivation'],684.764,924.96,7108.67,0,85.95
+10,[<monitorch.lens.output_norm.OutputNorm object at 0x7ad02995ac60>],{'visualizer': 'print'},CrossEntropyLoss(),['OutputNorm'],667.263,960.58,7145.81,0,85.95
+11,[<monitorch.lens.parameter_norm.ParameterNorm object at 0x7ad02995ad20>],{'visualizer': 'print'},CrossEntropyLoss(),['ParameterNorm'],666.742,923.49,7108.93,0,85.95
