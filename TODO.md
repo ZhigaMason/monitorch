@@ -2,7 +2,7 @@
 
 - [ ] Reduce code duplication in lens' and preprocessor' classes (by abstracting things away) => ease of custom lens definition
     - [ ] As a subpoint, concretize value = self.state (self.\_value) processors
-    - [ ] tie geometry computation accross all different fields
+    - [ ] tie geometry computation accross all different fields using new numerical function
     - [ ] Concretize what should be coupled
 - [ ] id/name identification in the "back-end"
 - [ ] no\_grad global state vs model.eval() local state in preprocessors that skip no\_grad passes explicitly
@@ -29,5 +29,6 @@
 
 # Optimize
 
-- [ ] Measure in-place / in-memory operations
-- [ ] Measure scalability
+- [ ] Measure in-place / in-memory operations (by 2025-11-12 16:40 two kaggle notebooks run)
+    - [ ] explore results
+- [ ] Measure scalability (partially is done by the benchmark notebooks, as they run on ViT with 86M parameters)

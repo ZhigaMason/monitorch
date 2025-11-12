@@ -1,0 +1,5 @@
+,lens_list,loss_fn,inspector_kwargs,dev,lenses,wall_time_s,cpu_mem_used_MB,peak_cpu_mem_MB,peak_gpu_mem_MB,num_params_M,comment
+0,[],CrossEntropyLoss(),{},cpu,['None'],30.145,3297.7,4320.57,0,85.95,baseline
+1,[<monitorch.lens.loss_metrics.LossMetrics object at 0x7c5171d021d0>],CrossEntropyLoss(),{'visualizer': 'print'},cpu,['LossMetrics'],29.687,2345.6,4836.21,0,85.95,LossMetrics(); visualizer=print
+2,[<monitorch.lens.loss_metrics.LossMetrics object at 0x7c51639f6320>],CrossEntropyLoss(),{'visualizer': 'matplotlib'},cpu,['LossMetrics'],30.111,1325.93,4515.77,0,85.95,LossMetrics(); visualizer=matplotlib
+3,[<monitorch.lens.loss_metrics.LossMetrics object at 0x7c51639f6470>],CrossEntropyLoss(),{'visualizer': 'tensorboard'},cpu,['LossMetrics'],29.405,1541.83,5429.68,0,85.95,LossMetrics(); visualizer=tensorboard

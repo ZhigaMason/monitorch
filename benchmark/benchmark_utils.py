@@ -2,10 +2,22 @@ import time
 import os
 import psutil
 import torch
-import tqdm
+from tqdm import tqdm, trange
+import pandas as pd
+import os
+import torch.nn as nn
+from monitorch.lens import (
+    LossMetrics,
+    OutputActivation,
+    ParameterGradientGeometry,
+    ParameterGradientActivation,
+    OutputNorm,
+    ParameterNorm
+)
 from torch import nn, optim
 from torchvision.models import vit_b_16
 from monitorch.inspector import PyTorchInspector
+from monitorch.visualizer import MatplotlibVisualizer
 
 def benchmark_monitorch_lens(
     lens_list : list,
@@ -47,7 +59,7 @@ def benchmark_monitorch_lens(
     # --- Measure before training ---
 
     # --- Training loop ---
-    for step in tqdm.trange(num_batches):
+    for step in trange(num_batches):
         optimizer.zero_grad()
 
         if dataset is None:
@@ -67,6 +79,10 @@ def benchmark_monitorch_lens(
 
         if inspector:
             inspector.tick_epoch()
+
+    if inspector and isinstance(inspector.visualizer, MatplotlibVisualizer):
+        fig = inspector.visualizer.show_fig()
+        fig.savefig('benchmark/plots/' + time.asctime())
 
     # --- After training ---
     wall_time = time.perf_counter() - start_time
@@ -91,3 +107,101 @@ def benchmark_monitorch_lens(
     del model
     torch.cuda.empty_cache()
     return result
+
+
+def run_dev_benchmark(dev, num_batches):
+
+    loss_fns = [nn.CrossEntropyLoss() for _ in range(3)]
+
+    # Fields:
+    #   lens_list
+    #   loss_fn
+    #   inspector_kwargs (visualizer)
+    #   comment
+    #   dev
+    #   num_batches=50
+
+    # Stats:
+    #   nruns = 4 + 5 * 3 *2 =34
+    #   exp_runtime = 34 * 15m =  510m = ~9h
+    KWARGS = \
+    [
+        dict(
+            lens_list = [],
+            loss_fn=nn.CrossEntropyLoss(),
+            inspector_kwargs={},
+            comment="baseline",
+            dev=dev,
+            num_batches=50
+        ),
+        dict(
+            lens_list=[LossMetrics(loss_fn=loss_fns[0])],
+            loss_fn=loss_fns[0],
+            inspector_kwargs={'visualizer' : 'print'},
+            comment="LossMetrics(); visualizer=print",
+            dev=dev,
+            num_batches=num_batches
+        ),
+        dict(
+            lens_list=[LossMetrics(loss_fn=loss_fns[1])],
+            loss_fn=loss_fns[1],
+            inspector_kwargs={'visualizer' : 'matplotlib'},
+            comment="LossMetrics(); visualizer=matplotlib",
+            dev=dev,
+            num_batches=num_batches
+        ),
+        dict(
+            lens_list=[LossMetrics(loss_fn=loss_fns[2])],
+            loss_fn=loss_fns[2],
+            inspector_kwargs={'visualizer' : 'tensorboard'},
+            comment="LossMetrics(); visualizer=tensorboard",
+            dev=dev,
+            num_batches=num_batches
+        ),
+    ] + [
+        dict(
+            lens_list = [lens(**lens_kwargs)],
+            loss_fn=nn.CrossEntropyLoss(),
+            inspector_kwargs=inspector_kwargs,
+            comment=f"{lens.__name__}({lens_kwargs_comment}); {inspector_comment}",
+            dev=dev,
+            num_batches=num_batches
+        )
+        for lens in [
+                OutputActivation,
+                ParameterGradientGeometry,
+                ParameterGradientActivation,
+                OutputNorm,
+                ParameterNorm,
+        ]
+        for lens_kwargs, lens_kwargs_comment in [
+                ({'inplace' : 'True'},  'inplace=True'),
+                ({'inplace' : 'False'}, 'inplace=False')
+        ]
+        for inspector_kwargs, inspector_comment in [
+                ({'visualizer' : 'print'},       "visualizer='print'"),
+                ({'visualizer' : 'matplotlib'},  "visualizer='matplotlib'"),
+                ({'visualizer' : 'tensorboard'}, "visualizer='tensorboard'"),
+        ]
+    ]
+
+    results = []
+
+    if not os.path.exists("benchmark/"):
+        os.mkdir("benchmark/")
+
+    if not os.path.exists("benchmark/plots/"):
+        os.mkdir("benchmark/plots/")
+
+    if not os.path.exists("benchmark/results/"):
+        os.mkdir("benchmark/results/")
+
+    for i, kwargs in tqdm(enumerate(KWARGS)):
+        comment = kwargs.pop('comment')
+        res = benchmark_monitorch_lens(**kwargs)
+        results.append(kwargs | res | {'comment' : comment})
+        df = pd.DataFrame(results)
+        df.to_csv(f"benchmark/results/checkpoint_{i}.csv")
+
+    df = pd.DataFrame(results)
+    df.to_csv("benchmark/results/exhaustive_cpu.csv")
