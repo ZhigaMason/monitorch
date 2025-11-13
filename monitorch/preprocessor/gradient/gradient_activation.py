@@ -1,6 +1,6 @@
 from typing import Any
 
-from torch import abs as tabs
+from torch import abs as tabs, no_grad
 
 from monitorch.preprocessor.abstract.abstract_gradient_preprocessor import AbstractTensorPreprocessor
 
@@ -51,8 +51,9 @@ class GradientActivation(AbstractTensorPreprocessor):
             else:
                 self._value[name] = self._agg_class()
 
-        new_activation_tensor = tabs(grad) > self._eps
-        new_activation_rates = reduce_activation_to_activation_rates(new_activation_tensor, batch=False)
+        with no_grad():
+            new_activation_tensor = tabs(grad) > self._eps
+            new_activation_rates = reduce_activation_to_activation_rates(new_activation_tensor, batch=False)
 
         if self._death:
             activations, death_rates = self._value[name]
