@@ -2,10 +2,9 @@ import time
 import os
 import psutil
 import torch
-from tqdm import tqdm, trange
 import pandas as pd
 import os
-import torch.nn as nn
+import multiprocessing as mp
 from monitorch.lens import (
     LossMetrics,
     OutputActivation,
@@ -14,6 +13,7 @@ from monitorch.lens import (
     OutputNorm,
     ParameterNorm
 )
+from tqdm import tqdm, trange
 from torch import nn, optim
 from torchvision.models import vit_b_16
 from monitorch.inspector import PyTorchInspector
@@ -27,7 +27,8 @@ def benchmark_monitorch_lens(
     dev:str="cpu",
     num_classes:int=200,
     batch_size:int=32,
-    num_batches:int=50,
+    num_batches:int=20,
+    num_epochs:int=10,
     image_size:int=224,
     learning_rate:float=1e-4,
 ):
@@ -59,23 +60,24 @@ def benchmark_monitorch_lens(
     # --- Measure before training ---
 
     # --- Training loop ---
-    for step in trange(num_batches):
-        optimizer.zero_grad()
+    for epoch in trange(num_epochs):
+        for step in num_batches:
+            optimizer.zero_grad()
 
-        if dataset is None:
-            x, y = inputs, targets
-        else:
-            try:
-                x, y = next(data_iter)
-            except StopIteration:
-                data_iter = iter(dataset)
-                x, y = next(data_iter)
-            x, y = x.to(device), y.to(device)
+            if dataset is None:
+                x, y = inputs, targets
+            else:
+                try:
+                    x, y = next(data_iter)
+                except StopIteration:
+                    data_iter = iter(dataset)
+                    x, y = next(data_iter)
+                x, y = x.to(device), y.to(device)
 
-        out = model(x)
-        loss = loss_fn(out, y)
-        loss.backward()
-        optimizer.step()
+            out = model(x)
+            loss = loss_fn(out, y)
+            loss.backward()
+            optimizer.step()
 
         if inspector:
             inspector.tick_epoch()
@@ -103,13 +105,11 @@ def benchmark_monitorch_lens(
         "peak_gpu_mem_MB": round(peak_gpu_mem, 2),
         "num_params_M": round(num_params / 1e6, 2),
     }
-
-    del model
     torch.cuda.empty_cache()
     return result
 
 
-def run_dev_benchmark(dev, num_batches):
+def run_dev_benchmark(dev, num_epochs):
 
     loss_fns = [nn.CrossEntropyLoss() for _ in range(3)]
 
@@ -119,7 +119,7 @@ def run_dev_benchmark(dev, num_batches):
     #   inspector_kwargs (visualizer)
     #   comment
     #   dev
-    #   num_batches=50
+    #   num_epochs=5
 
     # Stats:
     #   nruns = 4 + 5 * 3 *2 =34
@@ -132,7 +132,7 @@ def run_dev_benchmark(dev, num_batches):
             inspector_kwargs={},
             comment="baseline",
             dev=dev,
-            num_batches=50
+            num_epochs=num_epochs
         ),
         dict(
             lens_list=[LossMetrics(loss_fn=loss_fns[0])],
@@ -140,7 +140,7 @@ def run_dev_benchmark(dev, num_batches):
             inspector_kwargs={'visualizer' : 'print'},
             comment="LossMetrics(); visualizer=print",
             dev=dev,
-            num_batches=num_batches
+            num_epochs=num_epochs
         ),
         dict(
             lens_list=[LossMetrics(loss_fn=loss_fns[1])],
@@ -148,7 +148,7 @@ def run_dev_benchmark(dev, num_batches):
             inspector_kwargs={'visualizer' : 'matplotlib'},
             comment="LossMetrics(); visualizer=matplotlib",
             dev=dev,
-            num_batches=num_batches
+            num_epochs=num_epochs
         ),
         dict(
             lens_list=[LossMetrics(loss_fn=loss_fns[2])],
@@ -156,8 +156,29 @@ def run_dev_benchmark(dev, num_batches):
             inspector_kwargs={'visualizer' : 'tensorboard'},
             comment="LossMetrics(); visualizer=tensorboard",
             dev=dev,
-            num_batches=num_batches
+            num_epochs=num_epochs
         ),
+    ] + [
+        dict(
+            lens_list=[
+                ParameterGradientGeometry(parameters=('weight', 'bias'), **lens_kwargs),
+                ParameterGradientGeometry(parameters=('in_proj_weight', 'in_proj_bias'), **lens_kwargs),
+            ],
+            loss_fn=nn.CrossEntropyLoss(),
+            inspector_kwargs=inspector_kwargs,
+            dev=dev,
+            num_epochs=num_epochs,
+            comment=f"ParameterGradientGeometry(parameters=(weight, bias), {lens_kwargs_comment}),ParameterGradientGeometry(parameters=(in_proj_weight, in_proj_bias), {lens_kwargs_comment}); {inspector_comment}"
+        )
+        for lens_kwargs, lens_kwargs_comment in [
+                ({'inplace' : True},  'inplace=True'),
+                ({'inplace' : False}, 'inplace=False')
+        ]
+        for inspector_kwargs, inspector_comment in [
+                ({'visualizer' : 'print'},       "visualizer='print'"),
+                ({'visualizer' : 'matplotlib'},  "visualizer='matplotlib'"),
+                ({'visualizer' : 'tensorboard'}, "visualizer='tensorboard'"),
+        ]
     ] + [
         dict(
             lens_list = [lens(**lens_kwargs)],
@@ -165,11 +186,10 @@ def run_dev_benchmark(dev, num_batches):
             inspector_kwargs=inspector_kwargs,
             comment=f"{lens.__name__}({lens_kwargs_comment}); {inspector_comment}",
             dev=dev,
-            num_batches=num_batches
+            num_epochs=num_epochs
         )
         for lens in [
                 OutputActivation,
-                ParameterGradientGeometry,
                 ParameterGradientActivation,
                 OutputNorm,
                 ParameterNorm,
@@ -196,9 +216,11 @@ def run_dev_benchmark(dev, num_batches):
     if not os.path.exists("benchmark/results/"):
         os.mkdir("benchmark/results/")
 
-    for i, kwargs in tqdm(enumerate(KWARGS)):
-        comment = kwargs.pop('comment')
-        res = benchmark_monitorch_lens(**kwargs)
+    ctx = mp.get_context("spawn")
+    for i, kwargs in tqdm(enumerate(KWARGS[:2])):
+        with ctx.Pool(1) as pool:
+            comment = kwargs.pop('comment')
+            res = pool.apply(benchmark_monitorch_lens, kwds=kwargs)
         results.append(kwargs | res | {'comment' : comment})
         df = pd.DataFrame(results)
         df.to_csv(f"benchmark/results/checkpoint_{i}.csv")
