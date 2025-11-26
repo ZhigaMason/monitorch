@@ -57,7 +57,7 @@ class GradientActivation(AbstractTensorPreprocessor):
 
         if self._death:
             activations, death_rates = self._value[name]
-            death_rates.append(new_activation_rates.eq(0.0).float().mean().item())
+            death_rates.append(new_activation_rates.eq(0.0).float().mean())
             for act in new_activation_rates:
                 activations.append(act.item())
         else:
