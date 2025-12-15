@@ -90,7 +90,7 @@ def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, i
         if len(activation_tensor.shape) > 2:
             activation_tensor = activation_tensor.flatten(2, -1).any(dim=-1)
         new_activations = activation_tensor.float().mean(dim=0)
-        activations += new_activations.flatten().tolist()
+        activations.append(new_activations.mean(dtype=torch.float32))
         deathes.append((new_activations == 0).float().mean())
 
     assert np.allclose(

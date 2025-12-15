@@ -122,14 +122,14 @@ def test_sequence_gradient_activation(module, inp_size, n_iter, seed):
         sgd.zero_grad()
         module(x).square().mean().backward()
 
-        w_act = reduce_activation_to_activation_rates(torch.isclose(module.weight.grad, torch.tensor(0.0)).logical_not(), batch=False).numpy()
-        w_death = (w_act == 0).mean()
-        b_act = reduce_activation_to_activation_rates(torch.isclose(module.bias.grad,   torch.tensor(0.0)).logical_not(), batch=False).numpy()
-        b_death = (b_act == 0).mean()
+        w_act = reduce_activation_to_activation_rates(torch.isclose(module.weight.grad, torch.tensor(0.0)).logical_not(), batch=False)
+        w_death = (w_act == 0).mean(dtype=torch.float32)
+        b_act = reduce_activation_to_activation_rates(torch.isclose(module.bias.grad,   torch.tensor(0.0)).logical_not(), batch=False)
+        b_death = (b_act == 0).mean(dtype=torch.float32)
 
-        w_acts.extend(w_act.tolist())
+        w_acts.append(w_act.mean(dtype=torch.float32))
         w_deathes.append(w_death)
-        b_acts.extend(b_act.tolist())
+        b_acts.append(b_act.mean(dtype=torch.float32))
         b_deathes.append(b_death)
 
         sgd.step()

@@ -1,7 +1,7 @@
 
 from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates
 
-from torch import no_grad, is_grad_enabled, Tensor, abs as tabs
+from torch import no_grad, is_grad_enabled, Tensor, float32 as tfloat32, abs as tabs
 from typing import Any
 from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
 
@@ -69,13 +69,11 @@ class OutputActivation(AbstractForwardPreprocessor):
 
         if self._death:
             activations, death_rates = self._value[name]
-            death_rates.append(new_activation_rate.eq(0).float().mean())
-            for act in new_activation_rate:
-                activations.append(act.item())
+            death_rates.append(new_activation_rate.eq(0).mean(dtype=tfloat32))
+            activations.append(new_activation_rate.mean(dtype=tfloat32))
         else:
             activations = self._value[name]
-            for act in new_activation_rate:
-                activations.append(act.item())
+            activations.append(new_activation_rate.mean(dtype=tfloat32))
 
 
     @property
