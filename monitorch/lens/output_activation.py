@@ -8,6 +8,7 @@ from monitorch.gatherer import FeedForwardGatherer
 from monitorch.preprocessor import AbstractPreprocessor, OutputActivation as OutputActivationPreprocessor
 from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point
+from monitorch.inspector.inspector_state import InspectorState
 
 from .module_distinction import isactivation, isdropout
 
@@ -130,7 +131,7 @@ class OutputActivation(AbstractLens):
         self._death_aggregation : str = death_aggregation
 
 
-    def register_leaf_module(self, module : Module, module_name : str):
+    def register_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
         """
         Registers (or ignores) module.
 
@@ -152,7 +153,8 @@ class OutputActivation(AbstractLens):
         ):
             return
         ffg = FeedForwardGatherer(
-            module, [self._preprocessor], module_name
+            module, [self._preprocessor], module_name,
+            inspector_state=inspector_state
         )
         self._gatherers.append(ffg)
         self._data[module_name] = {}
@@ -173,7 +175,7 @@ class OutputActivation(AbstractLens):
                 'worst death_rate'      : float('nan'),
             }
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor):
+    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state : InspectorState):
         """ Does not interact with foreign preprocessor. """
         pass
 

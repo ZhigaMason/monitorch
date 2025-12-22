@@ -11,6 +11,7 @@ from monitorch.preprocessor import (
 )
 from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point, extract_range, parse_range_name
+from monitorch.inspector.inspector_state import InspectorState
 
 class LossMetrics(AbstractLens):
     """
@@ -170,7 +171,8 @@ class LossMetrics(AbstractLens):
             self._is_loss_fn = True
             self._preprocessor = LossModule(inplace=loss_fn_inplace)
             self._loss_gatherer = FeedForwardGatherer(
-                loss_fn, [self._preprocessor], 'loss'
+                loss_fn, [self._preprocessor], 'loss',
+                inspector_state=None #argh, postponed initialization
             )
 
     def loss(self, *, train : bool, method : str|None = None) -> float:
@@ -204,7 +206,7 @@ class LossMetrics(AbstractLens):
             loss_str = self._call_preprocessor.train_loss_str
         return self._loss_values[loss_str + ' ' + method]
 
-    def register_leaf_module(self, module : Module, module_name : str):
+    def register_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
         """ Does not interact with estimator network. """
         pass
 
@@ -215,7 +217,7 @@ class LossMetrics(AbstractLens):
         #if self._is_loss_fn:
         #    self._loss_gatherer.detach()
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor):
+    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state : InspectorState):
         """
         Saves an instance of :class:`monitorch.preprocessor.ExplicitCall`,
         other predprocessors are ignored.
@@ -233,6 +235,7 @@ class LossMetrics(AbstractLens):
                     ext_ppr.non_train_loss_str,
 
                 )
+                self._loss_gatherer.inspector_state = inspector_state
 
     def introduce_tags(self, vizualizer : AbstractVisualizer):
         """

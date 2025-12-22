@@ -8,6 +8,7 @@ from torch.linalg import vector_norm
 
 from monitorch.preprocessor import OutputNorm
 from monitorch.gatherer import FeedForwardGatherer
+from monitorch.inspector.inspector_state import InspectorState
 
 
 @pytest.mark.parametrize(
@@ -35,7 +36,7 @@ def test_sequence_output_norm(module, inp_size, normalize, n_iter, seed):
     onr = OutputNorm(normalize=normalize, inplace=True, record_no_grad=False)
 
     ffg = FeedForwardGatherer(
-        module, [onm, onr], 'standalone_test'
+        module, [onm, onr], 'standalone_test', InspectorState()
     )
 
     x = torch.zeros(*inp_size)
@@ -85,7 +86,7 @@ def test_record_no_grad(module, inp_size, record_no_grad):
     onr = OutputNorm(normalize=False, inplace=True, record_no_grad=record_no_grad)
 
     ffg = FeedForwardGatherer(
-        module, [onm, onr], 'standalone_test'
+        module, [onm, onr], 'standalone_test', InspectorState()
     )
 
     with torch.no_grad():

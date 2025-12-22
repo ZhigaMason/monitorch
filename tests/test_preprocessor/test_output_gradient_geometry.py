@@ -9,6 +9,7 @@ from torch.linalg import vector_norm
 
 from monitorch.preprocessor import OutputGradientGeometry
 from monitorch.gatherer import BackwardGatherer
+from monitorch.inspector.inspector_state import InspectorState
 
 
 
@@ -43,7 +44,7 @@ def test_sequence_output_gradient_norm(module, inp_size, normalize, n_iter, seed
     oggr = OutputGradientGeometry(adj_prod=True, normalize=normalize, inplace=True)
 
     bg = BackwardGatherer(
-        module, [oggm, oggr], 'standalone_test'
+        module, [oggm, oggr], 'standalone_test', InspectorState()
     )
 
     x = torch.zeros(*inp_size)

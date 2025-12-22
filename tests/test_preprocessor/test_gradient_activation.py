@@ -6,6 +6,7 @@ import pytest
 from monitorch.preprocessor import GradientActivation, GradientActivation
 from monitorch.gatherer import ParameterGradientGatherer
 from monitorch.numerical import reduce_activation_to_activation_rates
+from monitorch.inspector.inspector_state import InspectorState
 
 
 @pytest.mark.parametrize(
@@ -32,11 +33,11 @@ def test_one_pass_gradient_activation(module, inp):
     bgar = GradientActivation(death=True, inplace=True)
 
     wgg = ParameterGradientGatherer(
-        'weight', module, [wgam, wgar], 'standalone_test'
+        'weight', module, [wgam, wgar], 'standalone_test', InspectorState()
     )
 
     bgg = ParameterGradientGatherer(
-        'bias', module, [bgam, bgar], 'standalone_test'
+        'bias', module, [bgam, bgar], 'standalone_test', InspectorState()
     )
 
     module(inp).square().mean().backward()
@@ -100,12 +101,14 @@ def test_sequence_gradient_activation(module, inp_size, n_iter, seed):
     bgam = GradientActivation(death=True, inplace=False)
     bgar = GradientActivation(death=True, inplace=True)
 
+    state=InspectorState()
+
     wgg = ParameterGradientGatherer(
-        'weight', module, [wgam, wgar], 'standalone_test'
+        'weight', module, [wgam, wgar], 'standalone_test', state
     )
 
     bgg = ParameterGradientGatherer(
-        'bias', module, [bgam, bgar], 'standalone_test'
+        'bias', module, [bgam, bgar], 'standalone_test', state
     )
 
     x = torch.zeros(*inp_size)

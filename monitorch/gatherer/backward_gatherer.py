@@ -1,4 +1,5 @@
 from monitorch.preprocessor import AbstractBackwardPreprocessor
+from monitorch.inspector.inspector_state import InspectorState
 from .abstract_gatherer import AbstractGatherer
 
 class BackwardGatherer(AbstractGatherer):
@@ -18,7 +19,8 @@ class BackwardGatherer(AbstractGatherer):
         Name of module to hand over to preprocessors.
     """
 
-    def __init__(self, module, preprocessors : list[AbstractBackwardPreprocessor], name : str):
+    def __init__(self, module, preprocessors : list[AbstractBackwardPreprocessor], name : str, inspector_state : InspectorState):
+        super().__init__(inspector_state)
         self._preprocessors = preprocessors
         self._name = name
         self._handle = module.register_full_backward_hook(self)
@@ -27,8 +29,10 @@ class BackwardGatherer(AbstractGatherer):
         """
         See base class.
         """
+        super().detach()
         self._handle.remove()
 
+    @AbstractGatherer.requires_active_inspector_state
     def __call__(self, module, grad_inp, grad_out) -> None:
         for preprocessor in self._preprocessors:
             preprocessor.process_bw(self._name, module, grad_inp, grad_out)

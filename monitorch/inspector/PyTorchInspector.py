@@ -1,5 +1,8 @@
 from torch.nn import Module
 from typing_extensions import Self
+from typing import Callable
+
+from .inspector_state import InspectorState
 
 from monitorch.lens import AbstractLens
 from monitorch.preprocessor import ExplicitCall
@@ -42,6 +45,10 @@ class PyTorchInspector:
     non_train_loss_str = 'val_loss
         String to be used for validation/testing/development loss.
 
+    is_active_fn : int | Callable[[int], bool] = 1
+        Function deciding if inspector is active (collects and visualizes data) for given epoch. Passed directly to `InspectorState`. Integer values correspond to  function ``epoch % n == 0``, where `n` is passed value.
+
+
     Attributes
     ----------
     lenses : list[AbstractLens]
@@ -51,14 +58,12 @@ class PyTorchInspector:
     visualizer : AbstractVisualizer
         Visualizaer object that draws all plots. Can be hot-swapped.
 
-    attached : bool
-        Flag indicating if inspector is attached.
-
-    epoch_counter : int
-        Internal epoch counter used in :meth:`tick_epoch`, increments on call.
+    state : InspectorState
+        State object representing inspectors inner state. Weak-referenced by gatherers.
 
     depth : int
         Depth to unfold module inclusion tree.
+
     module_name_prefix : str
         Delimiter to separate names of parent and child modules.
 
@@ -109,15 +114,14 @@ class PyTorchInspector:
             depth : int = -1,
             module_name_prefix : str = '.',
             train_loss_str = 'train_loss',
-            non_train_loss_str = 'val_loss'
+            non_train_loss_str = 'val_loss',
+            is_active_fn : int|Callable[[int], bool] = 1
     ):
         self.lenses = lenses
         self._call_preprocessor = ExplicitCall(train_loss_str, non_train_loss_str)
         self.depth = depth
         self.module_name_prefix = module_name_prefix
-        self.attached = False
-
-        self.epoch_counter = 0
+        self.state : InspectorState = InspectorState(is_active_fn=is_active_fn)
 
         if isinstance(visualizer, str):
             if visualizer not in _vizualizer_dict:
@@ -127,7 +131,7 @@ class PyTorchInspector:
             self.visualizer : AbstractVisualizer = visualizer
 
         for lens in self.lenses:
-            lens.register_foreign_preprocessor(self._call_preprocessor)
+            lens.register_foreign_preprocessor(self._call_preprocessor, self.state)
             lens.introduce_tags(self.visualizer)
         if module is not None:
             self.attach(module)
@@ -149,19 +153,19 @@ class PyTorchInspector:
         Self
             Builder pattern.
         """
-        if self.attached:
+        if self.state.attached:
             self.detach()
         leaf_module_names, non_leaf_module_names = PyTorchInspector._traverse_module_inclusion_tree(module, self.depth, self.module_name_prefix)
 
         for module, name in leaf_module_names:
             for lens in self.lenses:
-                lens.register_leaf_module(module, name)
+                lens.register_leaf_module(module, name, self.state)
 
         for module, name in non_leaf_module_names:
             for lens in self.lenses:
-                lens.register_non_leaf_module(module, name)
+                lens.register_non_leaf_module(module, name, self.state)
 
-        self.attached = True
+        self.state.attached = True
         return self
 
     def detach(self) -> Self:
@@ -173,14 +177,14 @@ class PyTorchInspector:
         Self
             Builder pattern.
         """
-        assert self.attached, "Inspector must be attached to module before detaching"
-        self.epoch_counter = 0
+        assert self.state.attached, "Inspector must be attached to module before detaching"
+        self.state.counter = 0
         self._call_preprocessor.reset()
         for lens in self.lenses:
             lens.detach_from_module()
         if isinstance(self.visualizer, MatplotlibVisualizer):
             self.visualizer.reset_fig()
-        self.attached = False
+        self.state.attached = False
         return self
 
     def push_metric(self, name : str, value : float, *, running : bool=True):
@@ -223,16 +227,23 @@ class PyTorchInspector:
         Parameters
         ----------
         epoch : int|None = None
-            Optional epoch counter, default is incremental :attr:`epoch_counter`.
+            Optional epoch counter, default ticks :attr:`state`, thus incrementing `counter`.
         """
         if epoch is not None:
-            self.epoch_counter = epoch
+            self.state.counter = epoch
+        else:
+            self.state.tick()
+
+        if not self.state.is_active:
+            return
+
         for lens in self.lenses:
             lens.finalize_epoch()
-            lens.vizualize(self.visualizer, self.epoch_counter)
+            lens.vizualize(self.visualizer, self.state.counter)
             lens.reset_epoch()
         self._call_preprocessor.reset()
-        self.epoch_counter += 1
+
+    tick = tick_epoch
 
     @staticmethod
     def _decide_prefix(prefix : str, grand_name : str):

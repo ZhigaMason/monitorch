@@ -1,5 +1,6 @@
 from monitorch.preprocessor import AbstractForwardPreprocessor
 from .abstract_gatherer import AbstractGatherer
+from monitorch.inspector.inspector_state import InspectorState
 
 class FeedForwardGatherer(AbstractGatherer):
     """
@@ -18,7 +19,8 @@ class FeedForwardGatherer(AbstractGatherer):
         Name of module to hand over to preprocessors.
     """
 
-    def __init__(self, module, preprocessors : list[AbstractForwardPreprocessor], name):
+    def __init__(self, module, preprocessors : list[AbstractForwardPreprocessor], name : str, inspector_state : InspectorState):
+        super().__init__(inspector_state)
         self._preprocessors = preprocessors
         self._name = name
         self._handle = module.register_forward_hook(self)
@@ -27,8 +29,10 @@ class FeedForwardGatherer(AbstractGatherer):
         """
         See base class
         """
+        super().detach()
         self._handle.remove()
 
+    @AbstractGatherer.requires_active_inspector_state
     def __call__(self, module, args, layer_output) -> None:
         layer_input = args[0]
         for preprocessor in self._preprocessors:

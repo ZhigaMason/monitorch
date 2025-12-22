@@ -6,6 +6,7 @@ from monitorch.preprocessor import AbstractPreprocessor, GradientGeometry
 from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.gatherer import ParameterGradientGatherer
 from monitorch.numerical import extract_point, extract_range, parse_range_name
+from monitorch.inspector.inspector_state import InspectorState
 
 
 class ParameterGradientGeometry(AbstractLens):
@@ -103,7 +104,7 @@ class ParameterGradientGeometry(AbstractLens):
         else:
             self._range_aggregation = range_aggregation
 
-    def register_leaf_module(self, module : Module, module_name : str):
+    def register_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
         """
         Registers (or ignores) module.
 
@@ -116,9 +117,9 @@ class ParameterGradientGeometry(AbstractLens):
         module_name : str
             Name of the module, module's information will be passed to visaulizer under this name.
         """
-        self._register_module(module, module_name)
+        self._register_module(module, module_name, inspector_state)
 
-    def register_non_leaf_module(self, module : Module, module_name : str):
+    def register_non_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
         """
         Registers (or ignores) module.
 
@@ -131,9 +132,9 @@ class ParameterGradientGeometry(AbstractLens):
         module_name : str
             Name of the module, module's information will be passed to visaulizer under this name.
         """
-        self._register_module(module, module_name)
+        self._register_module(module, module_name, inspector_state)
 
-    def _register_module(self, module : Module, module_name : str):
+    def _register_module(self, module : Module, module_name : str, inspector_state : InspectorState):
         """
         Generic function called from :meth:`register_non_leaf_module` and :meth:`register_leaf_module`
 
@@ -150,7 +151,8 @@ class ParameterGradientGeometry(AbstractLens):
         for parameter, preprocessor in self._preprocessors.items():
             pgg = ParameterGradientGatherer(
                 parameter,
-                module, [preprocessor], module_name
+                module, [preprocessor], module_name,
+                inspector_state=inspector_state
             )
             self._gatherers.append(pgg)
 
@@ -170,7 +172,7 @@ class ParameterGradientGeometry(AbstractLens):
             self._line_adj_prod_data : dict[str, OrderedDict[str, dict[str, float]]] = {}
             self._range_adj_prod_data : dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor):
+    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state : InspectorState):
         """ Does not interact with foreign preprocessor. """
         pass
 

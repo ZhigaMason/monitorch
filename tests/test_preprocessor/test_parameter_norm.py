@@ -8,6 +8,7 @@ import pytest
 
 from monitorch.preprocessor import ParameterNorm
 from monitorch.gatherer import EpochModuleGatherer
+from monitorch.inspector.inspector_state import InspectorState
 
 @pytest.mark.parametrize(
     ['module', 'inp_size', 'normalize', 'n_iter', 'seed'],
@@ -34,7 +35,7 @@ def test_norm_parameter(module, inp_size, normalize, n_iter, seed):
     pnr = ParameterNorm(['weight', 'bias'], normalize=normalize, inplace=True)
 
     emg = EpochModuleGatherer(
-        module, [pnm, pnr], 'standalone_test'
+        module, [pnm, pnr], 'standalone_test', InspectorState()
     )
 
     x = torch.zeros(*inp_size)

@@ -5,6 +5,7 @@ import torch.nn as nn
 import pytest
 from monitorch.preprocessor import OutputActivation
 from monitorch.gatherer import FeedForwardGatherer
+from monitorch.inspector.inspector_state import InspectorState
 
 class DumbModule(nn.Module):
 
@@ -36,9 +37,10 @@ class DumbModule(nn.Module):
 def test_output_single_activation(module, X, activation):
     oam = OutputActivation(death=False, inplace=False, record_no_grad=False)
     oar = OutputActivation(death=False, inplace=True, record_no_grad=False)
+    state=InspectorState()
     ffg = FeedForwardGatherer(module, [
             oam, oar
-    ], 'standalone_test' )
+    ], 'standalone_test', state )
     _ = module(X)
     assert np.isclose(activation, oam.value['standalone_test'][0])
     assert np.isclose(activation, oar.value['standalone_test'].mean)
@@ -74,9 +76,10 @@ def test_output_single_activation(module, X, activation):
 def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, inp_size, seed):
     oam = OutputActivation(death=True, inplace=False, record_no_grad=False)
     oar = OutputActivation(death=True, inplace=True, record_no_grad=False)
+    state=InspectorState()
     ffg = FeedForwardGatherer(module, [
             oam, oar
-    ], 'standalone_test' )
+    ], 'standalone_test', state)
 
     x = torch.rand(100, 100)
     activations = []
@@ -129,9 +132,10 @@ def test_record_no_grad(module, record_no_grad : bool):
     oam = OutputActivation(death=True, inplace=False, record_no_grad=record_no_grad)
     oar = OutputActivation(death=True, inplace=True, record_no_grad=record_no_grad)
 
+    state=InspectorState()
     ffg = FeedForwardGatherer(module, [
             oam, oar
-    ], 'standalone_test' )
+    ], 'standalone_test', state)
 
     with torch.no_grad():
         x = torch.rand(100, 100)

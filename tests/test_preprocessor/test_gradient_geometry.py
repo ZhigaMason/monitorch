@@ -11,6 +11,8 @@ from monitorch.preprocessor import GradientGeometry
 
 from monitorch.gatherer import ParameterGradientGatherer
 
+from monitorch.inspector.inspector_state import InspectorState
+
 def replace_w_grad(tensor):
     def f(module, inp, out):
         module.weight.grad = tensor
@@ -50,11 +52,13 @@ def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
     module.register_full_backward_hook(replace_w_grad(grad_w))
     module.register_full_backward_hook(replace_b_grad(grad_b))
 
+    state=InspectorState()
+
     wgg = ParameterGradientGatherer(
-        'weight', module, [wggm, wggr], 'standalone_test'
+        'weight', module, [wggm, wggr], 'standalone_test', state
     )
     bgg = ParameterGradientGatherer(
-        'bias', module, [bggm, bggr], 'standalone_test'
+        'bias', module, [bggm, bggr], 'standalone_test', state
     )
 
     x = torch.ones(*inp_size)
@@ -100,11 +104,13 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
     bggm = GradientGeometry(adj_prod=True, normalize=normalize, inplace=False)
     bggr = GradientGeometry(adj_prod=True, normalize=normalize, inplace=True)
 
+    state=InspectorState()
+
     wgg = ParameterGradientGatherer(
-        'weight', module, [wggm, wggr], 'standalone_test'
+        'weight', module, [wggm, wggr], 'standalone_test', state
     )
     bgg = ParameterGradientGatherer(
-        'bias', module, [bggm, bggr], 'standalone_test'
+        'bias', module, [bggm, bggr], 'standalone_test', state
     )
 
     x = torch.zeros(*inp_size)

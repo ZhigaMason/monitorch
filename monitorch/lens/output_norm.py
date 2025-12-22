@@ -6,6 +6,7 @@ from monitorch.preprocessor import AbstractPreprocessor, OutputNorm as OutputNor
 from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.gatherer import FeedForwardGatherer
 from monitorch.numerical import extract_point, extract_range, parse_range_name
+from monitorch.inspector.inspector_state import InspectorState
 
 
 
@@ -143,7 +144,7 @@ class OutputNorm(AbstractLens):
 
 
 
-    def register_leaf_module(self, module : Module, module_name : str):
+    def register_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
         """
         Registers (or ignores) module.
 
@@ -160,7 +161,8 @@ class OutputNorm(AbstractLens):
         """
         if module.__class__ not in self._exclude and ((self._activation and isactivation(module)) or module.__class__ in self._include):
             ffg = FeedForwardGatherer(
-                module, [self._preprocessor], module_name
+                module, [self._preprocessor], module_name,
+                inspector_state=inspector_state
             )
             self._gatherers.append(ffg)
             self._line_data[module_name]  = {}
@@ -181,7 +183,7 @@ class OutputNorm(AbstractLens):
         if self._comparison_plot:
             self._comparison_data : OrderedDict[str, float]= OrderedDict()
 
-    def register_foreign_preprocessor(self, _ : AbstractPreprocessor):
+    def register_foreign_preprocessor(self, _ : AbstractPreprocessor, inspector_state : InspectorState):
         """ Does not interact with foreign preprocessor. """
         pass
 

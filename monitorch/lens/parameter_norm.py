@@ -7,6 +7,7 @@ from monitorch.gatherer import EpochModuleGatherer
 from monitorch.preprocessor import AbstractPreprocessor, ParameterNorm as ParameterNormPreprocessor
 from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point
+from monitorch.inspector.inspector_state import InspectorState
 
 
 class ParameterNorm(AbstractLens):
@@ -114,11 +115,7 @@ class ParameterNorm(AbstractLens):
                 (parameter_name, OrderedDict()) for parameter_name in self._parameters
             ])
 
-    def register_leaf_module(
-            self,
-            module : Module,
-            module_name : str
-    ):
+    def register_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
         """
         Registers (or ignores) module.
 
@@ -131,13 +128,9 @@ class ParameterNorm(AbstractLens):
         module_name : str
             Name of the module, module's information will be passed to visaulizer under this name.
         """
-        self._register_module(module, module_name)
+        self._register_module(module, module_name, inspector_state)
 
-    def register_non_leaf_module(
-            self,
-            module : Module,
-            module_name : str
-    ):
+    def register_non_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
         """
         Registers (or ignores) module.
 
@@ -150,9 +143,9 @@ class ParameterNorm(AbstractLens):
         module_name : str
             Name of the module, module's information will be passed to visaulizer under this name.
         """
-        self._register_module(module, module_name)
+        self._register_module(module, module_name, inspector_state)
 
-    def _register_module(self, module : Module, module_name : str):
+    def _register_module(self, module : Module, module_name : str, inspector_state : InspectorState):
         """
         Generic function called from :meth:`register_non_leaf_module` and :meth:`register_leaf_module`
 
@@ -166,7 +159,8 @@ class ParameterNorm(AbstractLens):
         if not all(hasattr(module, parameter_name) for parameter_name in self._parameters):
             return
         gatherer = EpochModuleGatherer(
-            module, [self._preprocessor], module_name
+            module, [self._preprocessor], module_name,
+            inspector_state=inspector_state
         )
         self._gatherers.append(gatherer)
         for parameter_name in self._parameters:
@@ -190,7 +184,7 @@ class ParameterNorm(AbstractLens):
                 (parameter_name, OrderedDict()) for parameter_name in self._parameters
             ])
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor):
+    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state : InspectorState):
         """ Does not interact with foreign preprocessor. """
         pass
 
