@@ -15,9 +15,25 @@ class AbstractLens(ABC):
     """
 
     @abstractmethod
-    def register_module(self, module : Module, module_name : str):
+    def register_leaf_module(self, module : Module, module_name : str):
         """
-        Registers (or ignores) module.
+        Registers (or ignores) leaf module.
+
+        Register module, i.e., create and link gatherers.
+        The lens should ignore the modules it does not interact with not to overcrowd plots with useless information.
+
+        Parameters
+        ----------
+        module : torch.nn.Module
+            The module object to hook gatherers onto.
+        module_name : str
+            Name of the module, module's information will be passed to visaulizer under this name.
+        """
+        pass
+
+    def register_non_leaf_module(self, module : Module, module_name : str):
+        """
+        Registers (or ignores) non-leaf module. By default does nothing.
 
         Register module, i.e., create and link gatherers.
         The lens should ignore the modules it does not interact with not to overcrowd plots with useless information.

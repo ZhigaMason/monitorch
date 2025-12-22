@@ -204,7 +204,7 @@ class LossMetrics(AbstractLens):
             loss_str = self._call_preprocessor.train_loss_str
         return self._loss_values[loss_str + ' ' + method]
 
-    def register_module(self, module : Module, module_name : str):
+    def register_leaf_module(self, module : Module, module_name : str):
         """ Does not interact with estimator network. """
         pass
 

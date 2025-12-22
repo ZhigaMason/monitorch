@@ -130,7 +130,7 @@ class OutputActivation(AbstractLens):
         self._death_aggregation : str = death_aggregation
 
 
-    def register_module(self, module : Module, module_name : str):
+    def register_leaf_module(self, module : Module, module_name : str):
         """
         Registers (or ignores) module.
 

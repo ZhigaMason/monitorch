@@ -106,7 +106,7 @@ class OutputGradientGeometry(AbstractLens):
         else:
             self._range_aggregation = range_aggregation
 
-    def register_module(self, module : Module, module_name : str):
+    def register_leaf_module(self, module : Module, module_name : str):
         """
         Registers (or ignores) module.
 

@@ -151,10 +151,16 @@ class PyTorchInspector:
         """
         if self.attached:
             self.detach()
-        module_names = PyTorchInspector._module_leaves(module, self.depth, self.module_name_prefix)
-        for module, name in module_names:
+        leaf_module_names, non_leaf_module_names = PyTorchInspector._traverse_module_inclusion_tree(module, self.depth, self.module_name_prefix)
+
+        for module, name in leaf_module_names:
             for lens in self.lenses:
-                lens.register_module(module, name)
+                lens.register_leaf_module(module, name)
+
+        for module, name in non_leaf_module_names:
+            for lens in self.lenses:
+                lens.register_non_leaf_module(module, name)
+
         self.attached = True
         return self
 
@@ -234,7 +240,7 @@ class PyTorchInspector:
         return prefix if grand_name else ''
 
     @staticmethod
-    def _module_leaves(module : Module, depth : int = -1, prefix : str = '.') -> list[tuple[Module, str]]:
+    def _traverse_module_inclusion_tree(module : Module, depth : int = -1, prefix : str = '.') -> tuple[list[tuple[Module, str]], list[tuple[Module, str]]]:
         """
         A function to extract nodes at defined depth from module inclusion tree.
         If ``depth=-1`` calls :meth:`_module_deep_leaves`,
@@ -251,22 +257,29 @@ class PyTorchInspector:
 
         Returns
         -------
-        list[tuple[Module, str]]
-            List of module object and their path name.
+        tuple[list[tuple[Module, str], list[tuple[Module, str]]]
+            Lists of leaf (1st value) and non-leaf (2nd value) module object and their path name.
         """
         assert depth >= -1, "Depth of leaves must be non-negative or -1 (maximal depth)"
         if depth == -1:
             return PyTorchInspector._module_deep_leaves(module, prefix=prefix)
         if depth == 0:
-            return [(module, '')]
+            return [(module, '')], []
 
-        ret = []
+        leaves = []
+        non_leaves = []
         for name, child in module.named_children():
-            ret += [(module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for module, grand_name in PyTorchInspector._module_leaves(child, depth - 1)]
-        return ret
+            child_leaves, child_non_leaves = PyTorchInspector._traverse_module_inclusion_tree(child, depth - 1)
+            leaves += [(module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for module, grand_name in child_leaves]
+            non_leaves += [(module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for module, grand_name in child_non_leaves]
+        if len(leaves) > 0:
+            non_leaves.append(
+                (module, '')
+            )
+        return leaves, non_leaves
 
     @staticmethod
-    def _module_deep_leaves(module : Module, prefix : str) -> list[tuple[Module, str]]:
+    def _module_deep_leaves(module : Module, prefix : str) -> tuple[list[tuple[Module, str]], list[tuple[Module, str]]]:
         """
         A function to extract leaves from module inclusion tree.
 
@@ -281,12 +294,19 @@ class PyTorchInspector:
 
         Returns
         -------
-        list[tuple[Module, str]]
-            List of module object and their path name.
+        tuple[list[tuple[Module, str], list[tuple[Module, str]]]
+            Lists of leaf (1st value) and non-leaf (2nd value) module object and their path name.
         """
-        ret = []
+        leaves = []
+        non_leaves = []
         for name, child in module.named_children():
-            ret += [(module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for module, grand_name in PyTorchInspector._module_deep_leaves(child, prefix=prefix)]
-        if ret == []:
-            return [(module, '')]
-        return ret
+            child_leaves, child_non_leaves = PyTorchInspector._module_deep_leaves(child, prefix=prefix)
+            leaves += [(child_module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for child_module, grand_name in child_leaves]
+            non_leaves += [(child_module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for child_module, grand_name in child_non_leaves]
+        if len(leaves) == 0:
+            leaves =  [(module, '')]
+        else:
+            non_leaves.append(
+                (module, '')
+            )
+        return leaves, non_leaves

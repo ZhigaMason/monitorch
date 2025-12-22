@@ -26,10 +26,11 @@
 - [ ] Check on PyTorch Lightning
 - [ ] Chck on DataParallel / DistributedDataParallel
 - [x] Reevaluate tests
+- [x] Parameters in non-leaf modules
 
 # Optimize
 
-- [ ] Measure in-place / in-memory operations (by 2025-11-12 16:40 two kaggle notebooks run)
-    - [ ] explore results
-- [ ] Measure scalability (partially is done by the benchmark notebooks, as they run on ViT with 86M parameters)
-- [ ] fix ParameterGradientActivation (I think that some of the opearions performed in the preprocessor or lens might be done on CPU, since difference on CPU-only run is similiar to that of other lenses)
+- [x] Measure in-place / in-memory operations (by 2025-11-12 16:40 two kaggle notebooks run)
+    - [x] explore results
+- [x] Measure scalability (partially is done by the benchmark notebooks, as they run on ViT with 86M parameters)
+- [x] fix ParameterGradientActivation (I think that some of the opearions performed in the preprocessor or lens might be done on CPU, since difference on CPU-only run is similiar to that of other lenses)

@@ -143,7 +143,7 @@ class OutputNorm(AbstractLens):
 
 
 
-    def register_module(self, module : Module, module_name : str):
+    def register_leaf_module(self, module : Module, module_name : str):
         """
         Registers (or ignores) module.
 

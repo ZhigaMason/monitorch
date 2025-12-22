@@ -114,7 +114,7 @@ class ParameterNorm(AbstractLens):
                 (parameter_name, OrderedDict()) for parameter_name in self._parameters
             ])
 
-    def register_module(
+    def register_leaf_module(
             self,
             module : Module,
             module_name : str
@@ -123,6 +123,38 @@ class ParameterNorm(AbstractLens):
         Registers (or ignores) module.
 
         Registers any module that has all of the parameters listed during initialization.
+
+        Parameters
+        ----------
+        module : torch.nn.Module
+            The module object to hook gatherers onto.
+        module_name : str
+            Name of the module, module's information will be passed to visaulizer under this name.
+        """
+        self._register_module(module, module_name)
+
+    def register_non_leaf_module(
+            self,
+            module : Module,
+            module_name : str
+    ):
+        """
+        Registers (or ignores) module.
+
+        Registers any module that has all of the parameters listed during initialization.
+
+        Parameters
+        ----------
+        module : torch.nn.Module
+            The module object to hook gatherers onto.
+        module_name : str
+            Name of the module, module's information will be passed to visaulizer under this name.
+        """
+        self._register_module(module, module_name)
+
+    def _register_module(self, module : Module, module_name : str):
+        """
+        Generic function called from :meth:`register_non_leaf_module` and :meth:`register_leaf_module`
 
         Parameters
         ----------
