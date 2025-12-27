@@ -120,17 +120,17 @@ class MatplotlibVisualizer(AbstractVisualizer):
         for tag, numerical_values_dict in values_dict.items():
             tag_dict = values_ranges.setdefault(tag, ({}, {}))[0]
             for descriptor, y in numerical_values_dict.items():
-                ys = tag_dict.setdefault(descriptor, [])
-                ys.insert(epoch, y)
+                ys = tag_dict.setdefault(descriptor, odict())
+                ys[epoch] = y
 
         if not ranges_dict:
             return
         for tag, numerical_ranges_dict in ranges_dict.items():
             tag_dict = values_ranges.setdefault(tag, ({}, {}))[1]
             for (desc1, desc2), (y1, y2) in numerical_ranges_dict.items():
-                y1s, y2s = tag_dict.setdefault((desc1, desc2), ([], []))
-                y1s.insert(epoch, y1)
-                y2s.insert(epoch, y2)
+                y1s, y2s = tag_dict.setdefault((desc1, desc2), (odict(), odict()))
+                y1s[epoch] = y1
+                y2s[epoch] = y2
 
 
     def plot_probabilities(self, epoch : int, main_tag : str, values_dict : odict[str, dict[str, float]]) -> None:
@@ -143,8 +143,8 @@ class MatplotlibVisualizer(AbstractVisualizer):
         for tag, numerical_values_dict in values_dict.items():
             tag_dict = values.setdefault(tag, {})
             for descriptor, y in numerical_values_dict.items():
-                ys = tag_dict.setdefault(descriptor, [])
-                ys.insert(epoch, y)
+                ys = tag_dict.setdefault(descriptor, odict())
+                ys[epoch]  = y
 
 
     def plot_relations(self, epoch : int, main_tag, values_dict : odict[str, odict[str, float]]) -> None:
@@ -157,8 +157,8 @@ class MatplotlibVisualizer(AbstractVisualizer):
         for tag, numerical_values_dict in values_dict.items():
             tag_dict = values.setdefault(tag, odict())
             for descriptor, y in numerical_values_dict.items():
-                ys = tag_dict.setdefault(descriptor, [])
-                ys.insert(epoch, y)
+                ys = tag_dict.setdefault(descriptor, odict())
+                ys[epoch] = y
 
     def show_fig(self) -> Figure:
         """
@@ -336,6 +336,8 @@ class MatplotlibVisualizer(AbstractVisualizer):
                 if self._big_tag_attr[tag].ylim is not None:
                     bottom, top = self._big_tag_attr[tag].ylim
                     ax.set_ylim(bottom, top)
+                xticks = ax.get_xticks()
+                ax.set_xticks(np.arange(np.min(xticks), np.max(xticks) + 1))
 
         # sets small figures face colors
         colors = MatplotlibVisualizer._SMALL_TAG_FACE_COLORS
@@ -408,7 +410,7 @@ class MatplotlibVisualizer(AbstractVisualizer):
         ----------
         ax : Axis
             Matplotlib axis which will be the plots drawn onto.
-        val_dict : dict[str, list[float]]
+        val_dict : dict[str, dict[int, float]]
             Dictionary of values (lines) to plot.
         range_dict : dict[tuple[str, str], tuple[list[float], list[float]]]
             Dictionary of ranges to plot.
@@ -417,14 +419,14 @@ class MatplotlibVisualizer(AbstractVisualizer):
             assert len(lo) == len(up)
             if range_name in MatplotlibVisualizer._RANGE_COLORS:
                 ax.fill_between(
-                    range(len(lo)), lo, up,
+                    lo.keys(), lo.values(), up.values(),
                     color = MatplotlibVisualizer._RANGE_COLORS[range_name],
                     alpha = MatplotlibVisualizer._RANGE_ALPHA,
                     label = f"{range_name[0]} -- {range_name[1]}"
                 )
             else:
                 ax.fill_between(
-                    range(len(lo)), lo, up,
+                    lo.keys(), lo.values(), up.values(),
                     alpha = MatplotlibVisualizer._RANGE_ALPHA,
                     label = f"{range_name[0]} -- {range_name[1]}"
                 )
@@ -432,15 +434,19 @@ class MatplotlibVisualizer(AbstractVisualizer):
         for val_name, values in val_dict.items():
             if val_name in MatplotlibVisualizer._LINE_COLORS:
                 ax.plot(
-                    range(len(values)), values,
+                    values.keys(), values.values(),
                     color = MatplotlibVisualizer._LINE_COLORS[val_name],
                     label=val_name
                 )
             else:
                 ax.plot(
-                    range(len(values)), values,
+                    values.keys(), values.values(),
                     label=val_name
                 )
+        it = next(iter(val_dict.values())).keys()
+        min_ = min(it)
+        max_ = max(it)
+        ax.set_xticks(np.arange(min_, max_ + 1))
 
     @staticmethod
     def _plot_probability(ax, prob_dict) -> None:
@@ -451,31 +457,37 @@ class MatplotlibVisualizer(AbstractVisualizer):
         ----------
         ax : Axis
             Matplotlib axis which will be the plots drawn onto.
-        prob_dict : dict[str, list[float]]
+        prob_dict : dict[str, dict[int, float]]
             Dictionary of values to plot
         """
         for prob_name, probs in prob_dict.items():
+            xs = list(probs.keys())
+            ys = list(probs.values())
             if prob_name in MatplotlibVisualizer._LINE_COLORS:
                 ax.fill_between(
-                    range(len(probs)), probs, np.zeros_like(probs),
+                    xs, ys, np.zeros_like(xs),
                     color = MatplotlibVisualizer._LINE_COLORS[prob_name],
                     alpha = MatplotlibVisualizer._RANGE_ALPHA
                 )
                 ax.plot(
-                    range(len(probs)), probs,
+                    xs, ys,
                     color = MatplotlibVisualizer._LINE_COLORS[prob_name],
                     label=prob_name
                 )
             else:
                 ax.fill_between(
-                    range(len(probs)), probs, np.zeros_like(probs),
+                    xs, ys, np.zeros_like(xs),
                     alpha = MatplotlibVisualizer._RANGE_ALPHA
                 )
                 ax.plot(
-                    range(len(probs)), probs,
+                    xs, ys,
                     label=prob_name
                 )
         ax.set_ylim(0, 1)
+        it = next(iter(prob_dict.values())).keys()
+        min_ = min(it)
+        max_ = max(it)
+        ax.set_xticks(np.arange(min_, max_ + 1))
 
     @staticmethod
     def _plot_relations(ax, rel_dict) -> None:
@@ -486,18 +498,24 @@ class MatplotlibVisualizer(AbstractVisualizer):
         ----------
         ax : Axis
             Matplotlib axis which will be the plots drawn onto.
-        rel_dict : dict[str, list[float]]
+        rel_dict : dict[str, dict[int, float]]
             Dictionary of values to plot indexed by subtags.
         """
         if not rel_dict:
             return
-        l = len(next(iter(rel_dict.values())))
+        epochs = list(next(iter(rel_dict.values())).keys())
+        values = []
         first_record = []
         for relations in rel_dict.values():
-            assert l == len(relations), "All relations must have same number of epochs recorded"
-            first_record.append(relations[0])
-        ax.stackplot(range(l), *rel_dict.values(), colors=MatplotlibVisualizer._RELATION_COLORS)
+            assert epochs == list(relations.keys()), "All relations must have same number of epochs recorded"
+            val =next(iter(relations.values()))
+            first_record.append(val)
+            values = list(relations.values())
+        ax.stackplot(epochs, *values, colors=MatplotlibVisualizer._RELATION_COLORS)
         arr = np.array(first_record)
         pos_arr = np.cumsum(arr) - arr / 2
         for pos, rel_name in zip(pos_arr, rel_dict.keys()):
             ax.text(0, pos, rel_name)
+        min_ = min(epochs)
+        max_ = max(epochs)
+        ax.set_xticks(np.arange(min_, max_ + 1))

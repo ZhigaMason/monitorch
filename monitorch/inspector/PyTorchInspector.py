@@ -229,12 +229,11 @@ class PyTorchInspector:
         epoch : int|None = None
             Optional epoch counter, default ticks :attr:`state`, thus incrementing `counter`.
         """
-        if epoch is not None:
-            self.state.counter = epoch
-        else:
-            self.state.tick()
-
         if not self.state.is_active:
+            if epoch is not None:
+                self.state.counter = epoch
+            else:
+                self.state.tick()
             return
 
         for lens in self.lenses:
@@ -242,6 +241,11 @@ class PyTorchInspector:
             lens.vizualize(self.visualizer, self.state.counter)
             lens.reset_epoch()
         self._call_preprocessor.reset()
+
+        if epoch is not None:
+            self.state.counter = epoch
+        else:
+            self.state.tick()
 
     tick = tick_epoch
 
