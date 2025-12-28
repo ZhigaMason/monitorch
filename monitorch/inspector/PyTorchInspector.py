@@ -1,6 +1,6 @@
 from torch.nn import Module
 from typing_extensions import Self
-from typing import Callable
+from typing import Callable, Iterable
 
 from .inspector_state import InspectorState
 
@@ -222,7 +222,7 @@ class PyTorchInspector:
 
     def tick_epoch(self, epoch : int|None=None):
         """
-        Ticks epoch to postprocess data and draw plots.
+        Ticks to postprocess data and draw plots.
 
         Parameters
         ----------
@@ -248,6 +248,19 @@ class PyTorchInspector:
             self.state.tick()
 
     tick = tick_epoch
+
+    def iter(self, iterable : Iterable) -> Iterable:
+        dotick = False
+        for x in iterable:
+            if dotick:
+                self.tick()
+            else:
+                dotick = True
+            yield x
+        self.tick()
+
+    def range(self, *args, **kwargs) -> Iterable:
+        return self.iter(range(*args, **kwargs))
 
     @staticmethod
     def _decide_prefix(prefix : str, grand_name : str):

@@ -207,7 +207,7 @@ class ParameterGradientGeometry(AbstractLens):
                         big_plot=False,
                         annotate=True,
                         type=TagType.NUMERICAL,
-                        ylim=(-1, 1)
+                        ylim=(1, -1)
                     )
                 )
 
