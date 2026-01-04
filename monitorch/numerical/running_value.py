@@ -72,7 +72,9 @@ class RunningMeanVar:
     def __iter__(self):
         return (self.count, self.mean, self.var)
 
-def extract_point(raw_val : RunningMeanVar|list[float], method : str) -> float:
+Accumulator = RunningMeanVar | list[float]
+
+def extract_point(raw_val : Accumulator, method : str) -> float:
     """
     Extracts a single variable from :class:`RunningMeanVar` or ``list``.
 
@@ -140,7 +142,7 @@ def extract_point(raw_val : RunningMeanVar|list[float], method : str) -> float:
     else:
         raise AttributeError("Unknown type passed to extract point")
 
-def extract_range(raw_val, method) -> tuple[float, float]:
+def extract_range(raw_val : Accumulator, method) -> tuple[float, float]:
     """
     Extracts a range described by `method` from provided object.
 

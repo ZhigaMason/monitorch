@@ -48,6 +48,7 @@ def test_sequence_output_gradient_norm(module, inp_size, normalize, n_iter, seed
     )
 
     x = torch.zeros(*inp_size)
+    prev_norm = 0
     norms = [1]
     products = []
     grads = [torch.tensor(0)]
@@ -60,11 +61,10 @@ def test_sequence_output_gradient_norm(module, inp_size, normalize, n_iter, seed
         module(x).square().mean().backward()
 
         norm = vector_norm(grads[-1]).item()
+        prod = (grads[-2] * grads[-1]).sum().item() / (norm * prev_norm + 1e-8)
+        prev_norm = norm
         if normalize:
             norm /= sqrt(grads[-1].numel())
-        prod = (grads[-2] * grads[-1]).sum().item() / (norm * norms[-1] + 1e-8)
-        if normalize:
-            prod /= grads[-1].numel()
 
         assert np.isclose(norm, oggm.value['standalone_test'][0][-1])
 
