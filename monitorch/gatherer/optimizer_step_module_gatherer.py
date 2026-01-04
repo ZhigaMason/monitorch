@@ -1,6 +1,5 @@
 from .abstract_gatherer import AbstractGatherer
 from monitorch.preprocessor import AbstractModulePreprocessor
-from monitorch.inspector.inspector_state import InspectorState
 from torch.optim import Optimizer
 
 class OptimizerStepModuleGatherer(AbstractGatherer):
@@ -19,7 +18,7 @@ class OptimizerStepModuleGatherer(AbstractGatherer):
         Name of the module.
     """
 
-    def __init__(self, module, optimizer : Optimizer, preprocessors : list[AbstractModulePreprocessor], name : str, inspector_state : InspectorState):
+    def __init__(self, module, optimizer : Optimizer, preprocessors : list[AbstractModulePreprocessor], name : str, inspector_state):
         super().__init__(inspector_state)
         self._module = module
         self._name : str = name

@@ -1,15 +1,13 @@
 from functools import wraps
 from abc import ABC, abstractmethod
-from monitorch.inspector.inspector_state import InspectorState
-
 
 class AbstractGatherer(ABC):
     """
     An abstract class that parents all gatherers.
     """
 
-    def __init__(self, inspector_state : InspectorState):
-        self.inspector_state : InspectorState|None = inspector_state
+    def __init__(self, inspector_state):
+        self.inspector_state = inspector_state
 
     @abstractmethod
     def detach(self) -> None:

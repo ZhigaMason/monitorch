@@ -6,7 +6,6 @@ from monitorch.preprocessor import AbstractPreprocessor, OutputGradientGeometry 
 from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.gatherer import BackwardGatherer
 from monitorch.numerical import extract_point, extract_range, parse_range_name
-from monitorch.inspector.inspector_state import InspectorState
 
 from .module_distinction import isactivation
 
@@ -107,7 +106,7 @@ class OutputGradientGeometry(AbstractLens):
         else:
             self._range_aggregation = range_aggregation
 
-    def register_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
+    def register_leaf_module(self, module : Module, module_name : str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -146,7 +145,7 @@ class OutputGradientGeometry(AbstractLens):
             self._line_adj_prod_data : OrderedDict[str, dict[str, float]] = OrderedDict()
             self._range_adj_prod_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state : InspectorState):
+    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state):
         """ Does not interact with foreign preprocessor. """
         pass
 

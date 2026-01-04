@@ -1,6 +1,5 @@
 from monitorch.preprocessor import AbstractTensorPreprocessor
 from .abstract_gatherer import AbstractGatherer
-from monitorch.inspector.inspector_state import InspectorState
 
 class ParameterGradientGatherer(AbstractGatherer):
     """
@@ -21,7 +20,7 @@ class ParameterGradientGatherer(AbstractGatherer):
         Name of the module.
     """
 
-    def __init__(self, parameter : str, module, preprocessors : list[AbstractTensorPreprocessor], name : str, inspector_state : InspectorState):
+    def __init__(self, parameter : str, module, preprocessors : list[AbstractTensorPreprocessor], name : str, inspector_state):
         super().__init__(inspector_state)
         self._preprocessors = preprocessors
         self._name = name

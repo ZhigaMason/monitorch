@@ -6,7 +6,6 @@ from monitorch.preprocessor import AbstractPreprocessor, GradientActivation
 from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.gatherer import ParameterGradientGatherer
 from monitorch.numerical import extract_point
-from monitorch.inspector.inspector_state import InspectorState
 
 
 class ParameterGradientActivation(AbstractLens):
@@ -91,7 +90,7 @@ class ParameterGradientActivation(AbstractLens):
         self._activation_aggregation = activation_aggregation
         self._death_aggregation = death_aggregation
 
-    def register_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
+    def register_leaf_module(self, module : Module, module_name : str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -106,7 +105,7 @@ class ParameterGradientActivation(AbstractLens):
         """
         self._register_module(module, module_name, inspector_state)
 
-    def register_non_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
+    def register_non_leaf_module(self, module : Module, module_name : str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -121,7 +120,7 @@ class ParameterGradientActivation(AbstractLens):
         """
         self._register_module(module, module_name, inspector_state)
 
-    def _register_module(self, module : Module, module_name : str, inspector_state : InspectorState):
+    def _register_module(self, module : Module, module_name : str, inspector_state):
         """
         Generic function called from :meth:`register_non_leaf_module` and :meth:`register_leaf_module`
 
@@ -159,7 +158,7 @@ class ParameterGradientActivation(AbstractLens):
         if self._warning_plot:
             self._warning_data = {}
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state : InspectorState):
+    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state):
         """ Does not interact with foreign preprocessor. """
         pass
 

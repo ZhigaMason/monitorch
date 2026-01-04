@@ -7,7 +7,6 @@ from monitorch.gatherer import EpochModuleGatherer
 from monitorch.preprocessor import AbstractPreprocessor, ParameterNorm as ParameterNormPreprocessor
 from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point
-from monitorch.inspector.inspector_state import InspectorState
 
 
 class ParameterNorm(AbstractLens):
@@ -115,7 +114,7 @@ class ParameterNorm(AbstractLens):
                 (parameter_name, OrderedDict()) for parameter_name in self._parameters
             ])
 
-    def register_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
+    def register_leaf_module(self, module : Module, module_name : str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -130,7 +129,7 @@ class ParameterNorm(AbstractLens):
         """
         self._register_module(module, module_name, inspector_state)
 
-    def register_non_leaf_module(self, module : Module, module_name : str, inspector_state : InspectorState):
+    def register_non_leaf_module(self, module : Module, module_name : str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -145,7 +144,7 @@ class ParameterNorm(AbstractLens):
         """
         self._register_module(module, module_name, inspector_state)
 
-    def _register_module(self, module : Module, module_name : str, inspector_state : InspectorState):
+    def _register_module(self, module : Module, module_name : str, inspector_state):
         """
         Generic function called from :meth:`register_non_leaf_module` and :meth:`register_leaf_module`
 
@@ -184,7 +183,7 @@ class ParameterNorm(AbstractLens):
                 (parameter_name, OrderedDict()) for parameter_name in self._parameters
             ])
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state : InspectorState):
+    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state):
         """ Does not interact with foreign preprocessor. """
         pass
 
