@@ -13,14 +13,9 @@ from monitorch.gatherer import ParameterGradientGatherer
 
 from monitorch.inspector.inspector_state import InspectorState
 
-def replace_w_grad(tensor):
-    def f(module, inp, out):
-        module.weight.grad = tensor
-    return f
-
-def replace_b_grad(tensor):
-    def f(module, inp, out):
-        module.bias.grad = tensor
+def replace_grad(tensor):
+    def f(param):
+        param.grad = tensor
     return f
 
 @pytest.mark.parametrize(
@@ -49,8 +44,9 @@ def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
     bggm = GradientGeometry(adj_prod=False, normalize=normalize, inplace=False)
     bggr = GradientGeometry(adj_prod=False, normalize=normalize, inplace=True)
 
-    module.register_full_backward_hook(replace_w_grad(grad_w))
-    module.register_full_backward_hook(replace_b_grad(grad_b))
+    module.weight.register_post_accumulate_grad_hook(replace_grad(grad_w))
+    module.bias.register_post_accumulate_grad_hook(replace_grad(grad_b))
+    #module.register_full_backward_hook(replace_b_grad(grad_b))
 
     state=InspectorState()
 
@@ -61,9 +57,10 @@ def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
         'bias', module, [bggm, bggr], 'standalone_test', state
     )
 
-    x = torch.ones(*inp_size)
+    x = torch.ones(*inp_size, requires_grad=True)
     y = module(x)
-    y.square().mean().backward()
+    loss = y.square().mean()
+    loss.backward()
 
     w_norm = vector_norm(grad_w)
     b_norm = vector_norm(grad_b)
@@ -113,7 +110,6 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
         'bias', module, [bggm, bggr], 'standalone_test', state
     )
 
-    x = torch.zeros(*inp_size)
     prev_w_grad = 0.0
     prev_b_grad = 0.0
     w_norms = [1]
@@ -123,7 +119,7 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
 
     torch.manual_seed(seed)
     for i in range(n_iter):
-        x.cauchy_()
+        x = torch.rand(*inp_size, requires_grad=True)
         module(x).square().mean().backward()
 
         w_norm = vector_norm(module.weight.grad).item()

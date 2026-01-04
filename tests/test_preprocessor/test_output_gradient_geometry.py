@@ -47,7 +47,6 @@ def test_sequence_output_gradient_norm(module, inp_size, normalize, n_iter, seed
         module, [oggm, oggr], 'standalone_test', InspectorState()
     )
 
-    x = torch.zeros(*inp_size)
     prev_norm = 0
     norms = [1]
     products = []
@@ -57,7 +56,7 @@ def test_sequence_output_gradient_norm(module, inp_size, normalize, n_iter, seed
 
     torch.manual_seed(seed)
     for _ in range(n_iter):
-        x.cauchy_()
+        x = torch.rand(*inp_size, requires_grad=True)
         module(x).square().mean().backward()
 
         norm = vector_norm(grads[-1]).item()
