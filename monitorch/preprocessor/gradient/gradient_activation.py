@@ -2,7 +2,7 @@ from typing import Any
 
 from torch import abs as tabs, no_grad, float32 as tfloat32
 
-from monitorch.preprocessor.abstract.abstract_gradient_preprocessor import AbstractTensorPreprocessor
+from monitorch.preprocessor.abstract.abstract_tensor_preprocessor import AbstractTensorPreprocessor
 
 from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates
 

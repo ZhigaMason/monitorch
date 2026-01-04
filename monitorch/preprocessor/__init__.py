@@ -30,7 +30,8 @@ from .output import (
 )
 
 from .parameter import (
-    ParameterNorm
+    ParameterNorm,
+    ParameterDifferenceGeometry,
 )
 
 __all__ = [
@@ -46,5 +47,6 @@ __all__ = [
     "OutputActivation",
     "LossModule",
     "ParameterNorm",
+    "ParameterDifferenceGeometry",
     "ExplicitCall",
 ]

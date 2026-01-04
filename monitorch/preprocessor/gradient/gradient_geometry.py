@@ -5,7 +5,7 @@ from copy import deepcopy
 from typing import Any
 from torch.linalg import vector_norm
 
-from monitorch.preprocessor.abstract.abstract_gradient_preprocessor import AbstractTensorPreprocessor
+from monitorch.preprocessor.abstract.abstract_tensor_preprocessor import AbstractTensorPreprocessor
 from monitorch.numerical import GeometryComputation
 
 class GradientGeometry(AbstractTensorPreprocessor):

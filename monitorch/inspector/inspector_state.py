@@ -2,7 +2,21 @@ from typing import Callable
 
 class InspectorState:
     """
-    TODO
+    Class incapsulating public inspector state
+
+    Parameters
+    ----------
+    is_active_fn : int|Callable[[int], bool]
+        Function to determine if inspector is active from number of ticks.
+        If ``int`` is provided is equivalent to ``lambda n_ticks: n_ticks % is_active_fn == 0``
+
+    Attributes
+    ----------
+    counter : int
+        Tick counter
+
+    attached : bool
+        Flag indicating if inspector is attached to module
     """
 
     def __init__(self, is_active_fn : int|Callable[[int], bool] = 1):

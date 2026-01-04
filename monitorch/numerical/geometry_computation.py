@@ -11,7 +11,7 @@ class GeometryComputation:
 
     Let :math:`X_1, ..., X_n` be sequence of tensors passed to :meth:`update`.
 
-    Keeps track of :math:`n_k = ||X||_2` or :math:`n_k' = \\frac{1}{\\dim(X)}||X||_2` (if `normalize=True`)
+    Keeps track of :math:`n_k = ||X||_2` or :math:`n_k' = \\frac{1}{\\sqrt{\\dim(X)}}||X||_2` (if `normalize=True`)
 
     Optionally :math:`r_k = \\frac{X_{k-1} \\cdot X_k}{n_{k-1}n_k + \\epsilon}`
 
