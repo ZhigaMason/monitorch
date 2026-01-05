@@ -10,6 +10,12 @@ class AbstractGatherer(ABC):
         self.inspector_state = inspector_state
 
     @abstractmethod
+    def __call__(self, *args, **kwargs) -> None:
+        """
+        Callback implementation.
+        """
+
+    @abstractmethod
     def detach(self) -> None:
         """
         Abstract method to detach from module.

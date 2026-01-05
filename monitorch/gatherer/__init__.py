@@ -14,6 +14,7 @@ from .backward_gatherer import BackwardGatherer
 from .parameter_gradient_gatherer import ParameterGradientGatherer
 from .epoch_module_gatherer import EpochModuleGatherer
 from .optimizer_step_parameter_gatherer import OptimizerStepParameterGatherer
+from .call_parameter_gatherer import CallParameterGatherer
 
 __all__ = [
     "AbstractGatherer",
@@ -21,5 +22,6 @@ __all__ = [
     "BackwardGatherer",
     "ParameterGradientGatherer",
     "EpochModuleGatherer",
-    "OptimizerStepParameterGatherer"
+    "OptimizerStepParameterGatherer",
+    "CallParameterGatherer"
 ]
