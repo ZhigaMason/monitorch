@@ -21,6 +21,7 @@ from .AbstractVisualizer import AbstractVisualizer, TagAttributes, TagType
 from .PrintVisualizer import PrintVisualizer
 from .TensorBoardVisualizer import TensorBoardVisualizer
 from .MatplotlibVisualizer import MatplotlibVisualizer
+from .RecorderPlayerVisualizer import RecorderVisualizer, PlayerVisualizer
 
 _vizualizer_dict : dict[str, Type[AbstractVisualizer]] = {
     'print'       : PrintVisualizer,
