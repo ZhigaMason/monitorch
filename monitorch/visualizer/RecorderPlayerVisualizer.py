@@ -22,6 +22,7 @@ class RecorderVisualizer(AbstractVisualizer):
             'kwargs': kwargs
         }
         pickle.dump(payload, self.file)
+        self.file.flush()
 
     def register_tags(self, main_tag: str, tag_attr: TagAttributes) -> None:
         self._record('register_tags', main_tag=main_tag, tag_attr=tag_attr)
