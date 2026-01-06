@@ -13,7 +13,7 @@ class InspectorState:
     Attributes
     ----------
     counter : int
-        Tick counter
+        Tick counter. Starts from 1.
 
     attached : bool
         Flag indicating if inspector is attached to module
@@ -25,7 +25,7 @@ class InspectorState:
             self.is_active_fn : Callable[[int], bool] = lambda n: n % cycle_val == 0
         else:
             self.is_active_fn = is_active_fn
-        self.counter : int = 0
+        self.counter : int = 1
         self.attached = False
 
     def tick(self, n_ticks : int = 1) -> int:

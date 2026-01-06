@@ -1,10 +1,9 @@
+import warnings
 
 from collections import OrderedDict
-from math import sqrt
 from copy import deepcopy
 from typing import Any
-from torch.linalg import vector_norm
-from torch import Tensor
+from torch import Tensor, no_grad
 
 from monitorch.preprocessor.abstract.abstract_tensor_preprocessor import AbstractTensorPreprocessor
 from monitorch.numerical import GeometryComputation
@@ -39,6 +38,7 @@ class ParameterDifferenceGeometry(AbstractTensorPreprocessor):
         self._value : OrderedDict[str, GeometryComputation] = OrderedDict()
         self._prev_param : dict[str, Tensor] = {}
 
+    @no_grad
     def process_tensor(self, name : str, param : Tensor) -> None:
         """
         Computes (normalized) L2 norm and optionally scalar product with previous difference.
@@ -54,6 +54,7 @@ class ParameterDifferenceGeometry(AbstractTensorPreprocessor):
             diff = param - self._prev_param[name]
             geometry_computation = self._value.setdefault(name, GeometryComputation(**self._gc_kwargs, eps=self._eps))
             geometry_computation.update(diff)
+
         self._prev_param[name] = deepcopy(param)
 
     @property

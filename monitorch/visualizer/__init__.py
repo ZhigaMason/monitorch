@@ -36,4 +36,6 @@ __all__ = [
     "AbstractVisualizer",
     "TagAttributes",
     "TagType",
+    "RecorderVisualizer",
+    "PlayerVisualizer",
 ]

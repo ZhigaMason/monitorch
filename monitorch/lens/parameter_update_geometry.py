@@ -48,7 +48,7 @@ class ParameterUpdateGeometry(AbstractLens):
 
     >>> inspector = PyTorchInspector(
     ...     lenses = [
-    ...         ParameterGradientGeometry(),
+    ...         ParameterUpdateGeometry(),
     ...     ],
     ...     module = mynet,
     ...     visualizer='matplotlib'
@@ -206,8 +206,8 @@ class ParameterUpdateGeometry(AbstractLens):
         Introduces lens's plots to visualizer.
 
         For every parameter listed during initialization creates
-        a small numerical plot '#PARAMETER_NAME Gradient Norm' optionally creates
-        a big comparison plot  '#PARAMETER_NAME Gradient Adjacent Prod'.
+        a small numerical plot '#PARAMETER_NAME Update Norm' optionally creates
+        a big comparison plot  '#PARAMETER_NAME Update Adjacent Prod'.
 
         Parameters
         ----------
@@ -216,7 +216,7 @@ class ParameterUpdateGeometry(AbstractLens):
         """
         for parameter_name in self._preprocessors:
             vizualizer.register_tags(
-                f"{parameter_name} Gradient Norm".title(),
+                f"{parameter_name} Update Norm".title(),
                 TagAttributes(
                     logy=self._log_scale,
                     big_plot=False,
@@ -226,7 +226,7 @@ class ParameterUpdateGeometry(AbstractLens):
             )
             if self._compute_adj_prod:
                 vizualizer.register_tags(
-                    f"{parameter_name} Gradient Adjacent Prod".title(),
+                    f"{parameter_name} Update Adjacent Prod".title(),
                     TagAttributes(
                         logy=False,
                         big_plot=False,
@@ -284,7 +284,7 @@ class ParameterUpdateGeometry(AbstractLens):
         """
         Passes computed data to visualizer.
 
-        Passes dictionary of per layer data to '#PARAMETER_NAME Gradient Norm', the dictionary
+        Passes dictionary of per layer data to '#PARAMETER_NAME Update Norm', the dictionary
         may look something like this.
 
         ::
@@ -294,7 +294,7 @@ class ParameterUpdateGeometry(AbstractLens):
                 ('lin2',   {'mean' : 0.6}, {'min' : 0.3, 'max' : 0.7}),
             ])
 
-        Gradient adjacent product dictionary looks the same.
+        Update adjacent product dictionary looks the same.
 
         Parameters
         ----------
@@ -305,12 +305,12 @@ class ParameterUpdateGeometry(AbstractLens):
         """
         for parameter_name in self._preprocessors:
             vizualizer.plot_numerical_values(
-                epoch, f"{parameter_name} Gradient Norm".title(),
+                epoch, f"{parameter_name} Update Norm".title(),
                 self._line_data[parameter_name], self._range_data[parameter_name]
             )
             if self._compute_adj_prod:
                 vizualizer.plot_numerical_values(
-                    epoch, f"{parameter_name} Gradient Adjacent Prod".title(),
+                    epoch, f"{parameter_name} Update Adjacent Prod".title(),
                     self._line_adj_prod_data[parameter_name], self._range_adj_prod_data[parameter_name]
                 )
 
