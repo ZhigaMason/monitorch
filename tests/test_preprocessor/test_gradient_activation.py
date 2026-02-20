@@ -1,30 +1,21 @@
-import torch
 import numpy as np
-import torch.nn as nn
 import pytest
+import torch
+import torch.nn as nn
 
-from monitorch.preprocessor import GradientActivation, GradientActivation
 from monitorch.gatherer import ParameterGradientGatherer
-from monitorch.numerical import reduce_activation_to_activation_rates
 from monitorch.inspector.inspector_state import InspectorState
+from monitorch.numerical import reduce_activation_to_activation_rates
+from monitorch.preprocessor import GradientActivation
 
 
 @pytest.mark.parametrize(
     ['module', 'inp'],
     [
-        (
-            nn.Linear(10, 5),
-            torch.ones(20, 10)
-        ),
-        (
-            nn.Conv1d(1, 3, 2),
-            torch.ones(20, 1, 10)
-        ),
-        (
-            nn.Conv2d(1, 3, 2),
-            torch.ones(20, 1, 10, 10)
-        ),
-    ]
+        (nn.Linear(10, 5), torch.ones(20, 10)),
+        (nn.Conv1d(1, 3, 2), torch.ones(20, 1, 10)),
+        (nn.Conv2d(1, 3, 2), torch.ones(20, 1, 10, 10)),
+    ],
 )
 def test_one_pass_gradient_activation(module, inp):
     wgam = GradientActivation(death=True, inplace=False)
@@ -32,11 +23,11 @@ def test_one_pass_gradient_activation(module, inp):
     bgam = GradientActivation(death=True, inplace=False)
     bgar = GradientActivation(death=True, inplace=True)
 
-    wgg = ParameterGradientGatherer(
+    wgg = ParameterGradientGatherer(  # noqa: F841
         'weight', module, [wgam, wgar], 'standalone_test', InspectorState()
     )
 
-    bgg = ParameterGradientGatherer(
+    bgg = ParameterGradientGatherer(  # noqa: F841
         'bias', module, [bgam, bgar], 'standalone_test', InspectorState()
     )
 
@@ -44,7 +35,7 @@ def test_one_pass_gradient_activation(module, inp):
 
     w_act = reduce_activation_to_activation_rates(torch.isclose(module.weight.grad, torch.tensor(0.0)).logical_not(), batch=False).numpy()
     w_death = (w_act == 0).mean()
-    b_act = reduce_activation_to_activation_rates(torch.isclose(module.bias.grad,   torch.tensor(0.0)).logical_not(), batch=False).numpy()
+    b_act = reduce_activation_to_activation_rates(torch.isclose(module.bias.grad, torch.tensor(0.0)).logical_not(), batch=False).numpy()
     b_death = (b_act == 0).mean()
 
     assert np.allclose(w_act, wgam.value['standalone_test'][0])
@@ -53,47 +44,32 @@ def test_one_pass_gradient_activation(module, inp):
     assert np.isclose(b_death, bgam.value['standalone_test'][1])
 
     rmv = wgar.value['standalone_test'][0]
-    assert [
-        [np.mean(w_act), np.var(w_act), np.min(w_act), np.max(w_act)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    ]
+    assert [[np.mean(w_act), np.var(w_act), np.min(w_act), np.max(w_act)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]]
     rmv = wgar.value['standalone_test'][1]
-    assert np.allclose(
-        [w_death, w_death, w_death],
-        [rmv.mean, rmv.min_, rmv.max_]
-    )
+    assert np.allclose([w_death, w_death, w_death], [rmv.mean, rmv.min_, rmv.max_])
 
     rmv = bgar.value['standalone_test'][0]
-    assert [
-        [np.mean(b_act), np.var(b_act), np.min(b_act), np.max(b_act)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    ]
+    assert [[np.mean(b_act), np.var(b_act), np.min(b_act), np.max(b_act)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]]
     rmv = bgar.value['standalone_test'][1]
-    assert np.allclose(
-        [b_death, b_death, b_death],
-        [rmv.mean, rmv.min_, rmv.max_]
-    )
+    assert np.allclose([b_death, b_death, b_death], [rmv.mean, rmv.min_, rmv.max_])
 
 
 @pytest.mark.parametrize(
     ['module', 'inp_size', 'n_iter', 'seed'],
     [
-        (nn.Linear(10, 5),   (10,),       50, 0),
+        (nn.Linear(10, 5), (10,), 50, 0),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), 50, 0),
-        (nn.Conv1d(1, 5, 2), (1, 16),     50, 0),
-
-        (nn.Linear(10, 5),   (10,),       50, 0),
+        (nn.Conv1d(1, 5, 2), (1, 16), 50, 0),
+        (nn.Linear(10, 5), (10,), 50, 0),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), 50, 0),
-        (nn.Conv1d(1, 5, 2), (1, 16),     50, 0),
-
-        (nn.Linear(10, 5),   (10,),       50, 42),
+        (nn.Conv1d(1, 5, 2), (1, 16), 50, 0),
+        (nn.Linear(10, 5), (10,), 50, 42),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), 50, 42),
-        (nn.Conv1d(1, 5, 2), (1, 16),     50, 42),
-
-        (nn.Linear(10, 5),   (10,),       50, 42),
+        (nn.Conv1d(1, 5, 2), (1, 16), 50, 42),
+        (nn.Linear(10, 5), (10,), 50, 42),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), 50, 42),
-        (nn.Conv1d(1, 5, 2), (1, 16),     50, 42),
-    ]
+        (nn.Conv1d(1, 5, 2), (1, 16), 50, 42),
+    ],
 )
 def test_sequence_gradient_activation(module, inp_size, n_iter, seed):
     wgam = GradientActivation(death=True, inplace=False)
@@ -101,13 +77,13 @@ def test_sequence_gradient_activation(module, inp_size, n_iter, seed):
     bgam = GradientActivation(death=True, inplace=False)
     bgar = GradientActivation(death=True, inplace=True)
 
-    state=InspectorState()
+    state = InspectorState()
 
-    wgg = ParameterGradientGatherer(
+    wgg = ParameterGradientGatherer(  # noqa: F841
         'weight', module, [wgam, wgar], 'standalone_test', state
     )
 
-    bgg = ParameterGradientGatherer(
+    bgg = ParameterGradientGatherer(  # noqa: F841
         'bias', module, [bgam, bgar], 'standalone_test', state
     )
 
@@ -127,7 +103,7 @@ def test_sequence_gradient_activation(module, inp_size, n_iter, seed):
 
         w_act = reduce_activation_to_activation_rates(torch.isclose(module.weight.grad, torch.tensor(0.0)).logical_not(), batch=False)
         w_death = (w_act == 0).mean(dtype=torch.float32)
-        b_act = reduce_activation_to_activation_rates(torch.isclose(module.bias.grad,   torch.tensor(0.0)).logical_not(), batch=False)
+        b_act = reduce_activation_to_activation_rates(torch.isclose(module.bias.grad, torch.tensor(0.0)).logical_not(), batch=False)
         b_death = (b_act == 0).mean(dtype=torch.float32)
 
         w_acts.append(w_act.mean(dtype=torch.float32))
@@ -137,37 +113,17 @@ def test_sequence_gradient_activation(module, inp_size, n_iter, seed):
 
         sgd.step()
 
-    assert np.allclose(
-        w_acts, wgam.value['standalone_test'][0]
-    )
-    assert np.allclose(
-        w_deathes, wgam.value['standalone_test'][1]
-    )
-    assert np.allclose(
-        b_acts, bgam.value['standalone_test'][0]
-    )
-    assert np.allclose(
-        b_deathes, bgam.value['standalone_test'][1]
-    )
+    assert np.allclose(w_acts, wgam.value['standalone_test'][0])
+    assert np.allclose(w_deathes, wgam.value['standalone_test'][1])
+    assert np.allclose(b_acts, bgam.value['standalone_test'][0])
+    assert np.allclose(b_deathes, bgam.value['standalone_test'][1])
 
     rmv = wgar.value['standalone_test'][0]
-    assert np.allclose(
-        [np.mean(w_acts), np.var(w_acts), np.min(w_acts), np.max(w_acts)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    )
+    assert np.allclose([np.mean(w_acts), np.var(w_acts), np.min(w_acts), np.max(w_acts)], [rmv.mean, rmv.var, rmv.min_, rmv.max_])
     rmv = wgar.value['standalone_test'][1]
-    assert np.allclose(
-        [np.mean(w_deathes), np.var(w_deathes), np.min(w_deathes), np.max(w_deathes)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    )
+    assert np.allclose([np.mean(w_deathes), np.var(w_deathes), np.min(w_deathes), np.max(w_deathes)], [rmv.mean, rmv.var, rmv.min_, rmv.max_])
 
     rmv = bgar.value['standalone_test'][0]
-    assert np.allclose(
-        [np.mean(b_acts), np.var(b_acts), np.min(b_acts), np.max(b_acts)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    )
+    assert np.allclose([np.mean(b_acts), np.var(b_acts), np.min(b_acts), np.max(b_acts)], [rmv.mean, rmv.var, rmv.min_, rmv.max_])
     rmv = bgar.value['standalone_test'][1]
-    assert np.allclose(
-        [np.mean(b_deathes), np.var(b_deathes), np.min(b_deathes), np.max(b_deathes)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    )
+    assert np.allclose([np.mean(b_deathes), np.var(b_deathes), np.min(b_deathes), np.max(b_deathes)], [rmv.mean, rmv.var, rmv.min_, rmv.max_])

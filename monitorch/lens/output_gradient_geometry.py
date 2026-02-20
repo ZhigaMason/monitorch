@@ -1,12 +1,15 @@
-from typing import Iterable
 from collections import OrderedDict
-from .abstract_lens import AbstractLens
+from collections.abc import Iterable
+
 from torch.nn import Module
-from monitorch.preprocessor import AbstractPreprocessor, OutputGradientGeometry as OutputGradientGeometryPreprocessor
-from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
+
 from monitorch.gatherer import BackwardGatherer
 from monitorch.numerical import extract_point, extract_range, parse_range_name
+from monitorch.preprocessor import AbstractPreprocessor
+from monitorch.preprocessor import OutputGradientGeometry as OutputGradientGeometryPreprocessor
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 
+from .abstract_lens import AbstractLens
 from .module_distinction import isactivation
 
 
@@ -54,7 +57,7 @@ class OutputGradientGeometry(AbstractLens):
     ...     module = mynet,
     ...     visualizer='matplotlib'
     ... )
-    >>> 
+    >>>
     >>> for epoch in range(N_EPOCHS):
     ...     for data, label in train_dataloader:
     ...         optimizer.zero_grad()
@@ -62,43 +65,38 @@ class OutputGradientGeometry(AbstractLens):
     ...         loss = loss_fn(prediction, label)
     ...         loss.backward()
     ...         optimizer.step()
-    ... 
+    ...
     ...     inspector.tick_epoch()
-    >>> 
+    >>>
     >>> inspector.visualizer.show_fig()
     """
 
-    _SMALL_NORM_TAG_NAME = "Output Gradient Norm"
-    _SMALL_PROD_TAG_NAME = "Output Gradient Adj Prod"
+    _SMALL_NORM_TAG_NAME = 'Output Gradient Norm'
+    _SMALL_PROD_TAG_NAME = 'Output Gradient Adj Prod'
 
     def __init__(
         self,
-        inplace : bool = True,
-
-        normalize_by_size : bool = False,
-        log_scale : bool = False,
-
-        compute_adj_prod : bool = True,
-
-        skip_activation : bool = True,
-
-        line_aggregation : str|Iterable[str] = 'mean',
-        range_aggregation : str|Iterable[str]|None = ('std', 'min-max')
+        inplace: bool = True,
+        normalize_by_size: bool = False,
+        log_scale: bool = False,
+        compute_adj_prod: bool = True,
+        skip_activation: bool = True,
+        line_aggregation: str | Iterable[str] = 'mean',
+        range_aggregation: str | Iterable[str] | None = ('std', 'min-max'),
     ):
         self._compute_adj_prod = compute_adj_prod
         self._skip_activation = skip_activation
         self._preprocessor = OutputGradientGeometryPreprocessor(inplace=inplace, normalize=normalize_by_size, adj_prod=compute_adj_prod)
         self._gatherers = []
-        self._line_data : OrderedDict[str, dict[str, float]] = OrderedDict()
-        self._range_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+        self._line_data: OrderedDict[str, dict[str, float]] = OrderedDict()
+        self._range_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
         if self._compute_adj_prod:
-            self._line_adj_prod_data : OrderedDict[str, dict[str, float]] = OrderedDict()
-            self._range_adj_prod_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+            self._line_adj_prod_data: OrderedDict[str, dict[str, float]] = OrderedDict()
+            self._range_adj_prod_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
         self._log_scale = log_scale
 
-
-        self._line_aggregation : Iterable[str] = [line_aggregation] if isinstance(line_aggregation, str) else line_aggregation
-        self._range_aggregation : Iterable[str]
+        self._line_aggregation: Iterable[str] = [line_aggregation] if isinstance(line_aggregation, str) else line_aggregation
+        self._range_aggregation: Iterable[str]
         if isinstance(range_aggregation, str):
             self._range_aggregation = [range_aggregation]
         elif range_aggregation is None:
@@ -106,7 +104,7 @@ class OutputGradientGeometry(AbstractLens):
         else:
             self._range_aggregation = range_aggregation
 
-    def register_leaf_module(self, module : Module, module_name : str, inspector_state):
+    def register_leaf_module(self, module: Module, module_name: str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -123,10 +121,7 @@ class OutputGradientGeometry(AbstractLens):
         if self._skip_activation and isactivation(module):
             return
 
-        bg = BackwardGatherer(
-            module, [self._preprocessor], module_name,
-            inspector_state=inspector_state
-        )
+        bg = BackwardGatherer(module, [self._preprocessor], module_name, inspector_state=inspector_state)
         self._gatherers.append(bg)
 
     def detach_from_module(self):
@@ -139,17 +134,17 @@ class OutputGradientGeometry(AbstractLens):
             gatherer.detach()
         self._gatherers = []
 
-        self._line_data : OrderedDict[str, dict[str, float]] = OrderedDict()
-        self._range_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+        self._line_data: OrderedDict[str, dict[str, float]] = OrderedDict()
+        self._range_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
         if self._compute_adj_prod:
-            self._line_adj_prod_data : OrderedDict[str, dict[str, float]] = OrderedDict()
-            self._range_adj_prod_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+            self._line_adj_prod_data: OrderedDict[str, dict[str, float]] = OrderedDict()
+            self._range_adj_prod_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state):
-        """ Does not interact with foreign preprocessor. """
+    def register_foreign_preprocessor(self, ext_ppr: AbstractPreprocessor, inspector_state):
+        """Does not interact with foreign preprocessor."""
         pass
 
-    def introduce_tags(self, vizualizer : AbstractVisualizer):
+    def introduce_tags(self, vizualizer: AbstractVisualizer):
         """
         Introduces lens's plots to visualizer.
 
@@ -163,22 +158,12 @@ class OutputGradientGeometry(AbstractLens):
         """
         vizualizer.register_tags(
             OutputGradientGeometry._SMALL_NORM_TAG_NAME,
-            TagAttributes(
-                logy=self._log_scale,
-                big_plot=False,
-                annotate=True,
-                type=TagType.NUMERICAL
-            )
+            TagAttributes(logy=self._log_scale, big_plot=False, annotate=True, type=TagType.NUMERICAL),
         )
         if self._compute_adj_prod:
             vizualizer.register_tags(
                 OutputGradientGeometry._SMALL_PROD_TAG_NAME,
-                TagAttributes(
-                    logy=False,
-                    big_plot=False,
-                    annotate=True,
-                    type=TagType.NUMERICAL
-                )
+                TagAttributes(logy=False, big_plot=False, annotate=True, type=TagType.NUMERICAL),
             )
 
     def finalize_epoch(self):
@@ -188,10 +173,10 @@ class OutputGradientGeometry(AbstractLens):
         Aggregates output gradient norms and optionally inner product according to ``line_aggregation`` and ``range_aggregation``.
         """
         for module_name, value in self._preprocessor.value.items():
-            line_norm_dict  : dict[str, float] = self._line_data.setdefault(module_name, {})
-            range_norm_dict : dict[tuple[str, str], tuple[float, float]]= self._range_data.setdefault(module_name, {})
-            line_prod_dict  : dict[str, float]
-            range_prod_dict : dict[tuple[str, str], tuple[float, float]]
+            line_norm_dict: dict[str, float] = self._line_data.setdefault(module_name, {})
+            range_norm_dict: dict[tuple[str, str], tuple[float, float]] = self._range_data.setdefault(module_name, {})
+            line_prod_dict: dict[str, float]
+            range_prod_dict: dict[tuple[str, str], tuple[float, float]]
             if self._compute_adj_prod:
                 line_prod_dict = self._line_adj_prod_data.setdefault(module_name, {})
                 range_prod_dict = self._range_adj_prod_data.setdefault(module_name, {})
@@ -215,9 +200,7 @@ class OutputGradientGeometry(AbstractLens):
             self._line_adj_prod_data = OrderedDict(reversed(self._line_adj_prod_data.items()))
             self._range_adj_prod_data = OrderedDict(reversed(self._range_adj_prod_data.items()))
 
-
-
-    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
+    def vizualize(self, vizualizer: AbstractVisualizer, epoch: int):
         """
         Passes computed data to visualizer.
 
@@ -240,15 +223,9 @@ class OutputGradientGeometry(AbstractLens):
         epoch : int
             Computation's epoch number.
         """
-        vizualizer.plot_numerical_values(
-            epoch, OutputGradientGeometry._SMALL_NORM_TAG_NAME,
-            self._line_data, self._range_data
-        )
+        vizualizer.plot_numerical_values(epoch, OutputGradientGeometry._SMALL_NORM_TAG_NAME, self._line_data, self._range_data)
         if self._compute_adj_prod:
-            vizualizer.plot_numerical_values(
-                epoch, OutputGradientGeometry._SMALL_PROD_TAG_NAME,
-                self._line_adj_prod_data, self._range_adj_prod_data
-            )
+            vizualizer.plot_numerical_values(epoch, OutputGradientGeometry._SMALL_PROD_TAG_NAME, self._line_adj_prod_data, self._range_adj_prod_data)
 
     def reset_epoch(self):
         """

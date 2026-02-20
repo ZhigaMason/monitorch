@@ -1,7 +1,7 @@
 from torch import Tensor
 
 
-def reduce_activation_to_activation_rates(act_tensor : Tensor, batch : bool) -> Tensor:
+def reduce_activation_to_activation_rates(act_tensor: Tensor, batch: bool) -> Tensor:
     """
     Reduces (boolean) activation tensor to activation rates per channel/neuron.
 
@@ -26,7 +26,7 @@ def reduce_activation_to_activation_rates(act_tensor : Tensor, batch : bool) -> 
         if len(act_tensor.shape) > 2:
             spatial_dim = act_tensor.shape[-1]
             batch_dim = act_tensor.shape[0]
-            act_tensor = act_tensor.float().sum(dim=(0,-1)) / (spatial_dim * batch_dim)
+            act_tensor = act_tensor.float().sum(dim=(0, -1)) / (spatial_dim * batch_dim)
         else:
             act_tensor = act_tensor.float().mean(dim=0)
 
@@ -35,7 +35,8 @@ def reduce_activation_to_activation_rates(act_tensor : Tensor, batch : bool) -> 
             act_tensor = act_tensor.float().mean(dim=-1)
     return act_tensor
 
-def reduce_spatial_(act_tensor : Tensor, batch : bool) -> Tensor:
+
+def reduce_spatial_(act_tensor: Tensor, batch: bool) -> Tensor:
     """
     Flattens spatial dimensions of tensor.
 
@@ -64,7 +65,8 @@ def reduce_spatial_(act_tensor : Tensor, batch : bool) -> Tensor:
             return act_tensor.flatten(1, -1)
     return act_tensor
 
-def reduce_non_channels(tensor : Tensor, channel_dim : int) -> Tensor:
+
+def reduce_non_channels(tensor: Tensor, channel_dim: int) -> Tensor:
     """
     Flattens all dimension except for channel.
 
@@ -90,4 +92,3 @@ def reduce_non_channels(tensor : Tensor, channel_dim : int) -> Tensor:
     if channel_dim == 0:
         ret = ret.reshape(1, *ret.shape)
     return ret
-

@@ -1,12 +1,15 @@
 from collections import OrderedDict
-from typing import Iterable
-from .abstract_lens import AbstractLens
+from collections.abc import Iterable
+
 from torch.nn import Module
 
 from monitorch.gatherer import EpochModuleGatherer
-from monitorch.preprocessor import AbstractPreprocessor, ParameterNorm as ParameterNormPreprocessor
-from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point
+from monitorch.preprocessor import AbstractPreprocessor
+from monitorch.preprocessor import ParameterNorm as ParameterNormPreprocessor
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
+
+from .abstract_lens import AbstractLens
 
 
 class ParameterNorm(AbstractLens):
@@ -47,7 +50,7 @@ class ParameterNorm(AbstractLens):
     ...     module = mynet,
     ...     visualizer='matplotlib'
     ... )
-    >>> 
+    >>>
     >>> for epoch in range(N_EPOCHS):
     ...     for data, label in train_dataloader:
     ...         optimizer.zero_grad()
@@ -55,9 +58,9 @@ class ParameterNorm(AbstractLens):
     ...         loss = loss_fn(prediction, label)
     ...         loss.backward()
     ...         optimizer.step()
-    ... 
+    ...
     ...     inspector.tick_epoch()
-    >>> 
+    >>>
     >>> inspector.visualizer.show_fig()
 
     To collect data more often use :meth:`collect_data`.
@@ -70,7 +73,7 @@ class ParameterNorm(AbstractLens):
     ...     module = mynet,
     ...     visualizer='matplotlib'
     ... )
-    >>> 
+    >>>
     >>> for epoch in range(N_EPOCHS):
     ...     for data, label in train_dataloader:
     ...         optimizer.zero_grad()
@@ -79,42 +82,33 @@ class ParameterNorm(AbstractLens):
     ...         loss.backward()
     ...         optimizer.step()
     ...         pnorm_lens.collect_data()
-    ... 
+    ...
     ...     inspector.tick_epoch()
-    >>> 
+    >>>
     >>> inspector.visualizer.show_fig()
     """
 
     def __init__(
         self,
-        inplace : bool = True,
-
-        parameters : Iterable[str] = ('weight', 'bias'),
-
-        normalize_by_size : bool = False,
-        log_scale : bool = False,
-
-        comparison_plot : bool = True,
-        aggregation_method : str = 'mean'
+        inplace: bool = True,
+        parameters: Iterable[str] = ('weight', 'bias'),
+        normalize_by_size: bool = False,
+        log_scale: bool = False,
+        comparison_plot: bool = True,
+        aggregation_method: str = 'mean',
     ):
         self._parameters = list(parameters)
         self._log_scale = log_scale
-        self._preprocessor = ParameterNormPreprocessor(
-            self._parameters, normalize=normalize_by_size, inplace=inplace
-        )
-        self._gatherers : list[EpochModuleGatherer] = []
-        self._data : OrderedDict[str, OrderedDict[str, dict[str, float]]]= OrderedDict([
-            (parameter_name, OrderedDict()) for parameter_name in self._parameters
-        ])
+        self._preprocessor = ParameterNormPreprocessor(self._parameters, normalize=normalize_by_size, inplace=inplace)
+        self._gatherers: list[EpochModuleGatherer] = []
+        self._data: OrderedDict[str, OrderedDict[str, dict[str, float]]] = OrderedDict([(parameter_name, OrderedDict()) for parameter_name in self._parameters])
         self._aggregation_method = aggregation_method
 
         self._comparison_plot = comparison_plot
         if self._comparison_plot:
-            self._comparison_data : OrderedDict[str, OrderedDict[str, float]] = OrderedDict([
-                (parameter_name, OrderedDict()) for parameter_name in self._parameters
-            ])
+            self._comparison_data: OrderedDict[str, OrderedDict[str, float]] = OrderedDict([(parameter_name, OrderedDict()) for parameter_name in self._parameters])
 
-    def register_leaf_module(self, module : Module, module_name : str, inspector_state):
+    def register_leaf_module(self, module: Module, module_name: str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -129,7 +123,7 @@ class ParameterNorm(AbstractLens):
         """
         self._register_module(module, module_name, inspector_state)
 
-    def register_non_leaf_module(self, module : Module, module_name : str, inspector_state):
+    def register_non_leaf_module(self, module: Module, module_name: str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -144,7 +138,7 @@ class ParameterNorm(AbstractLens):
         """
         self._register_module(module, module_name, inspector_state)
 
-    def _register_module(self, module : Module, module_name : str, inspector_state):
+    def _register_module(self, module: Module, module_name: str, inspector_state):
         """
         Generic function called from :meth:`register_non_leaf_module` and :meth:`register_leaf_module`
 
@@ -157,10 +151,7 @@ class ParameterNorm(AbstractLens):
         """
         if not all(hasattr(module, parameter_name) for parameter_name in self._parameters):
             return
-        gatherer = EpochModuleGatherer(
-            module, [self._preprocessor], module_name,
-            inspector_state=inspector_state
-        )
+        gatherer = EpochModuleGatherer(module, [self._preprocessor], module_name, inspector_state=inspector_state)
         self._gatherers.append(gatherer)
         for parameter_name in self._parameters:
             self._data[parameter_name][module_name] = {}
@@ -175,19 +166,15 @@ class ParameterNorm(AbstractLens):
             gatherer.detach()
         self._gatherers = []
 
-        self._data : OrderedDict[str, OrderedDict[str, dict[str, float]]]= OrderedDict([
-            (parameter_name, OrderedDict()) for parameter_name in self._parameters
-        ])
+        self._data: OrderedDict[str, OrderedDict[str, dict[str, float]]] = OrderedDict([(parameter_name, OrderedDict()) for parameter_name in self._parameters])
         if self._comparison_plot:
-            self._comparison_data : OrderedDict[str, OrderedDict[str, float]] = OrderedDict([
-                (parameter_name, OrderedDict()) for parameter_name in self._parameters
-            ])
+            self._comparison_data: OrderedDict[str, OrderedDict[str, float]] = OrderedDict([(parameter_name, OrderedDict()) for parameter_name in self._parameters])
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state):
-        """ Does not interact with foreign preprocessor. """
+    def register_foreign_preprocessor(self, ext_ppr: AbstractPreprocessor, inspector_state):
+        """Does not interact with foreign preprocessor."""
         pass
 
-    def introduce_tags(self, vizualizer : AbstractVisualizer):
+    def introduce_tags(self, vizualizer: AbstractVisualizer):
         """
         Introduces lens's plots to visualizer.
 
@@ -203,24 +190,14 @@ class ParameterNorm(AbstractLens):
         for parameter_name in self._parameters:
             vizualizer.register_tags(
                 f'{parameter_name} Norm'.title(),
-                TagAttributes(
-                    logy=self._log_scale,
-                    big_plot=False,
-                    annotate=False,
-                    type=TagType.NUMERICAL
-                )
+                TagAttributes(logy=self._log_scale, big_plot=False, annotate=False, type=TagType.NUMERICAL),
             )
 
         if self._comparison_plot:
             for parameter_name in self._parameters:
                 vizualizer.register_tags(
                     f'{parameter_name}{" Log" if self._log_scale else ""} Norm Comparison'.title(),
-                    TagAttributes(
-                        logy=False,
-                        big_plot=True,
-                        annotate=False,
-                        type=TagType.RELATIONS
-                    )
+                    TagAttributes(logy=False, big_plot=True, annotate=False, type=TagType.RELATIONS),
                 )
 
     def collect_data(self):
@@ -229,7 +206,6 @@ class ParameterNorm(AbstractLens):
         """
         for gatherer in self._gatherers:
             gatherer()
-
 
     def finalize_epoch(self):
         """
@@ -241,7 +217,7 @@ class ParameterNorm(AbstractLens):
         self.collect_data()
 
         for parameter_name in self._parameters:
-            comparison_dict : OrderedDict[str, float]
+            comparison_dict: OrderedDict[str, float]
             if self._comparison_plot:
                 comparison_dict = self._comparison_data[parameter_name]
             tag_data_dict = self._data[parameter_name]
@@ -257,7 +233,7 @@ class ParameterNorm(AbstractLens):
                 for module_name in comparison_dict:
                     comparison_dict[module_name] /= total_sum
 
-    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
+    def vizualize(self, vizualizer: AbstractVisualizer, epoch: int):
         """
         Passes computed data to visualizer.
 
@@ -290,18 +266,12 @@ class ParameterNorm(AbstractLens):
             Computation's epoch number.
         """
         for parameter_name in self._parameters:
-            vizualizer.plot_numerical_values(
-                epoch, f'{parameter_name} Norm'.title(),
-                self._data[parameter_name], None
-            )
+            vizualizer.plot_numerical_values(epoch, f'{parameter_name} Norm'.title(), self._data[parameter_name], None)
 
         if self._comparison_plot:
             for parameter_name in self._parameters:
                 tag_name = f'{parameter_name}{" Log" if self._log_scale else ""} Norm Comparison'.title()
-                vizualizer.plot_relations(
-                    epoch, tag_name,
-                    OrderedDict([ ( tag_name, self._comparison_data[parameter_name]) ])
-                )
+                vizualizer.plot_relations(epoch, tag_name, OrderedDict([(tag_name, self._comparison_data[parameter_name])]))
 
     def reset_epoch(self):
         """

@@ -9,19 +9,19 @@ The submodule provides classes to gather outputs, gradients on each pass and to 
 """
 
 from .abstract_gatherer import AbstractGatherer
-from .feed_forward_gatherer import FeedForwardGatherer
 from .backward_gatherer import BackwardGatherer
-from .parameter_gradient_gatherer import ParameterGradientGatherer
-from .epoch_module_gatherer import EpochModuleGatherer
-from .optimizer_step_parameter_gatherer import OptimizerStepParameterGatherer
 from .call_parameter_gatherer import CallParameterGatherer
+from .epoch_module_gatherer import EpochModuleGatherer
+from .feed_forward_gatherer import FeedForwardGatherer
+from .optimizer_step_parameter_gatherer import OptimizerStepParameterGatherer
+from .parameter_gradient_gatherer import ParameterGradientGatherer
 
 __all__ = [
-    "AbstractGatherer",
-    "FeedForwardGatherer",
-    "BackwardGatherer",
-    "ParameterGradientGatherer",
-    "EpochModuleGatherer",
-    "OptimizerStepParameterGatherer",
-    "CallParameterGatherer"
+    'AbstractGatherer',
+    'BackwardGatherer',
+    'CallParameterGatherer',
+    'EpochModuleGatherer',
+    'FeedForwardGatherer',
+    'OptimizerStepParameterGatherer',
+    'ParameterGradientGatherer',
 ]

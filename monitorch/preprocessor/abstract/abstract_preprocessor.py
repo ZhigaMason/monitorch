@@ -1,6 +1,6 @@
-
 from abc import ABC, abstractmethod
 from typing import Any
+
 
 class AbstractPreprocessor(ABC):
     """
@@ -22,5 +22,5 @@ class AbstractPreprocessor(ABC):
 
     @abstractmethod
     def reset(self) -> None:
-        """ Resets preprocessor for further computation """
+        """Resets preprocessor for further computation"""
         pass

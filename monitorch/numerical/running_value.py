@@ -2,9 +2,11 @@
 A file containing utility classes used to record running values
 """
 
-import numpy as np
 from dataclasses import dataclass
 from typing import Any
+
+import numpy as np
+
 
 @dataclass
 class RunningMeanVar:
@@ -15,31 +17,31 @@ class RunningMeanVar:
     of collection through :meth:`update` or :meth:`append` calls.
     """
 
-    count : int   = 0
+    count: int = 0
     """
     Number of update calls on the object. Default is 0.
     """
 
-    mean  : float = 0
+    mean: float = 0
     """ Mean calculated through all previous calls. Default is 0. """
 
-    var   : float = 0
+    var: float = 0
     """
     Uncorrected variance (i.e. df = 0) calculated
     from update calls using Welford's algorithm. Default is 0.
     """
 
-    min_  : float = float('+inf')
+    min_: float = float('+inf')
     """
     Minimal value from update calls. Default is float('+inf')
     """
 
-    max_  : float = float('-inf')
+    max_: float = float('-inf')
     """
     Maximal value from update calls. Default is float('-inf')
     """
 
-    def update(self, new_value : float) -> None:
+    def update(self, new_value: float) -> None:
         """
         Updates running statistics with provided value.
 
@@ -50,14 +52,14 @@ class RunningMeanVar:
         new_value : float
             The value to update statistics with.
         """
-        if hasattr(new_value, "detach"):
+        if hasattr(new_value, 'detach'):
             new_value = new_value.detach()
         new_value = float(new_value)
         self.count += 1
         delta1 = new_value - self.mean
         self.mean += delta1 / self.count
         delta2 = new_value - self.mean
-        self.var = ( delta1 * delta2 + self.var * (self.count - 1) ) / self.count
+        self.var = (delta1 * delta2 + self.var * (self.count - 1)) / self.count
         self.min_ = min(self.min_, new_value)
         self.max_ = max(self.max_, new_value)
 
@@ -72,9 +74,11 @@ class RunningMeanVar:
     def __iter__(self):
         return (self.count, self.mean, self.var)
 
+
 Accumulator = RunningMeanVar | list[float]
 
-def extract_point(raw_val : Accumulator, method : str) -> float:
+
+def extract_point(raw_val: Accumulator, method: str) -> float:
     """
     Extracts a single variable from :class:`RunningMeanVar` or ``list``.
 
@@ -118,7 +122,7 @@ def extract_point(raw_val : Accumulator, method : str) -> float:
             case 'std':
                 return float(np.std(raw_val))
             case _:
-                raise AttributeError("Unknown method passed to extract point")
+                raise AttributeError('Unknown method passed to extract point')
     elif isinstance(raw_val, RunningMeanVar):
         match method:
             case 'mean':
@@ -128,21 +132,22 @@ def extract_point(raw_val : Accumulator, method : str) -> float:
             case 'min':
                 return raw_val.min_
             case 'Q1':
-                raise AttributeError("RunningMeanVar cannot track 1st quantile of collection")
+                raise AttributeError('RunningMeanVar cannot track 1st quantile of collection')
             case 'Q3':
-                raise AttributeError("RunningMeanVar cannot track 3rd quantile of collection")
+                raise AttributeError('RunningMeanVar cannot track 3rd quantile of collection')
             case 'median':
-                raise AttributeError("RunningMeanVar cannot track median of collection")
+                raise AttributeError('RunningMeanVar cannot track median of collection')
             case 'IQR':
-                raise AttributeError("RunningMeanVar cannot track IQR of collection")
+                raise AttributeError('RunningMeanVar cannot track IQR of collection')
             case 'std':
                 return float(np.sqrt(raw_val.var))
             case _:
-                raise AttributeError("Unknown method passed to extract point")
+                raise AttributeError('Unknown method passed to extract point')
     else:
-        raise AttributeError("Unknown type passed to extract point")
+        raise AttributeError('Unknown type passed to extract point')
 
-def extract_range(raw_val : Accumulator, method) -> tuple[float, float]:
+
+def extract_range(raw_val: Accumulator, method) -> tuple[float, float]:
     """
     Extracts a range described by `method` from provided object.
 
@@ -179,26 +184,25 @@ def extract_range(raw_val : Accumulator, method) -> tuple[float, float]:
                 minmax = np.quantile(raw_val, [0.0, 1.0], method='closest_observation').tolist()
                 return minmax
             case _:
-                raise AttributeError("Unknown method passed to extract point")
+                raise AttributeError('Unknown method passed to extract point')
     elif isinstance(raw_val, RunningMeanVar):
         match method:
             case 'std':
                 std = float(np.sqrt(raw_val.var))
                 return (raw_val.mean - std, raw_val.mean + std)
             case 'Q1-Q3':
-                raise AttributeError("RunningMeanVar cannot track quantiles of collection")
+                raise AttributeError('RunningMeanVar cannot track quantiles of collection')
             case 'min-max':
                 return (raw_val.min_, raw_val.max_)
             case _:
-                raise AttributeError("Unknown method passed to extract point")
+                raise AttributeError('Unknown method passed to extract point')
     else:
-        raise AttributeError("Unknown type passed to extract point")
+        raise AttributeError('Unknown type passed to extract point')
 
-_RANGE_NAMES = {
-    'std'     : ('-σ', '+σ'),
-    'Q1-Q3'   : ('Q1', 'Q3'),
-    'min-max' : ('min', 'max')
-}
+
+_RANGE_NAMES = {'std': ('-σ', '+σ'), 'Q1-Q3': ('Q1', 'Q3'), 'min-max': ('min', 'max')}
+
+
 def parse_range_name(name) -> tuple[str, str]:
     """
     Parses string name into matplotlib annotatable pair of strings.
@@ -228,7 +232,8 @@ def parse_range_name(name) -> tuple[str, str]:
         return _RANGE_NAMES[name]
     raise AttributeError(f"Unknown range name: '{name}'")
 
+
 @dataclass
 class RunningValue:
-    count : int = 0
-    value : Any = None
+    count: int = 0
+    value: Any = None

@@ -1,7 +1,9 @@
 from typing import Any
 
-from .abstract.abstract_preprocessor import AbstractPreprocessor
 from monitorch.numerical import RunningMeanVar
+
+from .abstract.abstract_preprocessor import AbstractPreprocessor
+
 
 class ExplicitCall(AbstractPreprocessor):
     """
@@ -28,13 +30,12 @@ class ExplicitCall(AbstractPreprocessor):
         String to save non-training loss under.
     """
 
-
     def __init__(self, train_loss_str, non_train_loss_str):
-        self.state : dict[str, Any] = {}
+        self.state: dict[str, Any] = {}
         self.train_loss_str = train_loss_str
         self.non_train_loss_str = non_train_loss_str
 
-    def push_memory(self, name : str, value) -> None:
+    def push_memory(self, name: str, value) -> None:
         """
         Appends value to container under name and creates a list if there is none.
 
@@ -47,7 +48,7 @@ class ExplicitCall(AbstractPreprocessor):
         """
         self.state.setdefault(name, []).append(value)
 
-    def push_running(self, name : str, value : float) -> None:
+    def push_running(self, name: str, value: float) -> None:
         """
         Appends value to container under name and creates a :class:`RunningMeanVar` if there is none.
 
@@ -60,7 +61,7 @@ class ExplicitCall(AbstractPreprocessor):
         """
         self.state.setdefault(name, RunningMeanVar()).append(value)
 
-    def push_loss(self, value : float, *, train : bool, running : bool = True):
+    def push_loss(self, value: float, *, train: bool, running: bool = True):
         """
         A utility function to save loss.
 

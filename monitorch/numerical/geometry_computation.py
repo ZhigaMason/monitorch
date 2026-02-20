@@ -1,7 +1,10 @@
-import torch
 import copy
+
 import numpy as np
-from .running_value import RunningMeanVar, Accumulator
+import torch
+
+from .running_value import Accumulator, RunningMeanVar
+
 
 class GeometryComputation:
     """
@@ -27,7 +30,7 @@ class GeometryComputation:
         Constant used for numerical stability when diving dot product by norms
     """
 
-    def __init__(self, inplace : bool, normalize : bool, dot_product : bool, eps : float):
+    def __init__(self, inplace: bool, normalize: bool, dot_product: bool, eps: float):
         self.norm = RunningMeanVar() if inplace else list()
         self.eps = eps
         self.normalize = normalize
@@ -37,7 +40,7 @@ class GeometryComputation:
             self.prev_value = 0
             self.product = RunningMeanVar() if inplace else list()
 
-    def update(self, X : torch.Tensor):
+    def update(self, X: torch.Tensor):
         """
         Performs an update step on norm and optionally product
 
@@ -56,7 +59,7 @@ class GeometryComputation:
             self.prev_value = copy.deepcopy(X)
 
     @property
-    def value(self) -> Accumulator|tuple[Accumulator, Accumulator]:
+    def value(self) -> Accumulator | tuple[Accumulator, Accumulator]:
         """
         Accumulated values (either list or :class:`RunningMeanVar`)
 

@@ -1,11 +1,14 @@
-from typing import Iterable
 from collections import OrderedDict
-from .abstract_lens import AbstractLens
+from collections.abc import Iterable
+
 from torch.nn import Module
-from monitorch.preprocessor import AbstractPreprocessor, GradientActivation
-from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
+
 from monitorch.gatherer import ParameterGradientGatherer
 from monitorch.numerical import extract_point
+from monitorch.preprocessor import AbstractPreprocessor, GradientActivation
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
+
+from .abstract_lens import AbstractLens
 
 
 class ParameterGradientActivation(AbstractLens):
@@ -47,7 +50,7 @@ class ParameterGradientActivation(AbstractLens):
     ...     module = mynet,
     ...     visualizer='matplotlib'
     ... )
-    >>> 
+    >>>
     >>> for epoch in range(N_EPOCHS):
     ...     for data, label in train_dataloader:
     ...         optimizer.zero_grad()
@@ -56,41 +59,32 @@ class ParameterGradientActivation(AbstractLens):
     ...         loss.backward()
     ...         optimizer.step()
     ...     inspector.tick_epoch()
-    >>> 
+    >>>
     >>> inspector.visualizer.show_fig()
     """
 
-    _BIG_TAG_NAME = "Warning Gradient Activations"
+    _BIG_TAG_NAME = 'Warning Gradient Activations'
 
     def __init__(
         self,
-        inplace : bool = True,
-
-        warning_plot : bool = True,
-        parameters : str|Iterable[str] = ('weight', 'bias'),
-
-        activation_aggregation : str = 'mean',
-        death_aggregation      : str = 'mean',
+        inplace: bool = True,
+        warning_plot: bool = True,
+        parameters: str | Iterable[str] = ('weight', 'bias'),
+        activation_aggregation: str = 'mean',
+        death_aggregation: str = 'mean',
     ):
         self._warning_plot = warning_plot
         if warning_plot:
             self._warning_data = {}
-        self._preprocessors = OrderedDict([
-            (parameter, GradientActivation(inplace=inplace, death=True))
-            for parameter in parameters
-        ])
+        self._preprocessors = OrderedDict([(parameter, GradientActivation(inplace=inplace, death=True)) for parameter in parameters])
         self._gatherers = []
 
-        self._data : dict[str, OrderedDict[str, dict[str, float]]] = {
-                parameter_name:OrderedDict()
-                for parameter_name in parameters
-        }
-
+        self._data: dict[str, OrderedDict[str, dict[str, float]]] = {parameter_name: OrderedDict() for parameter_name in parameters}
 
         self._activation_aggregation = activation_aggregation
         self._death_aggregation = death_aggregation
 
-    def register_leaf_module(self, module : Module, module_name : str, inspector_state):
+    def register_leaf_module(self, module: Module, module_name: str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -105,7 +99,7 @@ class ParameterGradientActivation(AbstractLens):
         """
         self._register_module(module, module_name, inspector_state)
 
-    def register_non_leaf_module(self, module : Module, module_name : str, inspector_state):
+    def register_non_leaf_module(self, module: Module, module_name: str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -120,7 +114,7 @@ class ParameterGradientActivation(AbstractLens):
         """
         self._register_module(module, module_name, inspector_state)
 
-    def _register_module(self, module : Module, module_name : str, inspector_state):
+    def _register_module(self, module: Module, module_name: str, inspector_state):
         """
         Generic function called from :meth:`register_non_leaf_module` and :meth:`register_leaf_module`
 
@@ -135,11 +129,7 @@ class ParameterGradientActivation(AbstractLens):
             return
 
         for parameter, preprocessor in self._preprocessors.items():
-            pgg = ParameterGradientGatherer(
-                parameter,
-                module, [preprocessor], module_name,
-                inspector_state=inspector_state
-            )
+            pgg = ParameterGradientGatherer(parameter, module, [preprocessor], module_name, inspector_state=inspector_state)
             self._gatherers.append(pgg)
 
     def detach_from_module(self):
@@ -151,18 +141,15 @@ class ParameterGradientActivation(AbstractLens):
         for gatherer in self._gatherers:
             gatherer.detach()
         self._gatherers = []
-        self._data : dict[str, OrderedDict[str, dict[str, float]]] = {
-                parameter_name:OrderedDict()
-                for parameter_name in self._data.keys()
-        }
+        self._data: dict[str, OrderedDict[str, dict[str, float]]] = {parameter_name: OrderedDict() for parameter_name in self._data.keys()}
         if self._warning_plot:
             self._warning_data = {}
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state):
-        """ Does not interact with foreign preprocessor. """
+    def register_foreign_preprocessor(self, ext_ppr: AbstractPreprocessor, inspector_state):
+        """Does not interact with foreign preprocessor."""
         pass
 
-    def introduce_tags(self, vizualizer : AbstractVisualizer):
+    def introduce_tags(self, vizualizer: AbstractVisualizer):
         """
         Introduces lens's plots to visualizer.
 
@@ -176,23 +163,13 @@ class ParameterGradientActivation(AbstractLens):
         """
         for parameter_name in self._preprocessors:
             vizualizer.register_tags(
-                f"{parameter_name} Gradient Activation".title(),
-                TagAttributes(
-                    logy=False,
-                    big_plot=False,
-                    annotate=True,
-                    type=TagType.PROBABILITY
-                )
+                f'{parameter_name} Gradient Activation'.title(),
+                TagAttributes(logy=False, big_plot=False, annotate=True, type=TagType.PROBABILITY),
             )
         if self._warning_plot:
             vizualizer.register_tags(
                 ParameterGradientActivation._BIG_TAG_NAME,
-                TagAttributes(
-                    logy=False,
-                    big_plot=True,
-                    annotate=True,
-                    type=TagType.PROBABILITY
-                )
+                TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.PROBABILITY),
             )
 
     def finalize_epoch(self):
@@ -210,7 +187,7 @@ class ParameterGradientActivation(AbstractLens):
                 val_dict = tag_dict.setdefault(module_name, {})
                 val_dict['activation_rate'] = extract_point(act_rate, self._activation_aggregation)
                 val_dict['death_rate'] = extract_point(death, self._death_aggregation)
-                worst_act   = min(worst_act,   val_dict['activation_rate'])
+                worst_act = min(worst_act, val_dict['activation_rate'])
                 worst_death = max(worst_death, val_dict['death_rate'])
             self._data[parameter_name] = OrderedDict(reversed(tag_dict.items()))
 
@@ -218,8 +195,7 @@ class ParameterGradientActivation(AbstractLens):
             self._warning_data['worst activation_rate'] = worst_act
             self._warning_data['worst death_rate'] = worst_death
 
-
-    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
+    def vizualize(self, vizualizer: AbstractVisualizer, epoch: int):
         """
         Passes computed data to visualizer.
 
@@ -251,15 +227,9 @@ class ParameterGradientActivation(AbstractLens):
             Computation's epoch number.
         """
         for parameter_name in self._preprocessors:
-            vizualizer.plot_probabilities(
-                epoch, f"{parameter_name} Gradient Activation".title(),
-                self._data[parameter_name]
-            )
+            vizualizer.plot_probabilities(epoch, f'{parameter_name} Gradient Activation'.title(), self._data[parameter_name])
         if self._warning_plot:
-            vizualizer.plot_probabilities(
-                epoch, ParameterGradientActivation._BIG_TAG_NAME,
-                OrderedDict([(ParameterGradientActivation._BIG_TAG_NAME, self._warning_data)])
-            )
+            vizualizer.plot_probabilities(epoch, ParameterGradientActivation._BIG_TAG_NAME, OrderedDict([(ParameterGradientActivation._BIG_TAG_NAME, self._warning_data)]))
 
     def reset_epoch(self):
         """

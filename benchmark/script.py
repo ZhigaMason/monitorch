@@ -1,22 +1,15 @@
 import gc
+
 import pandas as pd
 import torch
-import os
-from monitorch.lens import (
-    LossMetrics,
-    OutputActivation,
-    ParameterGradientGeometry,
-    ParameterGradientActivation,
-    OutputNorm,
-    ParameterNorm
-)
-from tqdm import tqdm, trange
 from torch import nn, optim
+from torch.autograd.profiler_util import EventList
+from torch.profiler import ProfilerActivity, profile, record_function
 from torchvision.models import vit_b_16
+
 from monitorch.inspector import PyTorchInspector
 from monitorch.visualizer import MatplotlibVisualizer
-from torch.autograd.profiler_util import EventList
-from torch.profiler import profile, ProfilerActivity, record_function, schedule
+
 
 def benchmark(
     loss_fn = nn.CrossEntropyLoss(),
@@ -54,13 +47,11 @@ def benchmark(
         acc_events=True,
         record_shapes=False,
         with_stack=False,
-    ) as prof:
-
-        with record_function('mt::initialization'):
-            inspector = None
-            if lens_list:
-                inspector = PyTorchInspector(lenses=lens_list, module=model, **inspector_kwargs)
-                torch.cuda.synchronize(device)
+    ) as prof, record_function('mt::initialization'):
+        inspector = None
+        if lens_list:
+            inspector = PyTorchInspector(lenses=lens_list, module=model, **inspector_kwargs)
+            torch.cuda.synchronize(device)
 
     events += [e for e in prof.events() if 'mt::' in e.key]
 
@@ -125,10 +116,9 @@ def benchmark(
         acc_events=True,
         record_shapes=False,
         with_stack=False,
-    ) as prof:
-        with record_function('mt::matplotlib_visualization'):
-            if inspector and isinstance(inspector.visualizer, MatplotlibVisualizer):
-                fig = inspector.visualizer.show_fig()
+    ) as prof, record_function('mt::matplotlib_visualization'):
+        if inspector and isinstance(inspector.visualizer, MatplotlibVisualizer):
+            fig = inspector.visualizer.show_fig()
 
 
     peak_gpu_mem = (

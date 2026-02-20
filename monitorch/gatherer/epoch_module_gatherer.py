@@ -1,5 +1,7 @@
-from .abstract_gatherer import AbstractGatherer
 from monitorch.preprocessor import AbstractModulePreprocessor
+
+from .abstract_gatherer import AbstractGatherer
+
 
 class EpochModuleGatherer(AbstractGatherer):
     """
@@ -17,10 +19,10 @@ class EpochModuleGatherer(AbstractGatherer):
         Name of the module.
     """
 
-    def __init__(self, module, preprocessors : list[AbstractModulePreprocessor], name : str, inspector_state):
+    def __init__(self, module, preprocessors: list[AbstractModulePreprocessor], name: str, inspector_state):
         super().__init__(inspector_state)
         self._module = module
-        self._name : str = name
+        self._name: str = name
         self._preprocessors = preprocessors
 
     @AbstractGatherer.requires_active_inspector_state

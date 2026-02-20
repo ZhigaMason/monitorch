@@ -1,16 +1,15 @@
 from collections import OrderedDict
-from typing import Iterable
-from .abstract_lens import AbstractLens
+from collections.abc import Iterable
 
 from torch.nn import Module
+
 from monitorch.gatherer import FeedForwardGatherer
-from monitorch.preprocessor import (
-        AbstractPreprocessor,
-        ExplicitCall,
-        LossModule
-)
-from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 from monitorch.numerical import extract_point, extract_range, parse_range_name
+from monitorch.preprocessor import AbstractPreprocessor, ExplicitCall, LossModule
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
+
+from .abstract_lens import AbstractLens
+
 
 class LossMetrics(AbstractLens):
     """
@@ -56,7 +55,7 @@ class LossMetrics(AbstractLens):
     ...     module = mynet,
     ...     visualizer='matplotlib'
     ... )
-    >>> 
+    >>>
     >>> for epoch in range(N_EPOCHS):
     ...     for data, label in train_dataloader:
     ...         optimizer.zero_grad()
@@ -64,10 +63,10 @@ class LossMetrics(AbstractLens):
     ...         loss = F.binary_cross_entropy(prediction, label)
     ...         loss.backward()
     ...         optimizer.step()
-    ... 
+    ...
     ...         inspector.push_loss(loss.item(), train=True)
     ...     inspector.tick_epoch()
-    >>> 
+    >>>
     >>> inspector.visualizer.show_fig()
 
     The same effect can be obtained by providind ``torch.nn`` loss object.
@@ -80,7 +79,7 @@ class LossMetrics(AbstractLens):
     ...     module = mynet,
     ...     visualizer='matplotlib'
     ... )
-    >>> 
+    >>>
     >>> for epoch in range(N_EPOCHS):
     ...     for data, label in train_dataloader:
     ...         optimizer.zero_grad()
@@ -89,7 +88,7 @@ class LossMetrics(AbstractLens):
     ...         loss.backward()
     ...         optimizer.step()
     ...     inspector.tick_epoch()
-    >>> 
+    >>>
     >>> inspector.visualizer.show_fig()
 
     Metrics must be passed explicitly.
@@ -105,7 +104,7 @@ class LossMetrics(AbstractLens):
     ...     module = mynet,
     ...     visualizer='matplotlib'
     ... )
-    >>> 
+    >>>
     >>> for epoch in range(N_EPOCHS):
     ...     for data, label in train_dataloader:
     ...         optimizer.zero_grad()
@@ -113,35 +112,32 @@ class LossMetrics(AbstractLens):
     ...         loss = loss_fn(prediction, label)
     ...         loss.backward()
     ...         optimizer.step()
-    ... 
+    ...
     ...         accuracy_score = ((prediction > 0.5).float() == label).mean().item()
     ...         inspector.push_metric('accuracy', accuracy_score)
     ...     inspector.tick_epoch()
-    >>> 
+    >>>
     >>> inspector.visualizer.show_fig()
     """
 
     def __init__(
-            self, *,
-            metrics : Iterable[str]|None = None,
-            separate_loss_and_metrics : bool = True,
-
-            loss_fn : Module|None  = None,
-            loss_fn_inplace : bool = True,
-
-            loss_line : str|Iterable[str]       = 'mean',
-            loss_range : str|Iterable[str]|None = 'std',
-
-            metrics_line : str|Iterable[str]       = 'mean',
-            metrics_range : str|Iterable[str]|None = None,
+        self,
+        *,
+        metrics: Iterable[str] | None = None,
+        separate_loss_and_metrics: bool = True,
+        loss_fn: Module | None = None,
+        loss_fn_inplace: bool = True,
+        loss_line: str | Iterable[str] = 'mean',
+        loss_range: str | Iterable[str] | None = 'std',
+        metrics_line: str | Iterable[str] = 'mean',
+        metrics_range: str | Iterable[str] | None = None,
     ):
-        self._metrics : Iterable[str] = metrics if metrics else tuple()
+        self._metrics: Iterable[str] = metrics if metrics else tuple()
         self._separate_loss_and_metrics = separate_loss_and_metrics
-        self._call_preprocessor : ExplicitCall|None = None
+        self._call_preprocessor: ExplicitCall | None = None
 
-
-        self._loss_line : list[str] = [loss_line] if isinstance(loss_line, str) else list(loss_line)
-        self._loss_range : Iterable[str]
+        self._loss_line: list[str] = [loss_line] if isinstance(loss_line, str) else list(loss_line)
+        self._loss_range: Iterable[str]
         if isinstance(loss_range, str):
             self._loss_range = [loss_range]
         elif loss_range is None:
@@ -149,8 +145,8 @@ class LossMetrics(AbstractLens):
         else:
             self._loss_range = loss_range
 
-        self._metrics_line  :Iterable[str] = [metrics_line] if isinstance(metrics_line, str) else metrics_line
-        self._metrics_range :Iterable[str]
+        self._metrics_line: Iterable[str] = [metrics_line] if isinstance(metrics_line, str) else metrics_line
+        self._metrics_range: Iterable[str]
         if isinstance(metrics_range, str):
             self._metrics_range = [metrics_range]
         elif metrics_range is None:
@@ -158,23 +154,25 @@ class LossMetrics(AbstractLens):
         else:
             self._metrics_range = metrics_range
 
-        self._loss_values : dict[str, float] = {}
-        self._loss_ranges : dict[tuple[str, str], tuple[float, float]] = {}
+        self._loss_values: dict[str, float] = {}
+        self._loss_ranges: dict[tuple[str, str], tuple[float, float]] = {}
 
         if metrics:
-            self._metrics_values : dict[str, float] = {}
-            self._metrics_ranges : dict[tuple[str, str], tuple[float, float]] = {}
+            self._metrics_values: dict[str, float] = {}
+            self._metrics_ranges: dict[tuple[str, str], tuple[float, float]] = {}
 
         self._is_loss_fn = False
         if loss_fn is not None:
             self._is_loss_fn = True
             self._preprocessor = LossModule(inplace=loss_fn_inplace)
             self._loss_gatherer = FeedForwardGatherer(
-                loss_fn, [self._preprocessor], 'loss',
-                inspector_state=None #argh, postponed initialization
+                loss_fn,
+                [self._preprocessor],
+                'loss',
+                inspector_state=None,  # argh, postponed initialization
             )
 
-    def loss(self, *, train : bool, method : str|None = None) -> float:
+    def loss(self, *, train: bool, method: str | None = None) -> float:
         """
         Get loss from last finalization (epoch tick).
 
@@ -199,24 +197,24 @@ class LossMetrics(AbstractLens):
             method = self._loss_line[0]
 
         if self._call_preprocessor is None:
-            raise AttributeError("Cannot get loss strings.")
+            raise AttributeError('Cannot get loss strings.')
         loss_str = self._call_preprocessor.non_train_loss_str
         if train:
             loss_str = self._call_preprocessor.train_loss_str
         return self._loss_values[loss_str + ' ' + method]
 
-    def register_leaf_module(self, module : Module, module_name : str, inspector_state):
-        """ Does not interact with estimator network. """
+    def register_leaf_module(self, module: Module, module_name: str, inspector_state):
+        """Does not interact with estimator network."""
         pass
 
     def detach_from_module(self):
         """
         Does not interact with estimator network. Does not detach from loss function module.
         """
-        #if self._is_loss_fn:
+        # if self._is_loss_fn:
         #    self._loss_gatherer.detach()
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state):
+    def register_foreign_preprocessor(self, ext_ppr: AbstractPreprocessor, inspector_state):
         """
         Saves an instance of :class:`monitorch.preprocessor.ExplicitCall`,
         other predprocessors are ignored.
@@ -229,14 +227,13 @@ class LossMetrics(AbstractLens):
         if isinstance(ext_ppr, ExplicitCall):
             self._call_preprocessor = ext_ppr
             if self._is_loss_fn:
-                self._preprocessor.set_loss_strs( # duck polymorphism, should be extracted to be atleast class polymorphism
+                self._preprocessor.set_loss_strs(  # duck polymorphism, should be extracted to be atleast class polymorphism
                     ext_ppr.train_loss_str,
                     ext_ppr.non_train_loss_str,
-
                 )
                 self._loss_gatherer.inspector_state = inspector_state
 
-    def introduce_tags(self, vizualizer : AbstractVisualizer):
+    def introduce_tags(self, vizualizer: AbstractVisualizer):
         """
         Introduces lens's plots to visualizer.
 
@@ -249,11 +246,11 @@ class LossMetrics(AbstractLens):
             A visualizer object to pass tag attributes to.
         """
         if self._separate_loss_and_metrics:
-            vizualizer.register_tags('Loss',    TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.NUMERICAL))
+            vizualizer.register_tags('Loss', TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.NUMERICAL))
             if self._metrics:
                 vizualizer.register_tags('Metrics', TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.NUMERICAL))
         else:
-            vizualizer.register_tags('Loss & Metrics',    TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.NUMERICAL))
+            vizualizer.register_tags('Loss & Metrics', TagAttributes(logy=False, big_plot=True, annotate=True, type=TagType.NUMERICAL))
 
     def finalize_epoch(self):
         """
@@ -299,7 +296,6 @@ class LossMetrics(AbstractLens):
                 range_tuple = extract_range(raw_non_train_loss, loss_range)
                 self._loss_ranges[(non_train_loss_str + ' ' + lo_name, non_train_loss_str + ' ' + up_name)] = range_tuple
 
-
     def _finalize_metrics(self):
         assert self._call_preprocessor is not None
         for metric in self._metrics:
@@ -314,7 +310,7 @@ class LossMetrics(AbstractLens):
                 lo_name, up_name = parse_range_name(agg_range)
                 self._metrics_ranges[(metric + ' ' + lo_name, metric + ' ' + up_name)] = range_tuple
 
-    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
+    def vizualize(self, vizualizer: AbstractVisualizer, epoch: int):
         """
         Visualizes loss and metrics.
 
@@ -346,18 +342,19 @@ class LossMetrics(AbstractLens):
         if not self._separate_loss_and_metrics:
             loss_tag = metrics_tag = 'Loss & Metrics'
 
-
         vizualizer.plot_numerical_values(
-            epoch, loss_tag,
+            epoch,
+            loss_tag,
             OrderedDict([(loss_tag, self._loss_values)]),
-            OrderedDict([(loss_tag, self._loss_ranges)])
+            OrderedDict([(loss_tag, self._loss_ranges)]),
         )
 
         if self._metrics:
             vizualizer.plot_numerical_values(
-                epoch, metrics_tag,
+                epoch,
+                metrics_tag,
                 OrderedDict([(metrics_tag, self._metrics_values)]),
-                OrderedDict([(metrics_tag, self._metrics_ranges)])
+                OrderedDict([(metrics_tag, self._metrics_ranges)]),
             )
 
     def reset_epoch(self):

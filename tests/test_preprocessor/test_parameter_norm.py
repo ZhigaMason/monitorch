@@ -1,42 +1,37 @@
-
 from math import sqrt
-import torch
-import torch.nn as nn
+
 import numpy as np
 import pytest
+import torch
+import torch.nn as nn
 
-
-from monitorch.preprocessor import ParameterNorm
 from monitorch.gatherer import EpochModuleGatherer
 from monitorch.inspector.inspector_state import InspectorState
+from monitorch.preprocessor import ParameterNorm
+
 
 @pytest.mark.parametrize(
     ['module', 'inp_size', 'normalize', 'n_iter', 'seed'],
     [
-        (nn.Linear(10, 5),   (10,),       False, 100, 0),
+        (nn.Linear(10, 5), (10,), False, 100, 0),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), False, 100, 0),
-        (nn.Conv1d(1, 5, 2), (1, 16),     False, 100, 0),
-
-        (nn.Linear(10, 5),   (10,),       True,  100, 0),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), True,  100, 0),
-        (nn.Conv1d(1, 5, 2), (1, 16),     True,  100, 0),
-
-        (nn.Linear(10, 5),   (10,),       False, 100, 42),
+        (nn.Conv1d(1, 5, 2), (1, 16), False, 100, 0),
+        (nn.Linear(10, 5), (10,), True, 100, 0),
+        (nn.Conv2d(1, 5, 2), (1, 16, 16), True, 100, 0),
+        (nn.Conv1d(1, 5, 2), (1, 16), True, 100, 0),
+        (nn.Linear(10, 5), (10,), False, 100, 42),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), False, 100, 42),
-        (nn.Conv1d(1, 5, 2), (1, 16),     False, 100, 42),
-
-        (nn.Linear(10, 5),   (10,),       True,  100, 42),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), True,  100, 42),
-        (nn.Conv1d(1, 5, 2), (1, 16),     True,  100, 42),
-    ]
+        (nn.Conv1d(1, 5, 2), (1, 16), False, 100, 42),
+        (nn.Linear(10, 5), (10,), True, 100, 42),
+        (nn.Conv2d(1, 5, 2), (1, 16, 16), True, 100, 42),
+        (nn.Conv1d(1, 5, 2), (1, 16), True, 100, 42),
+    ],
 )
 def test_norm_parameter(module, inp_size, normalize, n_iter, seed):
     pnm = ParameterNorm(['weight', 'bias'], normalize=normalize, inplace=False)
     pnr = ParameterNorm(['weight', 'bias'], normalize=normalize, inplace=True)
 
-    emg = EpochModuleGatherer(
-        module, [pnm, pnr], 'standalone_test', InspectorState()
-    )
+    emg = EpochModuleGatherer(module, [pnm, pnr], 'standalone_test', InspectorState())
 
     x = torch.zeros(*inp_size)
     w_norms = []
@@ -61,20 +56,10 @@ def test_norm_parameter(module, inp_size, normalize, n_iter, seed):
         emg()
         sgd.step()
 
-    assert np.allclose(
-        w_norms, pnm.value['standalone_test']['weight']
-    )
-    assert np.allclose(
-        b_norms, pnm.value['standalone_test']['bias']
-    )
+    assert np.allclose(w_norms, pnm.value['standalone_test']['weight'])
+    assert np.allclose(b_norms, pnm.value['standalone_test']['bias'])
 
     rmv = pnr.value['standalone_test']['weight']
-    assert np.allclose(
-            [np.mean(w_norms), np.var(w_norms), np.min(w_norms), np.max(w_norms)],
-            [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    )
+    assert np.allclose([np.mean(w_norms), np.var(w_norms), np.min(w_norms), np.max(w_norms)], [rmv.mean, rmv.var, rmv.min_, rmv.max_])
     rmv = pnr.value['standalone_test']['bias']
-    assert np.allclose(
-            [np.mean(b_norms), np.var(b_norms), np.min(b_norms), np.max(b_norms)],
-            [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    )
+    assert np.allclose([np.mean(b_norms), np.var(b_norms), np.min(b_norms), np.max(b_norms)], [rmv.mean, rmv.var, rmv.min_, rmv.max_])

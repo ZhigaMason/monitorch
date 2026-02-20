@@ -1,5 +1,7 @@
 from monitorch.preprocessor import AbstractBackwardPreprocessor
+
 from .abstract_gatherer import AbstractGatherer
+
 
 class BackwardGatherer(AbstractGatherer):
     """
@@ -18,7 +20,7 @@ class BackwardGatherer(AbstractGatherer):
         Name of module to hand over to preprocessors.
     """
 
-    def __init__(self, module, preprocessors : list[AbstractBackwardPreprocessor], name : str, inspector_state):
+    def __init__(self, module, preprocessors: list[AbstractBackwardPreprocessor], name: str, inspector_state):
         super().__init__(inspector_state)
         self._preprocessors = preprocessors
         self._name = name

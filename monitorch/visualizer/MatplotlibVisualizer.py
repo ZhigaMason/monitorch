@@ -1,14 +1,14 @@
-import numpy as np
-
-from typing_extensions import Self
 from collections import OrderedDict as odict
 from warnings import warn
 
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.figure import Figure, SubFigure
+from matplotlib.gridspec import GridSpec
+from typing_extensions import Self
+
 from .AbstractVisualizer import AbstractVisualizer, TagAttributes, TagType
 
-from matplotlib import  pyplot as plt
-from matplotlib.gridspec import GridSpec
-from matplotlib.figure import Figure, SubFigure
 
 class MatplotlibVisualizer(AbstractVisualizer):
     """
@@ -30,69 +30,48 @@ class MatplotlibVisualizer(AbstractVisualizer):
         Superfigure of the plot.
     """
 
-    _GOLDEN_RATIO = 1.618 # plot w/h ratio
+    _GOLDEN_RATIO = 1.618  # plot w/h ratio
 
-    _UNIT = 2 # figsize multiplier
+    _UNIT = 2  # figsize multiplier
 
-    _BIG_PLOT_AMP = 2 # big plot size amplifier (small plot height : big plot height = _BIG_PLOT_AMP : 1)
+    _BIG_PLOT_AMP = 2  # big plot size amplifier (small plot height : big plot height = _BIG_PLOT_AMP : 1)
 
-    _SMALL_TITLE_HEIGHT = 0.5 # height of title in small-plot-figure
+    _SMALL_TITLE_HEIGHT = 0.5  # height of title in small-plot-figure
 
-    _LEGEND_HEIGHT = 1 # height of legend in small-plot-figure
+    _LEGEND_HEIGHT = 1  # height of legend in small-plot-figure
 
-    _LEGEND_ANCHOR = (0.5, 1.2) # anchor of small plot legend
+    _LEGEND_ANCHOR = (0.5, 1.2)  # anchor of small plot legend
 
     # colors for chosen ranges
     _RANGE_COLORS = {
-        ('min', 'max') : 'grey',
-        ('Q1', 'Q3')   : 'blue',
-        ('-σ', '+σ')   : 'steelblue',
-
-        ('train_loss min', 'train_loss max')  : 'grey',
-        ('train_loss Q1',  'train_loss Q3')   : 'blue',
-        ('train_loss -σ',  'train_loss +σ')   : 'steelblue',
-
-        ('val_loss min', 'val_loss max')  : 'bisque',
-        ('val_loss Q1',  'val_loss Q3')   : 'orange',
-        ('val_loss -σ',  'val_loss +σ')   : 'sandybrown',
+        ('min', 'max'): 'grey',
+        ('Q1', 'Q3'): 'blue',
+        ('-σ', '+σ'): 'steelblue',
+        ('train_loss min', 'train_loss max'): 'grey',
+        ('train_loss Q1', 'train_loss Q3'): 'blue',
+        ('train_loss -σ', 'train_loss +σ'): 'steelblue',
+        ('val_loss min', 'val_loss max'): 'bisque',
+        ('val_loss Q1', 'val_loss Q3'): 'orange',
+        ('val_loss -σ', 'val_loss +σ'): 'sandybrown',
     }
 
     # alpha for ranges
     _RANGE_ALPHA = 0.2
 
     # colors for chosen lines
-    _LINE_COLORS = {
-        'median' : 'blue',
-        'mean'   : 'steelblue',
-
-        'activation_rate' : 'blue',
-        'death_rate'      : 'orange',
-
-        'worst activation_rate' : 'blue',
-        'worst death_rate'      : 'orange',
-
-        'train_loss' : 'blue',
-        'val_loss'   : 'orange',
-
-        'train_accuracy'   : 'steelblue',
-        'val_accuracy'     : 'red'
-    }
+    _LINE_COLORS = {'median': 'blue', 'mean': 'steelblue', 'activation_rate': 'blue', 'death_rate': 'orange', 'worst activation_rate': 'blue', 'worst death_rate': 'orange', 'train_loss': 'blue', 'val_loss': 'orange', 'train_accuracy': 'steelblue', 'val_accuracy': 'red'}
 
     # colors to cycle through in relation plot
-    _RELATION_COLORS = [
-        'cornflowerblue', 'royalblue'
-    ]
+    _RELATION_COLORS = ['cornflowerblue', 'royalblue']
 
     # font-weight of figure titles
     _SUPTITLE_WEIGHT = 580
 
     # colors for small plot faces to cycle through
-    _SMALL_TAG_FACE_COLORS = [
-        (1,1,1), (0.95, 0.92, 0.9)
-    ]
+    _SMALL_TAG_FACE_COLORS = [(1, 1, 1), (0.95, 0.92, 0.9)]
 
     # warning for no small plots
-    _NO_SMALL_TAGS_WARNING = "No small plots, but lenses plotting per layer values used"
+    _NO_SMALL_TAGS_WARNING = 'No small plots, but lenses plotting per layer values used'
 
     def __init__(self, **kwargs):
         self._kwargs = kwargs
@@ -100,15 +79,20 @@ class MatplotlibVisualizer(AbstractVisualizer):
         self._big_tag_attr = odict()
         self.reset_fig()
 
-    def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:
-        """ See base class. """
+    def register_tags(self, main_tag: str, tag_attr: TagAttributes) -> None:
+        """See base class."""
         if tag_attr.big_plot:
             self._big_tag_attr[main_tag] = tag_attr
         else:
             self._small_tag_attr[main_tag] = tag_attr
 
-
-    def plot_numerical_values(self, epoch : int, main_tag : str, values_dict : odict[str, dict[str, float]], ranges_dict : odict[str, dict[tuple[str, str], tuple[float, float]]] | None = None) -> None:
+    def plot_numerical_values(
+        self,
+        epoch: int,
+        main_tag: str,
+        values_dict: odict[str, dict[str, float]],
+        ranges_dict: odict[str, dict[tuple[str, str], tuple[float, float]]] | None = None,
+    ) -> None:
         """
         Does not draw any plots. Provided data is saved.
 
@@ -132,8 +116,12 @@ class MatplotlibVisualizer(AbstractVisualizer):
                 y1s[epoch] = y1
                 y2s[epoch] = y2
 
-
-    def plot_probabilities(self, epoch : int, main_tag : str, values_dict : odict[str, dict[str, float]]) -> None:
+    def plot_probabilities(
+        self,
+        epoch: int,
+        main_tag: str,
+        values_dict: odict[str, dict[str, float]],
+    ) -> None:
         """
         Does not draw any plots. Provided data is saved.
 
@@ -144,10 +132,14 @@ class MatplotlibVisualizer(AbstractVisualizer):
             tag_dict = values.setdefault(tag, {})
             for descriptor, y in numerical_values_dict.items():
                 ys = tag_dict.setdefault(descriptor, odict())
-                ys[epoch]  = y
+                ys[epoch] = y
 
-
-    def plot_relations(self, epoch : int, main_tag, values_dict : odict[str, odict[str, float]]) -> None:
+    def plot_relations(
+        self,
+        epoch: int,
+        main_tag,
+        values_dict: odict[str, odict[str, float]],
+    ) -> None:
         """
         Does not draw any plots. Provided data is saved.
 
@@ -223,10 +215,7 @@ class MatplotlibVisualizer(AbstractVisualizer):
         n_small_tags = len(self._small_tag_attr)
         n_big_tags = len(self._big_tag_attr)
 
-        width = MatplotlibVisualizer._UNIT * int(max(
-            MatplotlibVisualizer._BIG_PLOT_AMP * MatplotlibVisualizer._GOLDEN_RATIO * n_big_tags,
-            MatplotlibVisualizer._GOLDEN_RATIO * n_small_tags
-        ))
+        width = MatplotlibVisualizer._UNIT * int(max(MatplotlibVisualizer._BIG_PLOT_AMP * MatplotlibVisualizer._GOLDEN_RATIO * n_big_tags, MatplotlibVisualizer._GOLDEN_RATIO * n_small_tags))
         height = MatplotlibVisualizer._UNIT * (MatplotlibVisualizer._SMALL_TITLE_HEIGHT + MatplotlibVisualizer._LEGEND_HEIGHT + self._n_max_plots_in_small_tags)
 
         return (width, height)
@@ -236,10 +225,7 @@ class MatplotlibVisualizer(AbstractVisualizer):
         Computes maximal number of small plots.
         """
         # computes probabalistic and relational as thir subtags occur only in one dictionary.
-        n_max_plots_in_prob_rel = max(
-            (len(self._to_plot[tag]) for (tag, attr) in self._small_tag_attr.items() if attr.type in {TagType.PROBABILITY, TagType.RELATIONS}),
-            default=0
-        )
+        n_max_plots_in_prob_rel = max((len(self._to_plot[tag]) for (tag, attr) in self._small_tag_attr.items() if attr.type in {TagType.PROBABILITY, TagType.RELATIONS}), default=0)
 
         # parses numerical tags' ranges and values to extract subtags
         numerical_tags = [tag for (tag, attr) in self._small_tag_attr.items() if attr.type == TagType.NUMERICAL]
@@ -251,7 +237,7 @@ class MatplotlibVisualizer(AbstractVisualizer):
         # maximum of two of the previous values
         self._n_max_plots_in_small_tags = max(n_max_plots_in_numerical, n_max_plots_in_prob_rel)
 
-    def _allocate_subfigures(self, fig : Figure) -> dict[str, SubFigure]:
+    def _allocate_subfigures(self, fig: Figure) -> dict[str, SubFigure]:
         """
         Allocates subfigures for all tags provided by plot methods.
 
@@ -260,7 +246,7 @@ class MatplotlibVisualizer(AbstractVisualizer):
         dict[str, SubFigure]
             Dictionary of tags and corresponding subfigures.
         """
-        assert (len(self._small_tag_attr) + len(self._big_tag_attr)) > 0, "Nothing to plot add lenses or reconfigure them"
+        assert (len(self._small_tag_attr) + len(self._big_tag_attr)) > 0, 'Nothing to plot add lenses or reconfigure them'
         if self._n_max_plots_in_small_tags == -1:
             self._compute_n_max_small_plots()
 
@@ -273,9 +259,9 @@ class MatplotlibVisualizer(AbstractVisualizer):
 
         # allocates big-plot-figure if needed
         # if there is no small plots, allocates the whole superfigure for big-plot-figure
-        up_fig : SubFigure
+        up_fig: SubFigure
         if len(self._small_tag_attr) == 0:
-            up_fig = fig.add_subfigure(GridSpec(1,1)[0])
+            up_fig = fig.add_subfigure(GridSpec(1, 1)[0])
         elif len(self._big_tag_attr) > 0:
             up_fig = fig.add_subfigure(gs[0])
 
@@ -287,9 +273,9 @@ class MatplotlibVisualizer(AbstractVisualizer):
 
         # allocates small-plot-figure if needed
         # if there is no big plots, allocates the whole superfigure for small-plot-figure
-        lo_fig : SubFigure
+        lo_fig: SubFigure
         if len(self._big_tag_attr) == 0:
-            lo_fig = fig.add_subfigure(GridSpec(1,1)[0])
+            lo_fig = fig.add_subfigure(GridSpec(1, 1)[0])
         elif len(self._small_tag_attr) > 0:
             lo_fig = fig.add_subfigure(gs[1])
 
@@ -301,7 +287,7 @@ class MatplotlibVisualizer(AbstractVisualizer):
 
         return ret
 
-    def _plot_tags(self, subfig_dict : dict[str, SubFigure]):
+    def _plot_tags(self, subfig_dict: dict[str, SubFigure]):
         """
         Plots tags onto subfigures provided in ``subfig_dict``.
 
@@ -344,7 +330,7 @@ class MatplotlibVisualizer(AbstractVisualizer):
         for idx, fig in enumerate(small_figs):
             fig.set_facecolor(colors[idx % len(colors)])
 
-    def _plot_small_tag(self, fig : SubFigure, tag) -> None:
+    def _plot_small_tag(self, fig: SubFigure, tag) -> None:
         """
         Iterates through all subtag in tag's dictionary entry.
 
@@ -363,16 +349,11 @@ class MatplotlibVisualizer(AbstractVisualizer):
         axes = fig.subplots(nrows=self._n_max_plots_in_small_tags, sharex=True, squeeze=False).flatten()
         n_real_plots = len(tag_dict)
         TOTAL_HEIGHT = MatplotlibVisualizer._SMALL_TITLE_HEIGHT + MatplotlibVisualizer._LEGEND_HEIGHT + self._n_max_plots_in_small_tags
-        fig.suptitle(
-            tag, fontweight=MatplotlibVisualizer._SUPTITLE_WEIGHT,
-            y=1 - MatplotlibVisualizer._SMALL_TITLE_HEIGHT / TOTAL_HEIGHT,
-            va='baseline'
-        )
+        fig.suptitle(tag, fontweight=MatplotlibVisualizer._SUPTITLE_WEIGHT, y=1 - MatplotlibVisualizer._SMALL_TITLE_HEIGHT / TOTAL_HEIGHT, va='baseline')
 
         # makes unused axes invisible
         for ax in axes[n_real_plots:]:
             ax.set_visible(False)
-
 
         # iterates through axes and tags' data
         for ax, (plot_name, values) in zip(axes, tag_dict.items()):
@@ -380,22 +361,19 @@ class MatplotlibVisualizer(AbstractVisualizer):
             if tag_attr.logy:
                 ax.set_yscale('log', base=10)
             match tag_attr.type:
-                    case TagType.NUMERICAL:
-                        val_dict, range_dict = values
-                        MatplotlibVisualizer._plot_numerical(ax, val_dict, range_dict)
-                    case TagType.PROBABILITY:
-                        MatplotlibVisualizer._plot_probability(ax, values)
-                    case TagType.RELATIONS:
-                        MatplotlibVisualizer._plot_relations(ax, values)
+                case TagType.NUMERICAL:
+                    val_dict, range_dict = values
+                    MatplotlibVisualizer._plot_numerical(ax, val_dict, range_dict)
+                case TagType.PROBABILITY:
+                    MatplotlibVisualizer._plot_probability(ax, values)
+                case TagType.RELATIONS:
+                    MatplotlibVisualizer._plot_relations(ax, values)
             if self._small_tag_attr[tag].ylim is not None:
-                top, bottom= self._small_tag_attr[tag].ylim
+                top, bottom = self._small_tag_attr[tag].ylim
                 ax.set_ylim(bottom, top)
 
         if tag_attr.annotate:
-            axes[0].legend(
-                loc='lower center',
-                bbox_to_anchor=MatplotlibVisualizer._LEGEND_ANCHOR
-            )
+            axes[0].legend(loc='lower center', bbox_to_anchor=MatplotlibVisualizer._LEGEND_ANCHOR)
         # adds ticks to the last axis
         axes[n_real_plots - 1].tick_params(labelbottom=True)
         # adjusts proportion for consitency accross all sizes
@@ -418,31 +396,15 @@ class MatplotlibVisualizer(AbstractVisualizer):
         for range_name, (lo, up) in range_dict.items():
             assert len(lo) == len(up)
             if range_name in MatplotlibVisualizer._RANGE_COLORS:
-                ax.fill_between(
-                    lo.keys(), lo.values(), up.values(),
-                    color = MatplotlibVisualizer._RANGE_COLORS[range_name],
-                    alpha = MatplotlibVisualizer._RANGE_ALPHA,
-                    label = f"{range_name[0]} -- {range_name[1]}"
-                )
+                ax.fill_between(lo.keys(), lo.values(), up.values(), color=MatplotlibVisualizer._RANGE_COLORS[range_name], alpha=MatplotlibVisualizer._RANGE_ALPHA, label=f'{range_name[0]} -- {range_name[1]}')
             else:
-                ax.fill_between(
-                    lo.keys(), lo.values(), up.values(),
-                    alpha = MatplotlibVisualizer._RANGE_ALPHA,
-                    label = f"{range_name[0]} -- {range_name[1]}"
-                )
+                ax.fill_between(lo.keys(), lo.values(), up.values(), alpha=MatplotlibVisualizer._RANGE_ALPHA, label=f'{range_name[0]} -- {range_name[1]}')
 
         for val_name, values in val_dict.items():
             if val_name in MatplotlibVisualizer._LINE_COLORS:
-                ax.plot(
-                    values.keys(), values.values(),
-                    color = MatplotlibVisualizer._LINE_COLORS[val_name],
-                    label=val_name
-                )
+                ax.plot(values.keys(), values.values(), color=MatplotlibVisualizer._LINE_COLORS[val_name], label=val_name)
             else:
-                ax.plot(
-                    values.keys(), values.values(),
-                    label=val_name
-                )
+                ax.plot(values.keys(), values.values(), label=val_name)
         it = next(iter(val_dict.values())).keys()
         min_ = min(it)
         max_ = max(it)
@@ -464,25 +426,11 @@ class MatplotlibVisualizer(AbstractVisualizer):
             xs = list(probs.keys())
             ys = list(probs.values())
             if prob_name in MatplotlibVisualizer._LINE_COLORS:
-                ax.fill_between(
-                    xs, ys, np.zeros_like(xs),
-                    color = MatplotlibVisualizer._LINE_COLORS[prob_name],
-                    alpha = MatplotlibVisualizer._RANGE_ALPHA
-                )
-                ax.plot(
-                    xs, ys,
-                    color = MatplotlibVisualizer._LINE_COLORS[prob_name],
-                    label=prob_name
-                )
+                ax.fill_between(xs, ys, np.zeros_like(xs), color=MatplotlibVisualizer._LINE_COLORS[prob_name], alpha=MatplotlibVisualizer._RANGE_ALPHA)
+                ax.plot(xs, ys, color=MatplotlibVisualizer._LINE_COLORS[prob_name], label=prob_name)
             else:
-                ax.fill_between(
-                    xs, ys, np.zeros_like(xs),
-                    alpha = MatplotlibVisualizer._RANGE_ALPHA
-                )
-                ax.plot(
-                    xs, ys,
-                    label=prob_name
-                )
+                ax.fill_between(xs, ys, np.zeros_like(xs), alpha=MatplotlibVisualizer._RANGE_ALPHA)
+                ax.plot(xs, ys, label=prob_name)
         ax.set_ylim(0, 1)
         it = next(iter(prob_dict.values())).keys()
         min_ = min(it)
@@ -507,8 +455,8 @@ class MatplotlibVisualizer(AbstractVisualizer):
         values = []
         first_record = []
         for relations in rel_dict.values():
-            assert epochs == list(relations.keys()), "All relations must have same number of epochs recorded"
-            val =next(iter(relations.values()))
+            assert epochs == list(relations.keys()), 'All relations must have same number of epochs recorded'
+            val = next(iter(relations.values()))
             first_record.append(val)
             values = list(relations.values())
         ax.stackplot(epochs, *values, colors=MatplotlibVisualizer._RELATION_COLORS)

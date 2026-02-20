@@ -1,23 +1,18 @@
-import time
+import multiprocessing as mp
 import os
+import time
+
+import pandas as pd
 import psutil
 import torch
-import pandas as pd
-import os
-import multiprocessing as mp
-from monitorch.lens import (
-    LossMetrics,
-    OutputActivation,
-    ParameterGradientGeometry,
-    ParameterGradientActivation,
-    OutputNorm,
-    ParameterNorm
-)
-from tqdm import tqdm, trange
 from torch import nn, optim
 from torchvision.models import vit_b_16
+from tqdm import tqdm, trange
+
 from monitorch.inspector import PyTorchInspector
+from monitorch.lens import LossMetrics, OutputActivation, OutputNorm, ParameterGradientActivation, ParameterGradientGeometry, ParameterNorm
 from monitorch.visualizer import MatplotlibVisualizer
+
 
 def benchmark_monitorch_lens(
     lens_list : list,

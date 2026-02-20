@@ -1,8 +1,9 @@
 """
-    Base class for all forward pass preprocessors
+Base class for all forward pass preprocessors
 """
 
 from abc import abstractmethod
+
 from .abstract_preprocessor import AbstractPreprocessor
 
 
@@ -15,7 +16,7 @@ class AbstractForwardPreprocessor(AbstractPreprocessor):
     """
 
     @abstractmethod
-    def process_fw(self, name : str, module, layer_input, layer_output):
+    def process_fw(self, name: str, module, layer_input, layer_output):
         """
         Processes forward pass data.
 

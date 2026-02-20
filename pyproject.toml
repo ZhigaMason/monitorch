@@ -44,3 +44,48 @@ include = ["monitorch*"]
 markers = [
     "smoke: tests only succesful runs, no functionality asserts",
 ]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 300
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "__pypackages__",
+    "build",
+    "dist",
+    "node_modules",
+    "*.ipynb",
+    "benchmark",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors (formatting and syntax)
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes (undeclared variables, unused imports)
+    "I",   # isort (automatic import sorting)
+    "UP",  # pyupgrade (automatically upgrades Python syntax for you)
+]
+
+# Rules you specifically want to ignore (empty for now)
+ignore = []
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.mccabe]
+# Flag functions with a complexity score higher than 15
+max-complexity = 15
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma=false
+
+[tool.ruff.format]
+# Match Black's standard formatting style
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

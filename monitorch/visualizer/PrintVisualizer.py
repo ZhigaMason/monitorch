@@ -1,5 +1,7 @@
-from .AbstractVisualizer import AbstractVisualizer, TagAttributes
 from collections import OrderedDict as odict
+
+from .AbstractVisualizer import AbstractVisualizer, TagAttributes
+
 
 class PrintVisualizer(AbstractVisualizer):
     """
@@ -11,15 +13,21 @@ class PrintVisualizer(AbstractVisualizer):
     def __init__(self):
         pass
 
-    def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:
+    def register_tags(self, main_tag: str, tag_attr: TagAttributes) -> None:
         """
         Prints ``f"{main_tag}: {tag_attr}"``.
 
         For argument description see base class.
         """
-        print(f"{main_tag}: {tag_attr}")
+        print(f'{main_tag}: {tag_attr}')
 
-    def plot_numerical_values(self, epoch : int, main_tag : str, values_dict : odict[str, dict[str, float]], ranges_dict : odict[str, dict[tuple[str, str], tuple[float, float]]] | None = None) -> None:
+    def plot_numerical_values(
+        self,
+        epoch: int,
+        main_tag: str,
+        values_dict: odict[str, dict[str, float]],
+        ranges_dict: odict[str, dict[tuple[str, str], tuple[float, float]]] | None = None,
+    ) -> None:
         """
         Prints ``f'({epoch}) {main_tag}: {tag} - values : {values_dict.get(tag, {})}; ranges : {ranges_dict.get(tag, {}) if ranges_dict else {}}'``
         for all tags that are in ``values_dict`` or ``ranges_dict``.
@@ -30,7 +38,12 @@ class PrintVisualizer(AbstractVisualizer):
         for tag in tags:
             print(f'({epoch}) {main_tag}: {tag} - values : {values_dict.get(tag, {})}; ranges : {ranges_dict.get(tag, {}) if ranges_dict else {}}')
 
-    def plot_probabilities(self, epoch : int, main_tag : str, values_dict : dict[str, dict[str, float]]) -> None:
+    def plot_probabilities(
+        self,
+        epoch: int,
+        main_tag: str,
+        values_dict: dict[str, dict[str, float]],
+    ) -> None:
         """
         Prints ``f'({epoch}) {main_tag}: {tag} - prbs: {prbs}'``
         for all tags that are in ``values_dict``.
@@ -40,7 +53,12 @@ class PrintVisualizer(AbstractVisualizer):
         for tag, prbs in values_dict.items():
             print(f'({epoch}) {main_tag}: {tag} - prbs: {prbs}')
 
-    def plot_relations(self, epoch : int, main_tag, values_dict : dict[str, dict[str, float]]) -> None:
+    def plot_relations(
+        self,
+        epoch: int,
+        main_tag,
+        values_dict: dict[str, dict[str, float]],
+    ) -> None:
         """
         Prints ``f'({epoch}) {main_tag}: {tag} - {relations}'``
         for all tags that are in ``values_dict``.

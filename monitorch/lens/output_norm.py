@@ -1,16 +1,17 @@
-from torch.nn import Module
 from collections import OrderedDict
-from typing import Iterable, Type
+from collections.abc import Iterable
 
-from monitorch.preprocessor import AbstractPreprocessor, OutputNorm as OutputNormPreprocessor
-from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
+from torch.nn import Module
+
 from monitorch.gatherer import FeedForwardGatherer
 from monitorch.numerical import extract_point, extract_range, parse_range_name
+from monitorch.preprocessor import AbstractPreprocessor
+from monitorch.preprocessor import OutputNorm as OutputNormPreprocessor
+from monitorch.visualizer import AbstractVisualizer, TagAttributes, TagType
 
-
-
-from .module_distinction import isactivation
 from .abstract_lens import AbstractLens
+from .module_distinction import isactivation
+
 
 class OutputNorm(AbstractLens):
     """
@@ -67,7 +68,7 @@ class OutputNorm(AbstractLens):
     ...     module = mynet,
     ...     visualizer='matplotlib'
     ... )
-    >>> 
+    >>>
     >>> for epoch in range(N_EPOCHS):
     ...     for data, label in train_dataloader:
     ...         optimizer.zero_grad()
@@ -75,59 +76,46 @@ class OutputNorm(AbstractLens):
     ...         loss = loss_fn(prediction, label)
     ...         loss.backward()
     ...         optimizer.step()
-    ... 
+    ...
     ...     with torch.no_grad(): # outputs inside this block are not recorded
     ...         for data, label in val_dataloader:
     ...             prediction = mynet(data)
     ...             loss = loss_fn(prediction, label)
     ...     inspector.tick_epoch()
-    >>> 
+    >>>
     >>> inspector.visualizer.show_fig()
     """
 
-    _SMALL_TAG_NAME = "Output Norm"
+    _SMALL_TAG_NAME = 'Output Norm'
 
     def __init__(
-            self,
-            inplace : bool = True,
-            skip_no_grad_pass : bool = True,
-            normalize_by_size : bool = False,
-            log_scale : bool = False,
-
-            activation : bool = True,
-
-            include : Iterable[Type[Module]] = tuple(),
-            exclude : Iterable[Type[Module]] = tuple(),
-
-            comparison_plot : bool = True,
-            comparison_aggregation : str|None = None,
-
-            line_aggregation : str|Iterable[str] = 'mean',
-            range_aggregation : str|Iterable[str]|None = ('std', 'min-max')
+        self,
+        inplace: bool = True,
+        skip_no_grad_pass: bool = True,
+        normalize_by_size: bool = False,
+        log_scale: bool = False,
+        activation: bool = True,
+        include: Iterable[type[Module]] = tuple(),
+        exclude: Iterable[type[Module]] = tuple(),
+        comparison_plot: bool = True,
+        comparison_aggregation: str | None = None,
+        line_aggregation: str | Iterable[str] = 'mean',
+        range_aggregation: str | Iterable[str] | None = ('std', 'min-max'),
     ):
-        self._preprocessor = OutputNormPreprocessor(
-            normalize=normalize_by_size,
-            inplace=inplace,
-            record_no_grad=not skip_no_grad_pass
-        )
+        self._preprocessor = OutputNormPreprocessor(normalize=normalize_by_size, inplace=inplace, record_no_grad=not skip_no_grad_pass)
 
-        self._small_tag_attr = TagAttributes(
-            logy=log_scale,
-            big_plot=False,
-            annotate=True,
-            type=TagType.NUMERICAL
-        )
+        self._small_tag_attr = TagAttributes(logy=log_scale, big_plot=False, annotate=True, type=TagType.NUMERICAL)
 
-        self._gatherers : list[FeedForwardGatherer] = []
-        self._line_data  : OrderedDict[str, dict[str, float]] = OrderedDict()
-        self._range_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+        self._gatherers: list[FeedForwardGatherer] = []
+        self._line_data: OrderedDict[str, dict[str, float]] = OrderedDict()
+        self._range_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
 
         self._activation = activation
         self._include = include
         self._exclude = exclude
 
-        self._line_aggregation : Iterable[str] = [line_aggregation] if isinstance(line_aggregation, str) else line_aggregation
-        self._range_aggregation : Iterable[str]
+        self._line_aggregation: Iterable[str] = [line_aggregation] if isinstance(line_aggregation, str) else line_aggregation
+        self._range_aggregation: Iterable[str]
         if isinstance(range_aggregation, str):
             self._range_aggregation = [range_aggregation]
         elif range_aggregation is None:
@@ -139,11 +127,9 @@ class OutputNorm(AbstractLens):
         if self._comparison_plot:
             self._comparison_aggregation = comparison_aggregation if comparison_aggregation else next(iter(self._line_aggregation))
             self._comparison_plot_name = f'{self._comparison_aggregation} Output{" Log" if log_scale else ""} Norm Comparison'.title()
-            self._comparison_data : OrderedDict[str, float]= OrderedDict()
+            self._comparison_data: OrderedDict[str, float] = OrderedDict()
 
-
-
-    def register_leaf_module(self, module : Module, module_name : str, inspector_state):
+    def register_leaf_module(self, module: Module, module_name: str, inspector_state):
         """
         Registers (or ignores) module.
 
@@ -159,12 +145,9 @@ class OutputNorm(AbstractLens):
             Name of the module, module's information will be passed to visaulizer under this name.
         """
         if module.__class__ not in self._exclude and ((self._activation and isactivation(module)) or module.__class__ in self._include):
-            ffg = FeedForwardGatherer(
-                module, [self._preprocessor], module_name,
-                inspector_state=inspector_state
-            )
+            ffg = FeedForwardGatherer(module, [self._preprocessor], module_name, inspector_state=inspector_state)
             self._gatherers.append(ffg)
-            self._line_data[module_name]  = {}
+            self._line_data[module_name] = {}
             self._range_data[module_name] = {}
 
     def detach_from_module(self):
@@ -177,16 +160,16 @@ class OutputNorm(AbstractLens):
             ffg.detach()
         self._gatherers = []
 
-        self._line_data  : OrderedDict[str, dict[str, float]] = OrderedDict()
-        self._range_data : OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+        self._line_data: OrderedDict[str, dict[str, float]] = OrderedDict()
+        self._range_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
         if self._comparison_plot:
-            self._comparison_data : OrderedDict[str, float]= OrderedDict()
+            self._comparison_data: OrderedDict[str, float] = OrderedDict()
 
-    def register_foreign_preprocessor(self, _ : AbstractPreprocessor, inspector_state):
-        """ Does not interact with foreign preprocessor. """
+    def register_foreign_preprocessor(self, _: AbstractPreprocessor, inspector_state):
+        """Does not interact with foreign preprocessor."""
         pass
 
-    def introduce_tags(self, vizualizer : AbstractVisualizer):
+    def introduce_tags(self, vizualizer: AbstractVisualizer):
         """
         Introduces lens's plots to visualizer.
 
@@ -199,17 +182,12 @@ class OutputNorm(AbstractLens):
         visualzier : AbstractVisualizer
             A visualizer object to pass tag attributes to.
         """
-        vizualizer.register_tags(
-            OutputNorm._SMALL_TAG_NAME, self._small_tag_attr
-        )
+        vizualizer.register_tags(OutputNorm._SMALL_TAG_NAME, self._small_tag_attr)
         if self._comparison_plot:
             vizualizer.register_tags(
                 self._comparison_plot_name,
-                TagAttributes(
-                    logy=False, big_plot=True, annotate=False, type=TagType.RELATIONS
-                )
+                TagAttributes(logy=False, big_plot=True, annotate=False, type=TagType.RELATIONS),
             )
-
 
     def finalize_epoch(self):
         """
@@ -218,11 +196,11 @@ class OutputNorm(AbstractLens):
         Aggregates parameter gradient norms and optionally inner product according to ``line_aggregation`` and ``range_aggregation``.
         """
         for module_name, module_data in self._preprocessor.value.items():
-            line_values : dict[str, float] = self._line_data[module_name]
+            line_values: dict[str, float] = self._line_data[module_name]
             for method in self._line_aggregation:
                 line_values[method] = extract_point(module_data, method)
 
-            range_values : dict[tuple[str, str], tuple[float, float]] = self._range_data[module_name]
+            range_values: dict[tuple[str, str], tuple[float, float]] = self._range_data[module_name]
             for method in self._range_aggregation:
                 range_values[parse_range_name(method)] = extract_range(module_data, method)
 
@@ -234,8 +212,7 @@ class OutputNorm(AbstractLens):
             for module_name in self._comparison_data:
                 self._comparison_data[module_name] /= total_sum
 
-
-    def vizualize(self, vizualizer : AbstractVisualizer, epoch : int):
+    def vizualize(self, vizualizer: AbstractVisualizer, epoch: int):
         """
         Passes computed data to visualizer.
 
@@ -268,15 +245,10 @@ class OutputNorm(AbstractLens):
         epoch : int
             Computation's epoch number.
         """
-        vizualizer.plot_numerical_values(
-            epoch, OutputNorm._SMALL_TAG_NAME, self._line_data, self._range_data
-        )
+        vizualizer.plot_numerical_values(epoch, OutputNorm._SMALL_TAG_NAME, self._line_data, self._range_data)
 
         if self._comparison_plot:
-            vizualizer.plot_relations(
-                epoch, self._comparison_plot_name,
-                OrderedDict([(self._comparison_plot_name, self._comparison_data)])
-            )
+            vizualizer.plot_relations(epoch, self._comparison_plot_name, OrderedDict([(self._comparison_plot_name, self._comparison_data)]))
 
     def reset_epoch(self):
         """

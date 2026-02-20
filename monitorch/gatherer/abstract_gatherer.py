@@ -1,5 +1,6 @@
-from functools import wraps
 from abc import ABC, abstractmethod
+from functools import wraps
+
 
 class AbstractGatherer(ABC):
     """
@@ -34,4 +35,5 @@ class AbstractGatherer(ABC):
             instance = args[0]
             if instance.inspector_state.is_active:
                 fn(*args, **kwargs)
+
         return wrapper

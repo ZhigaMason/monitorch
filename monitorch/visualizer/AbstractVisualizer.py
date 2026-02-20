@@ -23,6 +23,7 @@ class TagType(Enum):
     Plot method depends on visualizer: stackplot for :class:`MatplotlibVisualizer`, multiline plot for :class:`TensorBoardVisualizer`.
     """
 
+
 @dataclass
 class TagAttributes:
     """
@@ -31,38 +32,38 @@ class TagAttributes:
     Used by visualizers, must be given by lens using :meth:`register_tags`.
     """
 
-    logy : bool
+    logy: bool
     """
     logy : bool
         Indicator if scale of y-axis must be log, flag is relecant only for :class:`MatplotlibVisualizer`.
     """
 
-    big_plot : bool
+    big_plot: bool
     """
     bigplot : bool
         Indicator if plot should be big or a collection of small ones, flag is relecant only for :class:`MatplotlibVisualizer`.
     """
 
-    annotate : bool
+    annotate: bool
     """
     annotate : bool
         Indicator if legend must be plotted, flag is relecant only for :class:`MatplotlibVisualizer`.
     """
 
-    type : TagType
+    type: TagType
     """
     type : :class:`TagType`
         Type of plot.
     """
 
-    ylim : tuple[float, float]|None = None
+    ylim: tuple[float, float] | None = None
     """
     ylim : tuple[flaot, float]|None
         Optional limits for y-axis.
     """
 
     def __repr__(self) -> str:
-        return f"TagAttributes(logy={self.logy}, big_plot={self.big_plot}, annotate={self.annotate}, type={self.type.name}, ylim={self.ylim})"
+        return f'TagAttributes(logy={self.logy}, big_plot={self.big_plot}, annotate={self.annotate}, type={self.type.name}, ylim={self.ylim})'
 
 
 class AbstractVisualizer(ABC):
@@ -73,7 +74,7 @@ class AbstractVisualizer(ABC):
     """
 
     @abstractmethod
-    def register_tags(self, main_tag : str, tag_attr : TagAttributes) -> None:
+    def register_tags(self, main_tag: str, tag_attr: TagAttributes) -> None:
         """
         Prepare visualizer's inner state for plot.
 
@@ -87,7 +88,13 @@ class AbstractVisualizer(ABC):
         pass
 
     @abstractmethod
-    def plot_numerical_values(self, epoch : int, main_tag : str, values_dict : odict[str, dict[str, float]], ranges_dict : odict[str, dict[tuple[str, str], tuple[float, float]]] | None = None) -> None:
+    def plot_numerical_values(
+        self,
+        epoch: int,
+        main_tag: str,
+        values_dict: odict[str, dict[str, float]],
+        ranges_dict: odict[str, dict[tuple[str, str], tuple[float, float]]] | None = None,
+    ) -> None:
         """
         Plots numerical values and ranges for a collection of tags.
 
@@ -134,7 +141,12 @@ class AbstractVisualizer(ABC):
         pass
 
     @abstractmethod
-    def plot_probabilities(self, epoch : int, main_tag : str, values_dict : odict[str, dict[str, float]]) -> None:
+    def plot_probabilities(
+        self,
+        epoch: int,
+        main_tag: str,
+        values_dict: odict[str, dict[str, float]],
+    ) -> None:
         """
         Plots proportions/probabilities for a collection of tags.
 
@@ -167,7 +179,7 @@ class AbstractVisualizer(ABC):
         pass
 
     @abstractmethod
-    def plot_relations(self, epoch : int, main_tag, values_dict : odict[str, dict[str, float]]) -> None:
+    def plot_relations(self, epoch: int, main_tag, values_dict: odict[str, dict[str, float]]) -> None:
         """
         Plot comparison for a collection of tags.
 

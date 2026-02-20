@@ -1,15 +1,11 @@
-
-from math import sqrt
-from copy import deepcopy
-from typing import Any
-from torch import no_grad
-from torch.nn import Module
-from torch.linalg import vector_norm
-
-from monitorch.preprocessor.abstract.abstract_backward_preprocessor import AbstractBackwardPreprocessor
-from monitorch.numerical import RunningMeanVar, GeometryComputation
-
 from collections import OrderedDict
+from typing import Any
+
+from torch import no_grad
+
+from monitorch.numerical import GeometryComputation
+from monitorch.preprocessor.abstract.abstract_backward_preprocessor import AbstractBackwardPreprocessor
+
 
 class OutputGradientGeometry(AbstractBackwardPreprocessor):
     """
@@ -29,18 +25,17 @@ class OutputGradientGeometry(AbstractBackwardPreprocessor):
         Flag indicating whether to collect data inplace using :class:`RunningMeanVar` or to stack them into a list.
     """
 
-    def __init__(self, adj_prod : bool, normalize : bool, inplace : bool, eps : float = 1e-8):
-        self._gc_kwargs : dict[str, bool] = dict(
+    def __init__(self, adj_prod: bool, normalize: bool, inplace: bool, eps: float = 1e-8):
+        self._gc_kwargs: dict[str, bool] = dict(
             normalize=normalize,
             dot_product=adj_prod,
             inplace=inplace,
         )
         self._eps = eps
-        self._value : OrderedDict[str, GeometryComputation]= OrderedDict()
-
+        self._value: OrderedDict[str, GeometryComputation] = OrderedDict()
 
     @no_grad
-    def process_bw(self, name : str, module, grad_input, grad_output) -> None:
+    def process_bw(self, name: str, module, grad_input, grad_output) -> None:
         """
         Computes (normalized) L2 norm and optionally computes scalar product with previous output's gradient.
 
@@ -64,9 +59,9 @@ class OutputGradientGeometry(AbstractBackwardPreprocessor):
 
     @property
     def value(self) -> dict[str, Any]:
-        """ See base class. """
-        return {k:gc.value for k,gc in self._value.items()}
+        """See base class."""
+        return {k: gc.value for k, gc in self._value.items()}
 
     def reset(self) -> None:
-        """ See base class. """
+        """See base class."""
         self._value = OrderedDict()

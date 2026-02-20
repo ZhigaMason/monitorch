@@ -1,14 +1,14 @@
-from math import pi
 import numpy as np
+import pytest
 import torch
 import torch.nn as nn
-import pytest
-from monitorch.preprocessor import OutputActivation
+
 from monitorch.gatherer import FeedForwardGatherer
 from monitorch.inspector.inspector_state import InspectorState
+from monitorch.preprocessor import OutputActivation
+
 
 class DumbModule(nn.Module):
-
     def __init__(self, output):
         super().__init__()
         self.output = output
@@ -16,74 +16,113 @@ class DumbModule(nn.Module):
     def forward(self, _):
         return self.output
 
+
 @pytest.mark.parametrize(
     ['module', 'X', 'activation'],
     [
-        (DumbModule(torch.zeros(10,10)), torch.rand(1, 10, 10), 0.0),
-        (DumbModule(torch.ones(10,10)),  torch.rand(1, 10, 10), 1.0),
-        (nn.ReLU(),                      torch.tensor([[0.6934], [0.4656], [0.6557], [0.7697], [0.2359], [0.2468], [0.5747], [0.5834], [0.6392], [0.8261]]) - 0.5, 0.7),
-        (nn.ReLU(),                      torch.tensor([[-0.978],  [1.534],  [5.978], [-1.841], [-1.345], [0.291], [-0.549],  [3.051], [-0.890], [-0.496]]), 0.4),
-        (nn.ReLU(),                      torch.tensor([
-            [-1.216],  [-2.504],   [0.206],   [1.330],   [6.213],   [0.053],  [-0.570],
-            [1.486],  [-8.944],  [-0.194],   [3.314],  [-0.777],  [-0.264],   [2.458],
-            [0.432],  [-0.051],   [7.436],  [-0.196],   [5.129],  [-0.180],  [-3.384],
-            [-0.802],  [-7.045],  [-5.363],  [-1.730],   [0.168],   [1.602],   [2.740],
-            [1.893], [-13.469]]), 0.4666666666666667),
-        (nn.Sigmoid(),  torch.tensor([
-            [-1000], [-500], [-100], [-10], [-5], [-1], [0], [1], [5], [10], [100], [500], [1000 ]
-        ]), 0.7692307829856873)
-    ]
+        (DumbModule(torch.zeros(10, 10)), torch.rand(1, 10, 10), 0.0),
+        (DumbModule(torch.ones(10, 10)), torch.rand(1, 10, 10), 1.0),
+        (nn.ReLU(), torch.tensor([[0.6934], [0.4656], [0.6557], [0.7697], [0.2359], [0.2468], [0.5747], [0.5834], [0.6392], [0.8261]]) - 0.5, 0.7),
+        (nn.ReLU(), torch.tensor([[-0.978], [1.534], [5.978], [-1.841], [-1.345], [0.291], [-0.549], [3.051], [-0.890], [-0.496]]), 0.4),
+        (
+            nn.ReLU(),
+            torch.tensor(
+                [
+                    [-1.216],
+                    [-2.504],
+                    [0.206],
+                    [1.330],
+                    [6.213],
+                    [0.053],
+                    [-0.570],
+                    [1.486],
+                    [-8.944],
+                    [-0.194],
+                    [3.314],
+                    [-0.777],
+                    [-0.264],
+                    [2.458],
+                    [0.432],
+                    [-0.051],
+                    [7.436],
+                    [-0.196],
+                    [5.129],
+                    [-0.180],
+                    [-3.384],
+                    [-0.802],
+                    [-7.045],
+                    [-5.363],
+                    [-1.730],
+                    [0.168],
+                    [1.602],
+                    [2.740],
+                    [1.893],
+                    [-13.469],
+                ]
+            ),
+            0.4666666666666667,
+        ),
+        (nn.Sigmoid(), torch.tensor([[-1000], [-500], [-100], [-10], [-5], [-1], [0], [1], [5], [10], [100], [500], [1000]]), 0.7692307829856873),
+    ],
 )
 def test_output_single_activation(module, X, activation):
     oam = OutputActivation(death=False, inplace=False, record_no_grad=False)
     oar = OutputActivation(death=False, inplace=True, record_no_grad=False)
-    state=InspectorState()
-    ffg = FeedForwardGatherer(module, [
-            oam, oar
-    ], 'standalone_test', state )
+    state = InspectorState()
+    ffg = FeedForwardGatherer(  # noqa: F841
+        module,
+        [
+            oam,
+            oar,
+        ],
+        'standalone_test',
+        state,
+    )
     _ = module(X)
     assert np.isclose(activation, oam.value['standalone_test'][0])
     assert np.isclose(activation, oar.value['standalone_test'].mean)
 
+
 @pytest.mark.parametrize(
     ['module', 'activation_tensor_func', 'n_iter', 'inp_size', 'seed'],
     [
-        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 0),
-        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 100), 0),
-        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 0),
-
-        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 42),
-        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 100), 42),
-        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 100), 42),
-
-        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 0),
-        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 0),
-        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 0),
-
-        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 42),
-        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 42),
-        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 10), 42),
-
-        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 0),
-        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 0),
-        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 0),
-
-        (nn.ReLU(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 42),
-        (nn.ReLU6(),    lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 42),
-        (nn.Mish(),     lambda y: (y.abs() > 1e-8),           50, (100, 10, 2, 10), 42),
-    ]
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (100, 100), 0),
+        (nn.ReLU6(), lambda y: y.abs() > 1e-8, 50, (100, 100), 0),
+        (nn.Mish(), lambda y: y.abs() > 1e-8, 50, (100, 100), 0),
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (100, 100), 42),
+        (nn.ReLU6(), lambda y: y.abs() > 1e-8, 50, (100, 100), 42),
+        (nn.Mish(), lambda y: y.abs() > 1e-8, 50, (100, 100), 42),
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (100, 10, 10), 0),
+        (nn.ReLU6(), lambda y: y.abs() > 1e-8, 50, (100, 10, 10), 0),
+        (nn.Mish(), lambda y: y.abs() > 1e-8, 50, (100, 10, 10), 0),
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (100, 10, 10), 42),
+        (nn.ReLU6(), lambda y: y.abs() > 1e-8, 50, (100, 10, 10), 42),
+        (nn.Mish(), lambda y: y.abs() > 1e-8, 50, (100, 10, 10), 42),
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (100, 10, 2, 10), 0),
+        (nn.ReLU6(), lambda y: y.abs() > 1e-8, 50, (100, 10, 2, 10), 0),
+        (nn.Mish(), lambda y: y.abs() > 1e-8, 50, (100, 10, 2, 10), 0),
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (100, 10, 2, 10), 42),
+        (nn.ReLU6(), lambda y: y.abs() > 1e-8, 50, (100, 10, 2, 10), 42),
+        (nn.Mish(), lambda y: y.abs() > 1e-8, 50, (100, 10, 2, 10), 42),
+    ],
 )
 def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, inp_size, seed):
     oam = OutputActivation(death=True, inplace=False, record_no_grad=False)
     oar = OutputActivation(death=True, inplace=True, record_no_grad=False)
-    state=InspectorState()
-    ffg = FeedForwardGatherer(module, [
-            oam, oar
-    ], 'standalone_test', state)
+    state = InspectorState()
+    ffg = FeedForwardGatherer(  # noqa: F841
+        module,
+        [
+            oam,
+            oar,
+        ],
+        'standalone_test',
+        state,
+    )
 
     x = torch.rand(100, 100)
     activations = []
-    deathes     = []
+    deathes = []
 
     torch.manual_seed(seed)
     for _ in range(n_iter):
@@ -96,46 +135,48 @@ def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, i
         activations.append(new_activations.mean(dtype=torch.float32))
         deathes.append((new_activations == 0).float().mean())
 
-    assert np.allclose(
-        activations,
-        oam.value['standalone_test'][0]
-    )
-    assert np.allclose(
-        deathes,
-        oam.value['standalone_test'][1]
-    )
+    assert np.allclose(activations, oam.value['standalone_test'][0])
+    assert np.allclose(deathes, oam.value['standalone_test'][1])
     rmv = oar.value['standalone_test'][0]
-    assert np.isclose(
-        [np.mean(activations), np.var(activations), np.min(activations), np.max(activations)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    ).all()
+    assert np.isclose([np.mean(activations), np.var(activations), np.min(activations), np.max(activations)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()
     rmv = oar.value['standalone_test'][1]
-    assert np.isclose(
-        [np.mean(deathes), np.var(deathes), np.min(deathes), np.max(deathes)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    ).all()
+    assert np.isclose([np.mean(deathes), np.var(deathes), np.min(deathes), np.max(deathes)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()
+
 
 @pytest.mark.parametrize(
-    [ 'module', 'record_no_grad'],
+    ['module', 'record_no_grad'],
     [
-        (nn.ReLU(), False,),
+        (
+            nn.ReLU(),
+            False,
+        ),
         (nn.ReLU(), True),
-
-        (nn.Sigmoid(), False,),
+        (
+            nn.Sigmoid(),
+            False,
+        ),
         (nn.Sigmoid(), True),
-
-        (nn.Mish(), False,),
+        (
+            nn.Mish(),
+            False,
+        ),
         (nn.Mish(), True),
-    ]
+    ],
 )
-def test_record_no_grad(module, record_no_grad : bool):
+def test_record_no_grad(module, record_no_grad: bool):
     oam = OutputActivation(death=True, inplace=False, record_no_grad=record_no_grad)
     oar = OutputActivation(death=True, inplace=True, record_no_grad=record_no_grad)
 
-    state=InspectorState()
-    ffg = FeedForwardGatherer(module, [
-            oam, oar
-    ], 'standalone_test', state)
+    state = InspectorState()
+    ffg = FeedForwardGatherer(  # noqa: F841
+        module,
+        [
+            oam,
+            oar,
+        ],
+        'standalone_test',
+        state,
+    )
 
     with torch.no_grad():
         x = torch.rand(100, 100)

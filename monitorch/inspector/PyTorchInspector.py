@@ -1,12 +1,14 @@
+from collections.abc import Callable, Iterable
+
 from torch.nn import Module
 from typing_extensions import Self
-from typing import Callable, Iterable
-
-from .inspector_state import InspectorState
 
 from monitorch.lens import AbstractLens
 from monitorch.preprocessor import ExplicitCall
-from monitorch.visualizer import _vizualizer_dict, AbstractVisualizer, MatplotlibVisualizer
+from monitorch.visualizer import AbstractVisualizer, MatplotlibVisualizer, _vizualizer_dict
+
+from .inspector_state import InspectorState
+
 
 class PyTorchInspector:
     """
@@ -75,9 +77,9 @@ class PyTorchInspector:
 
     >>> from monitorch.inspector import PyTorchInspector
     >>> from monitorch.lens import LossMetrics, OutputActivation, ParameterGradientGeometry
-    >>> 
+    >>>
     >>> loss_fn = nn.NLLLoss()
-    >>> 
+    >>>
     >>> inspector = PyTorchInspector(
     ...     lenses = [
     ...         LossMetrics(loss_fn = loss_fn),
@@ -87,7 +89,7 @@ class PyTorchInspector:
     ...     module = mynet,
     ...     visualizer='matplotlib'
     ... )
-    >>> 
+    >>>
     >>> for epoch in range(N_EPOCHS):
     ...     for data, label in train_dataloader:
     ...         optimizer.zero_grad()
@@ -95,40 +97,41 @@ class PyTorchInspector:
     ...         loss = loss_fn(prediction, label)
     ...         loss.backward()
     ...         optimizer.step()
-    ... 
+    ...
     ...     with torch.no_grad(): # outputs inside this block are not recorded
     ...         for data, label in val_dataloader:
     ...             prediction = mynet(data)
     ...             loss = loss_fn(prediction, label)
-    ... 
+    ...
     ...     inspector.tick_epoch() # ticking the epoch
-    >>> 
+    >>>
     >>> inspector.visualizer.show_fig()
     """
 
     def __init__(
-            self,
-            lenses : list[AbstractLens], *,
-            visualizer : str|AbstractVisualizer = 'matplotlib',
-            module : None|Module = None,
-            depth : int = -1,
-            module_name_prefix : str = '.',
-            train_loss_str = 'train_loss',
-            non_train_loss_str = 'val_loss',
-            is_active_fn : int|Callable[[int], bool] = 1
+        self,
+        lenses: list[AbstractLens],
+        *,
+        visualizer: str | AbstractVisualizer = 'matplotlib',
+        module: None | Module = None,
+        depth: int = -1,
+        module_name_prefix: str = '.',
+        train_loss_str='train_loss',
+        non_train_loss_str='val_loss',
+        is_active_fn: int | Callable[[int], bool] = 1,
     ):
         self.lenses = lenses
         self._call_preprocessor = ExplicitCall(train_loss_str, non_train_loss_str)
         self.depth = depth
         self.module_name_prefix = module_name_prefix
-        self.state : InspectorState = InspectorState(is_active_fn=is_active_fn)
+        self.state: InspectorState = InspectorState(is_active_fn=is_active_fn)
 
         if isinstance(visualizer, str):
             if visualizer not in _vizualizer_dict:
-                raise AttributeError(f"Unknown vizualizer, string defined vizualizer must be one of {list(_vizualizer_dict.keys())} ")
+                raise AttributeError(f'Unknown vizualizer, string defined vizualizer must be one of {list(_vizualizer_dict.keys())} ')
             self.visualizer = _vizualizer_dict[visualizer]()
         else:
-            self.visualizer : AbstractVisualizer = visualizer
+            self.visualizer: AbstractVisualizer = visualizer
 
         for lens in self.lenses:
             lens.register_foreign_preprocessor(self._call_preprocessor, self.state)
@@ -136,7 +139,7 @@ class PyTorchInspector:
         if module is not None:
             self.attach(module)
 
-    def attach(self, module : Module) -> Self:
+    def attach(self, module: Module) -> Self:
         """
         Attaches inspector to a module.
 
@@ -177,7 +180,7 @@ class PyTorchInspector:
         Self
             Builder pattern.
         """
-        assert self.state.attached, "Inspector must be attached to module before detaching"
+        assert self.state.attached, 'Inspector must be attached to module before detaching'
         self.state.counter = 0
         self._call_preprocessor.reset()
         for lens in self.lenses:
@@ -187,7 +190,7 @@ class PyTorchInspector:
         self.state.attached = False
         return self
 
-    def push_metric(self, name : str, value : float, *, running : bool=True):
+    def push_metric(self, name: str, value: float, *, running: bool = True):
         """
         Pushes metric, that can be accessed by :class:`monitorch.lens.LossMetrics`.
 
@@ -205,7 +208,7 @@ class PyTorchInspector:
         else:
             self._call_preprocessor.push_memory(name, value)
 
-    def push_loss(self, value : float, *, train : bool, running : bool = True):
+    def push_loss(self, value: float, *, train: bool, running: bool = True):
         """
         Pushes loss, that can be accessed by :class:`monitorch.lens.LossMetrics`.
 
@@ -220,7 +223,7 @@ class PyTorchInspector:
         """
         self._call_preprocessor.push_loss(value, train=train, running=running)
 
-    def tick_epoch(self, epoch : int|None=None):
+    def tick_epoch(self, epoch: int | None = None):
         """
         Ticks to postprocess data and draw plots.
 
@@ -249,7 +252,7 @@ class PyTorchInspector:
 
     tick = tick_epoch
 
-    def iter(self, iterable : Iterable) -> Iterable:
+    def iter(self, iterable: Iterable) -> Iterable:
         dotick = False
         for x in iterable:
             if dotick:
@@ -263,12 +266,12 @@ class PyTorchInspector:
         return self.iter(range(*args, **kwargs))
 
     @staticmethod
-    def _decide_prefix(prefix : str, grand_name : str):
-        """ Utility function for depth=0 name composition. """
+    def _decide_prefix(prefix: str, grand_name: str):
+        """Utility function for depth=0 name composition."""
         return prefix if grand_name else ''
 
     @staticmethod
-    def _traverse_module_inclusion_tree(module : Module, depth : int = -1, prefix : str = '.') -> tuple[list[tuple[Module, str]], list[tuple[Module, str]]]:
+    def _traverse_module_inclusion_tree(module: Module, depth: int = -1, prefix: str = '.') -> tuple[list[tuple[Module, str]], list[tuple[Module, str]]]:
         """
         A function to extract nodes at defined depth from module inclusion tree.
         If ``depth=-1`` calls :meth:`_module_deep_leaves`,
@@ -288,7 +291,7 @@ class PyTorchInspector:
         tuple[list[tuple[Module, str], list[tuple[Module, str]]]
             Lists of leaf (1st value) and non-leaf (2nd value) module object and their path name.
         """
-        assert depth >= -1, "Depth of leaves must be non-negative or -1 (maximal depth)"
+        assert depth >= -1, 'Depth of leaves must be non-negative or -1 (maximal depth)'
         if depth == -1:
             return PyTorchInspector._module_deep_leaves(module, prefix=prefix)
         if depth == 0:
@@ -301,13 +304,11 @@ class PyTorchInspector:
             leaves += [(module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for module, grand_name in child_leaves]
             non_leaves += [(module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for module, grand_name in child_non_leaves]
         if len(leaves) > 0:
-            non_leaves.append(
-                (module, '')
-            )
+            non_leaves.append((module, ''))
         return leaves, non_leaves
 
     @staticmethod
-    def _module_deep_leaves(module : Module, prefix : str) -> tuple[list[tuple[Module, str]], list[tuple[Module, str]]]:
+    def _module_deep_leaves(module: Module, prefix: str) -> tuple[list[tuple[Module, str]], list[tuple[Module, str]]]:
         """
         A function to extract leaves from module inclusion tree.
 
@@ -332,9 +333,7 @@ class PyTorchInspector:
             leaves += [(child_module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for child_module, grand_name in child_leaves]
             non_leaves += [(child_module, name + PyTorchInspector._decide_prefix(prefix, grand_name) + grand_name) for child_module, grand_name in child_non_leaves]
         if len(leaves) == 0:
-            leaves =  [(module, '')]
+            leaves = [(module, '')]
         else:
-            non_leaves.append(
-                (module, '')
-            )
+            non_leaves.append((module, ''))
         return leaves, non_leaves

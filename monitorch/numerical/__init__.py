@@ -20,16 +20,17 @@ Examples
 5.0
 """
 
-from .running_value import RunningMeanVar, RunningValue, Accumulator, extract_point, extract_range, parse_range_name
 from .activation_computation import reduce_activation_to_activation_rates
 from .geometry_computation import GeometryComputation
+from .running_value import Accumulator, RunningMeanVar, RunningValue, extract_point, extract_range, parse_range_name
 
 __all__ = [
-    "RunningMeanVar",
-    "GeometryComputation",
-    "Accumulator",
-    "extract_point",
-    "extract_range",
-    "parse_range_name",
-    "reduce_activation_to_activation_rates"
+    'Accumulator',
+    'GeometryComputation',
+    'RunningMeanVar',
+    'RunningValue',
+    'extract_point',
+    'extract_range',
+    'parse_range_name',
+    'reduce_activation_to_activation_rates',
 ]

@@ -1,7 +1,10 @@
 from typing import Any
+
 from torch import is_grad_enabled
-from monitorch.preprocessor.abstract import AbstractForwardPreprocessor
+
 from monitorch.numerical import RunningMeanVar
+from monitorch.preprocessor.abstract import AbstractForwardPreprocessor
+
 
 class LossModule(AbstractForwardPreprocessor):
     """
@@ -16,13 +19,13 @@ class LossModule(AbstractForwardPreprocessor):
         Indicator if :class:`RunningMeanVar` or ``list`` should be used for aggregation.
     """
 
-    def __init__(self, inplace : bool):
+    def __init__(self, inplace: bool):
         self._value = {}
         self._train_str_loss = ''
         self._non_train_str_loss = ''
         self._agg_class = RunningMeanVar if inplace else list
 
-    def set_loss_strs(self, train_loss_str : str, non_train_loss_str : str):
+    def set_loss_strs(self, train_loss_str: str, non_train_loss_str: str):
         """
         Defines names for training and test/validation/development loss.
         Given strings will be used in :meth:`value` for indexing.
@@ -34,14 +37,11 @@ class LossModule(AbstractForwardPreprocessor):
         non_train_loss_str : str
             String used for test/validation/development loss.
         """
-        self._value = {
-            train_loss_str : self._agg_class(),
-            non_train_loss_str : self._agg_class()
-        }
+        self._value = {train_loss_str: self._agg_class(), non_train_loss_str: self._agg_class()}
         self._train_str_loss = train_loss_str
         self._non_train_str_loss = non_train_loss_str
 
-    def process_fw(self, name : str, module, layer_input, layer_output):
+    def process_fw(self, name: str, module, layer_input, layer_output):
         """
         Saves loss passed as layer output.
 
@@ -62,7 +62,7 @@ class LossModule(AbstractForwardPreprocessor):
             If layer_output has none or more than one elements.
         """
         if layer_output.numel() != 1:
-            raise AttributeError("Only single item loss can be preprocessed")
+            raise AttributeError('Only single item loss can be preprocessed')
         if is_grad_enabled():
             self._value[self._train_str_loss].append(layer_output.item())
         else:
@@ -70,12 +70,9 @@ class LossModule(AbstractForwardPreprocessor):
 
     @property
     def value(self) -> dict[str, Any]:
-        """ See base class. """
+        """See base class."""
         return self._value
 
     def reset(self) -> None:
-        """ See base class. """
-        self._value = {
-            self._train_str_loss : self._agg_class(),
-            self._non_train_str_loss : self._agg_class()
-        }
+        """See base class."""
+        self._value = {self._train_str_loss: self._agg_class(), self._non_train_str_loss: self._agg_class()}

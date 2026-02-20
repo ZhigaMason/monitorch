@@ -1,4 +1,5 @@
-from typing import Callable
+from collections.abc import Callable
+
 
 class InspectorState:
     """
@@ -19,16 +20,16 @@ class InspectorState:
         Flag indicating if inspector is attached to module
     """
 
-    def __init__(self, is_active_fn : int|Callable[[int], bool] = 1):
+    def __init__(self, is_active_fn: int | Callable[[int], bool] = 1):
         if isinstance(is_active_fn, int):
             cycle_val = is_active_fn
-            self.is_active_fn : Callable[[int], bool] = lambda n: n % cycle_val == 0
+            self.is_active_fn: Callable[[int], bool] = lambda n: n % cycle_val == 0
         else:
             self.is_active_fn = is_active_fn
-        self.counter : int = 1
+        self.counter: int = 1
         self.attached = False
 
-    def tick(self, n_ticks : int = 1) -> int:
+    def tick(self, n_ticks: int = 1) -> int:
         """
         Increments :attr:`counter` by n_ticks
 

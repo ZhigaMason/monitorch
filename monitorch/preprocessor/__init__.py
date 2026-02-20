@@ -7,46 +7,25 @@ Those values can come from output, parameters or gradients of layers.
 It is expected that, preprocessors are called from one of objects in :mod:`monitorch.gatherer`.
 """
 
+from .abstract import AbstractBackwardPreprocessor, AbstractForwardPreprocessor, AbstractModulePreprocessor, AbstractPreprocessor, AbstractTensorPreprocessor
 from .ExplicitCall import ExplicitCall
-
-from .abstract import (
-    AbstractBackwardPreprocessor,
-    AbstractForwardPreprocessor,
-    AbstractTensorPreprocessor,
-    AbstractModulePreprocessor,
-    AbstractPreprocessor
-)
-
-from .gradient import (
-    GradientActivation,
-    GradientGeometry,
-    OutputGradientGeometry
-)
-
-from .output import (
-    OutputNorm,
-    OutputActivation,
-    LossModule
-)
-
-from .parameter import (
-    ParameterNorm,
-    ParameterDifferenceGeometry,
-)
+from .gradient import GradientActivation, GradientGeometry, OutputGradientGeometry
+from .output import LossModule, OutputActivation, OutputNorm
+from .parameter import ParameterDifferenceGeometry, ParameterNorm
 
 __all__ = [
-    "AbstractBackwardPreprocessor",
-    "AbstractForwardPreprocessor",
-    "AbstractTensorPreprocessor",
-    "AbstractModulePreprocessor",
-    "AbstractPreprocessor",
-    "GradientActivation",
-    "GradientGeometry",
-    "OutputGradientGeometry",
-    "OutputNorm",
-    "OutputActivation",
-    "LossModule",
-    "ParameterNorm",
-    "ParameterDifferenceGeometry",
-    "ExplicitCall",
+    'AbstractBackwardPreprocessor',
+    'AbstractForwardPreprocessor',
+    'AbstractModulePreprocessor',
+    'AbstractPreprocessor',
+    'AbstractTensorPreprocessor',
+    'ExplicitCall',
+    'GradientActivation',
+    'GradientGeometry',
+    'LossModule',
+    'OutputActivation',
+    'OutputGradientGeometry',
+    'OutputNorm',
+    'ParameterDifferenceGeometry',
+    'ParameterNorm',
 ]

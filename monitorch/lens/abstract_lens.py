@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+
 from torch.nn import Module
+
 from monitorch.preprocessor import AbstractPreprocessor
 from monitorch.visualizer import AbstractVisualizer
 
@@ -15,7 +17,7 @@ class AbstractLens(ABC):
     """
 
     @abstractmethod
-    def register_leaf_module(self, module : Module, module_name : str, inspector_state):
+    def register_leaf_module(self, module: Module, module_name: str, inspector_state):
         """
         Registers (or ignores) leaf module.
 
@@ -31,7 +33,7 @@ class AbstractLens(ABC):
         """
         pass
 
-    def register_non_leaf_module(self, module : Module, module_name : str, inspector_state):
+    def register_non_leaf_module(self, module: Module, module_name: str, inspector_state):
         """
         Registers (or ignores) non-leaf module. By default does nothing.
 
@@ -56,7 +58,7 @@ class AbstractLens(ABC):
         """
         pass
 
-    def register_foreign_preprocessor(self, ext_ppr : AbstractPreprocessor, inspector_state):
+    def register_foreign_preprocessor(self, ext_ppr: AbstractPreprocessor, inspector_state):
         """
         Registers preprocessor allocated and managed by external environment.
 
@@ -72,7 +74,7 @@ class AbstractLens(ABC):
         pass
 
     @abstractmethod
-    def introduce_tags(self, visualizer : AbstractVisualizer):
+    def introduce_tags(self, visualizer: AbstractVisualizer):
         """
         Introduces lens's plots to visualizer.
 
@@ -97,7 +99,7 @@ class AbstractLens(ABC):
         pass
 
     @abstractmethod
-    def vizualize(self, visualizer : AbstractVisualizer, epoch : int):
+    def vizualize(self, visualizer: AbstractVisualizer, epoch: int):
         """
         Passes computed data to visualizer.
 

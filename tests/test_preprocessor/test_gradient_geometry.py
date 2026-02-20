@@ -1,42 +1,40 @@
 from copy import deepcopy
 from math import sqrt
-import pytest
 
-import torch
 import numpy as np
+import pytest
+import torch
 import torch.nn as nn
 from torch.linalg import vector_norm
 
+from monitorch.gatherer import ParameterGradientGatherer
+from monitorch.inspector.inspector_state import InspectorState
 from monitorch.preprocessor import GradientGeometry
 
-from monitorch.gatherer import ParameterGradientGatherer
-
-from monitorch.inspector.inspector_state import InspectorState
 
 def replace_grad(tensor):
     def f(param):
         param.grad = tensor
+
     return f
+
 
 @pytest.mark.parametrize(
     ['module', 'inp_size', 'grad_w', 'grad_b', 'normalize'],
     [
-        (nn.Linear(10, 5),   (10,),       torch.ones(5, 10),      torch.ones(5), False),
+        (nn.Linear(10, 5), (10,), torch.ones(5, 10), torch.ones(5), False),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), torch.ones(5, 1, 2, 2), torch.ones(5), False),
-        (nn.Conv1d(1, 5, 2), (1, 16),     torch.ones(5, 1, 2),    torch.ones(5), False),
-
-        (nn.Linear(10, 5),   (10,),       torch.ones(5, 10),      torch.ones(5), True),
+        (nn.Conv1d(1, 5, 2), (1, 16), torch.ones(5, 1, 2), torch.ones(5), False),
+        (nn.Linear(10, 5), (10,), torch.ones(5, 10), torch.ones(5), True),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), torch.ones(5, 1, 2, 2), torch.ones(5), True),
-        (nn.Conv1d(1, 5, 2), (1, 16),     torch.ones(5, 1, 2),    torch.ones(5), True),
-
-        (nn.Linear(10, 5),   (10,),       torch.rand(5, 10),      torch.rand(5), False),
+        (nn.Conv1d(1, 5, 2), (1, 16), torch.ones(5, 1, 2), torch.ones(5), True),
+        (nn.Linear(10, 5), (10,), torch.rand(5, 10), torch.rand(5), False),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), torch.rand(5, 1, 2, 2), torch.rand(5), False),
-        (nn.Conv1d(1, 5, 2), (1, 16),     torch.rand(5, 1, 2),    torch.rand(5), False),
-
-        (nn.Linear(10, 5),   (10,),       torch.rand(5, 10),      torch.rand(5), True),
+        (nn.Conv1d(1, 5, 2), (1, 16), torch.rand(5, 1, 2), torch.rand(5), False),
+        (nn.Linear(10, 5), (10,), torch.rand(5, 10), torch.rand(5), True),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), torch.rand(5, 1, 2, 2), torch.rand(5), True),
-        (nn.Conv1d(1, 5, 2), (1, 16),     torch.rand(5, 1, 2),    torch.rand(5), True),
-    ]
+        (nn.Conv1d(1, 5, 2), (1, 16), torch.rand(5, 1, 2), torch.rand(5), True),
+    ],
 )
 def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
     wggm = GradientGeometry(adj_prod=False, normalize=normalize, inplace=False)
@@ -46,14 +44,14 @@ def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
 
     module.weight.register_post_accumulate_grad_hook(replace_grad(grad_w))
     module.bias.register_post_accumulate_grad_hook(replace_grad(grad_b))
-    #module.register_full_backward_hook(replace_b_grad(grad_b))
+    # module.register_full_backward_hook(replace_b_grad(grad_b))
 
-    state=InspectorState()
+    state = InspectorState()
 
-    wgg = ParameterGradientGatherer(
+    wgg = ParameterGradientGatherer(  # noqa: F841
         'weight', module, [wggm, wggr], 'standalone_test', state
     )
-    bgg = ParameterGradientGatherer(
+    bgg = ParameterGradientGatherer(  # noqa: F841
         'bias', module, [bggm, bggr], 'standalone_test', state
     )
 
@@ -78,22 +76,19 @@ def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
 @pytest.mark.parametrize(
     ['module', 'inp_size', 'normalize', 'n_iter', 'seed'],
     [
-        (nn.Linear(10, 5),   (10,),       False, 100, 0),
+        (nn.Linear(10, 5), (10,), False, 100, 0),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), False, 100, 0),
-        (nn.Conv1d(1, 5, 2), (1, 16),     False, 100, 0),
-
-        (nn.Linear(10, 5),   (10,),       True,  100, 0),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), True,  100, 0),
-        (nn.Conv1d(1, 5, 2), (1, 16),     True,  100, 0),
-
-        (nn.Linear(10, 5),   (10,),       False, 100, 42),
+        (nn.Conv1d(1, 5, 2), (1, 16), False, 100, 0),
+        (nn.Linear(10, 5), (10,), True, 100, 0),
+        (nn.Conv2d(1, 5, 2), (1, 16, 16), True, 100, 0),
+        (nn.Conv1d(1, 5, 2), (1, 16), True, 100, 0),
+        (nn.Linear(10, 5), (10,), False, 100, 42),
         (nn.Conv2d(1, 5, 2), (1, 16, 16), False, 100, 42),
-        (nn.Conv1d(1, 5, 2), (1, 16),     False, 100, 42),
-
-        (nn.Linear(10, 5),   (10,),       True,  100, 42),
-        (nn.Conv2d(1, 5, 2), (1, 16, 16), True,  100, 42),
-        (nn.Conv1d(1, 5, 2), (1, 16),     True,  100, 42),
-    ]
+        (nn.Conv1d(1, 5, 2), (1, 16), False, 100, 42),
+        (nn.Linear(10, 5), (10,), True, 100, 42),
+        (nn.Conv2d(1, 5, 2), (1, 16, 16), True, 100, 42),
+        (nn.Conv1d(1, 5, 2), (1, 16), True, 100, 42),
+    ],
 )
 def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
     wggm = GradientGeometry(adj_prod=True, normalize=normalize, inplace=False)
@@ -101,12 +96,12 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
     bggm = GradientGeometry(adj_prod=True, normalize=normalize, inplace=False)
     bggr = GradientGeometry(adj_prod=True, normalize=normalize, inplace=True)
 
-    state=InspectorState()
+    state = InspectorState()
 
-    wgg = ParameterGradientGatherer(
+    wgg = ParameterGradientGatherer(  # noqa: F841
         'weight', module, [wggm, wggr], 'standalone_test', state
     )
-    bgg = ParameterGradientGatherer(
+    bgg = ParameterGradientGatherer(  # noqa: F841
         'bias', module, [bggm, bggr], 'standalone_test', state
     )
 
@@ -128,7 +123,7 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
             w_norm /= sqrt(module.weight.grad.numel())
             b_norm /= sqrt(module.bias.grad.numel())
         w_prod = (prev_w_grad * module.weight.grad).sum().item() / (w_norm * w_norms[-1] + 1e-8)
-        b_prod = (prev_b_grad * module.bias.grad).sum().item()   / (b_norm * b_norms[-1] + 1e-8)
+        b_prod = (prev_b_grad * module.bias.grad).sum().item() / (b_norm * b_norms[-1] + 1e-8)
 
         if normalize:
             w_prod /= module.weight.grad.numel()
@@ -156,25 +151,13 @@ def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
     del b_norms[0]
 
     rmv = wggr.value['standalone_test'][0]
-    assert np.isclose(
-        [np.mean(w_norms), np.var(w_norms), np.min(w_norms), np.max(w_norms)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    ).all()
+    assert np.isclose([np.mean(w_norms), np.var(w_norms), np.min(w_norms), np.max(w_norms)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()
 
     rmv = wggr.value['standalone_test'][1]
-    assert np.isclose(
-        [np.mean(w_products), np.var(w_products), np.min(w_products), np.max(w_products)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    ).all()
+    assert np.isclose([np.mean(w_products), np.var(w_products), np.min(w_products), np.max(w_products)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()
 
     rmv = bggr.value['standalone_test'][0]
-    assert np.isclose(
-        [np.mean(b_norms), np.var(b_norms), np.min(b_norms), np.max(b_norms)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    ).all()
+    assert np.isclose([np.mean(b_norms), np.var(b_norms), np.min(b_norms), np.max(b_norms)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()
 
     rmv = bggr.value['standalone_test'][1]
-    assert np.isclose(
-        [np.mean(b_products), np.var(b_products), np.min(b_products), np.max(b_products)],
-        [rmv.mean, rmv.var, rmv.min_, rmv.max_]
-    ).all()
+    assert np.isclose([np.mean(b_products), np.var(b_products), np.min(b_products), np.max(b_products)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()

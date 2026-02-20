@@ -1,8 +1,10 @@
+from typing import Any
+
+from torch import Tensor, is_grad_enabled, no_grad
+from torch import abs as tabs
+from torch import float32 as tfloat32
 
 from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates
-
-from torch import no_grad, is_grad_enabled, Tensor, float32 as tfloat32, abs as tabs
-from typing import Any
 from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
 
 
@@ -27,15 +29,15 @@ class OutputActivation(AbstractForwardPreprocessor):
         Numerical constant under which value is regarded as a zero.
     """
 
-    def __init__(self, death : bool, inplace : bool, record_no_grad : bool, eps : float = 1e-8):
+    def __init__(self, death: bool, inplace: bool, record_no_grad: bool, eps: float = 1e-8):
         self._death = death
-        self._value = {} # Either name -> activation or name -> (activation, death_tensor)
-        self._thresholds : dict[str, tuple[float, float]]= {}
+        self._value = {}  # Either name -> activation or name -> (activation, death_tensor)
+        self._thresholds: dict[str, tuple[float, float]] = {}
         self._agg_class = RunningMeanVar if inplace else list
         self._record_no_grad = record_no_grad
         self._eps = eps
 
-    def process_fw(self, name : str, module, layer_input, layer_output) -> None:
+    def process_fw(self, name: str, module, layer_input, layer_output) -> None:
         """
         Computes activation from layer output.
 
@@ -61,8 +63,8 @@ class OutputActivation(AbstractForwardPreprocessor):
             else:
                 self._value[name] = self._agg_class()
 
-        new_activation_tensor : Tensor
-        new_activation_rate : Tensor
+        new_activation_tensor: Tensor
+        new_activation_rate: Tensor
         with no_grad():
             new_activation_tensor = tabs(layer_output) > self._eps
             new_activation_rate = reduce_activation_to_activation_rates(new_activation_tensor, batch=True)
@@ -75,12 +77,11 @@ class OutputActivation(AbstractForwardPreprocessor):
             activations = self._value[name]
             activations.append(new_activation_rate.mean(dtype=tfloat32))
 
-
     @property
     def value(self) -> dict[str, Any]:
-        """ See base class. """
+        """See base class."""
         return self._value
 
     def reset(self) -> None:
-        """ See base class. """
+        """See base class."""
         self._value = {}

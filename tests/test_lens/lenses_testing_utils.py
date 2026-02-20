@@ -1,51 +1,37 @@
-import torch
+from warnings import filterwarnings
 
 import matplotlib.pyplot as plt
+import torch
+from torch.utils.data import DataLoader, TensorDataset
 
-from torch.utils.data import TensorDataset, DataLoader
 from monitorch.inspector import PyTorchInspector
-from warnings import filterwarnings
 from monitorch.visualizer import MatplotlibVisualizer
 
 N_DIM = 10
 N_EPOCHS = 3
 
+
 def generic_lens_test(inspector, module, loss_fn, optimizer):
 
     if isinstance(inspector.visualizer, MatplotlibVisualizer):
-        filterwarnings(
-            "ignore",
-            message=MatplotlibVisualizer._NO_SMALL_TAGS_WARNING,
-            category=UserWarning
-        )
-    train_xor(
-        inspector,
-        module,
-        loss_fn,
-        optimizer,
-        n_dim=N_DIM,
-        n_epochs=N_EPOCHS,
-        push_loss=False
-    )
+        filterwarnings('ignore', message=MatplotlibVisualizer._NO_SMALL_TAGS_WARNING, category=UserWarning)
+    train_xor(inspector, module, loss_fn, optimizer, n_dim=N_DIM, n_epochs=N_EPOCHS, push_loss=False)
 
     if isinstance(inspector.visualizer, MatplotlibVisualizer):
         fig = inspector.visualizer.show_fig()
-        plt.close(fig) # otherwise figs comsume all the memory due to pytest running tests in parallel
+        plt.close(fig)  # otherwise figs comsume all the memory due to pytest running tests in parallel
 
-def train_xor(inspector : PyTorchInspector, module, loss_fn, optimizer, n_dim, n_epochs, push_loss : bool, push_loss_inplace : bool = False):
+
+def train_xor(inspector: PyTorchInspector, module, loss_fn, optimizer, n_dim, n_epochs, push_loss: bool, push_loss_inplace: bool = False):
     raw_data = torch.tensor(_generate_xor_data(n_dim)).reshape(-1, n_dim)
-    border = 8 * (2 ** n_dim) // 10
+    border = 8 * (2**n_dim) // 10
     train_data = raw_data[:border]
     validation_data = raw_data[border:]
-    train_loader = DataLoader(
-        TensorDataset(train_data), shuffle=True, batch_size=32
-    )
-    validation_loader = DataLoader(
-        TensorDataset(validation_data), shuffle=False, batch_size=32
-    )
+    train_loader = DataLoader(TensorDataset(train_data), shuffle=True, batch_size=32)
+    validation_loader = DataLoader(TensorDataset(validation_data), shuffle=False, batch_size=32)
 
     for _ in range(n_epochs):
-        for data, in train_loader:
+        for (data,) in train_loader:
             optimizer.zero_grad()
             y_pred = module(data)
             label = _xor_ground_truth(data)
@@ -55,7 +41,7 @@ def train_xor(inspector : PyTorchInspector, module, loss_fn, optimizer, n_dim, n
             optimizer.step()
 
         with torch.no_grad():
-            for data, in validation_loader:
+            for (data,) in validation_loader:
                 y_pred = module(data)
                 label = _xor_ground_truth(data)
                 loss = loss_fn(y_pred, label)
@@ -73,6 +59,7 @@ def _generate_xor_data(n_dim) -> list[list[float]]:
         ret.append(bin_str + [0.0])
         ret.append(bin_str + [1.0])
     return ret
+
 
 def _xor_ground_truth(data):
     return data.sum(dim=-1).int().logical_and(torch.tensor([1])).float().reshape(-1, 1)

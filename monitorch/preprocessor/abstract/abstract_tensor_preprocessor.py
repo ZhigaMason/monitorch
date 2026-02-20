@@ -1,5 +1,5 @@
-
 from abc import abstractmethod
+
 from .abstract_preprocessor import AbstractPreprocessor
 
 
@@ -25,4 +25,3 @@ class AbstractTensorPreprocessor(AbstractPreprocessor):
             Tensor to be processed
         """
         pass
-

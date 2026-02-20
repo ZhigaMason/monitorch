@@ -1,5 +1,7 @@
 from monitorch.preprocessor import AbstractForwardPreprocessor
+
 from .abstract_gatherer import AbstractGatherer
+
 
 class FeedForwardGatherer(AbstractGatherer):
     """
@@ -18,7 +20,7 @@ class FeedForwardGatherer(AbstractGatherer):
         Name of module to hand over to preprocessors.
     """
 
-    def __init__(self, module, preprocessors : list[AbstractForwardPreprocessor], name : str, inspector_state):
+    def __init__(self, module, preprocessors: list[AbstractForwardPreprocessor], name: str, inspector_state):
         super().__init__(inspector_state)
         self._preprocessors = preprocessors
         self._name = name

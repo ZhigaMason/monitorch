@@ -16,26 +16,22 @@ Examples
 ...     vizualizer = "tensorboard"
 ... )
 """
-from typing import Type
-from .AbstractVisualizer import AbstractVisualizer, TagAttributes, TagType
-from .PrintVisualizer import PrintVisualizer
-from .TensorBoardVisualizer import TensorBoardVisualizer
-from .MatplotlibVisualizer import MatplotlibVisualizer
-from .RecorderPlayerVisualizer import RecorderVisualizer, PlayerVisualizer
 
-_vizualizer_dict : dict[str, Type[AbstractVisualizer]] = {
-    'print'       : PrintVisualizer,
-    'tensorboard' : TensorBoardVisualizer,
-    'matplotlib'  : MatplotlibVisualizer
-}
+from .AbstractVisualizer import AbstractVisualizer, TagAttributes, TagType
+from .MatplotlibVisualizer import MatplotlibVisualizer
+from .PrintVisualizer import PrintVisualizer
+from .RecorderPlayerVisualizer import PlayerVisualizer, RecorderVisualizer
+from .TensorBoardVisualizer import TensorBoardVisualizer
+
+_vizualizer_dict: dict[str, type[AbstractVisualizer]] = {'print': PrintVisualizer, 'tensorboard': TensorBoardVisualizer, 'matplotlib': MatplotlibVisualizer}
 
 __all__ = [
-    "PrintVisualizer",
-    "TensorBoardVisualizer",
-    "MatplotlibVisualizer",
-    "AbstractVisualizer",
-    "TagAttributes",
-    "TagType",
-    "RecorderVisualizer",
-    "PlayerVisualizer",
+    'AbstractVisualizer',
+    'MatplotlibVisualizer',
+    'PlayerVisualizer',
+    'PrintVisualizer',
+    'RecorderVisualizer',
+    'TagAttributes',
+    'TagType',
+    'TensorBoardVisualizer',
 ]

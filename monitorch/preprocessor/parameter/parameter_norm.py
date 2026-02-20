@@ -1,11 +1,8 @@
 from collections import OrderedDict
 from typing import Any
-from math import sqrt
-from torch.linalg import vector_norm
-from monitorch.preprocessor.abstract.abstract_module_preprocessor import (
-    AbstractModulePreprocessor,
-)
+
 from monitorch.numerical import GeometryComputation
+from monitorch.preprocessor.abstract.abstract_module_preprocessor import AbstractModulePreprocessor
 
 
 class ParameterNorm(AbstractModulePreprocessor):
@@ -32,9 +29,7 @@ class ParameterNorm(AbstractModulePreprocessor):
     """
 
     def __init__(self, attrs: list[str], normalize: bool, inplace: bool):
-        self._gc_kwargs = dict(
-            normalize=normalize, inplace=inplace, dot_product=False, eps=0.0
-        )
+        self._gc_kwargs = dict(normalize=normalize, inplace=inplace, dot_product=False, eps=0.0)
         self.attrs_ = attrs
         self._value: OrderedDict[str, dict[str, GeometryComputation]] = OrderedDict()
 
@@ -56,12 +51,7 @@ class ParameterNorm(AbstractModulePreprocessor):
         """
         See base class
         """
-        return OrderedDict(
-            [
-                (name, {attr: d[attr].value for attr in self.attrs_})
-                for name, d in self._value.items()
-            ]
-        )
+        return OrderedDict([(name, {attr: d[attr].value for attr in self.attrs_}) for name, d in self._value.items()])
 
     def reset(self) -> None:
         """

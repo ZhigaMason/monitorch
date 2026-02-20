@@ -1,5 +1,7 @@
-from .abstract_gatherer import AbstractGatherer
 from monitorch.preprocessor import AbstractTensorPreprocessor
+
+from .abstract_gatherer import AbstractGatherer
+
 
 class CallParameterGatherer(AbstractGatherer):
     """
@@ -17,11 +19,11 @@ class CallParameterGatherer(AbstractGatherer):
         Name of the module.
     """
 
-    def __init__(self, module, parameter : str, preprocessors : list[AbstractTensorPreprocessor], name : str, inspector_state):
+    def __init__(self, module, parameter: str, preprocessors: list[AbstractTensorPreprocessor], name: str, inspector_state):
         super().__init__(inspector_state)
         self._module = module
-        self._parameter : str = parameter
-        self._name : str = name
+        self._parameter: str = parameter
+        self._name: str = name
         self._preprocessors = preprocessors
 
     @AbstractGatherer.requires_active_inspector_state

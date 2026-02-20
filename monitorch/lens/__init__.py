@@ -18,9 +18,9 @@ Examples
 --------
 >>> from monitorch.inspector import PyTorchInspector
 >>> from monitorch.lens import LossMetrics, ParameterNorm
->>> 
+>>>
 >>> mynet = MyNeuralNetwork()
->>> 
+>>>
 >>> inspector = PyTorchInspector(
 ...     lenses = [
 ...         LossMetrics(),
@@ -29,29 +29,30 @@ Examples
 ...     module = mynet,
 ...     visualizer='tensorboard'
 ... )
->>> 
+>>>
 >>> for epoch in range(N_EPOCHS):
 ...     ... # training-validation loop remains unchanged
 ...     inspector.tick_epoch()
 """
-from .abstract_lens                 import AbstractLens
-from .loss_metrics                  import LossMetrics
-from .output_norm                   import OutputNorm
-from .output_activation             import OutputActivation
-from .parameter_norm                import ParameterNorm
-from .parameter_gradient_geometry   import ParameterGradientGeometry
-from .parameter_update_geometry     import ParameterUpdateGeometry
+
+from .abstract_lens import AbstractLens
+from .loss_metrics import LossMetrics
+from .output_activation import OutputActivation
+from .output_gradient_geometry import OutputGradientGeometry
+from .output_norm import OutputNorm
 from .parameter_gradient_activation import ParameterGradientActivation
-from .output_gradient_geometry      import OutputGradientGeometry
+from .parameter_gradient_geometry import ParameterGradientGeometry
+from .parameter_norm import ParameterNorm
+from .parameter_update_geometry import ParameterUpdateGeometry
 
 __all__ = [
-    "AbstractLens",
-    "LossMetrics",
-    "OutputNorm",
-    "OutputActivation",
-    "ParameterNorm",
-    "ParameterGradientGeometry",
-    "ParameterUpdateGeometry",
-    "ParameterGradientActivation",
-    "OutputGradientGeometry",
+    'AbstractLens',
+    'LossMetrics',
+    'OutputActivation',
+    'OutputGradientGeometry',
+    'OutputNorm',
+    'ParameterGradientActivation',
+    'ParameterGradientGeometry',
+    'ParameterNorm',
+    'ParameterUpdateGeometry',
 ]

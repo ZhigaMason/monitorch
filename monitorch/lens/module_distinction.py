@@ -14,27 +14,61 @@ False
 >>> isconv(nn.Conv2d(1, 1, 1))
 True
 """
-from torch.nn.modules import (
-    Module,
 
+from torch.nn.modules import (
     CELU,
     ELU,
     GELU,
     GLU,
+    SELU,
+    AlphaDropout,
+    BatchNorm1d,
+    BatchNorm2d,
+    BatchNorm3d,
+    Bilinear,
+    Conv1d,
+    Conv2d,
+    Conv3d,
+    ConvTranspose1d,
+    ConvTranspose2d,
+    ConvTranspose3d,
+    Dropout,
+    Dropout1d,
+    Dropout2d,
+    Dropout3d,
+    FeatureAlphaDropout,
     Hardshrink,
     Hardsigmoid,
     Hardswish,
     Hardtanh,
+    Identity,
+    InstanceNorm1d,
+    InstanceNorm2d,
+    InstanceNorm3d,
+    LazyBatchNorm1d,
+    LazyBatchNorm2d,
+    LazyBatchNorm3d,
+    LazyConv1d,
+    LazyConv2d,
+    LazyConv3d,
+    LazyConvTranspose1d,
+    LazyConvTranspose2d,
+    LazyConvTranspose3d,
+    LazyInstanceNorm1d,
+    LazyInstanceNorm2d,
+    LazyInstanceNorm3d,
+    LazyLinear,
     LeakyReLU,
+    Linear,
     LogSigmoid,
     LogSoftmax,
     Mish,
+    Module,
     #     MultiheadAttention,
     PReLU,
     ReLU,
     ReLU6,
     RReLU,
-    SELU,
     Sigmoid,
     SiLU,
     Softmax,
@@ -43,48 +77,10 @@ from torch.nn.modules import (
     Softplus,
     Softshrink,
     Softsign,
+    SyncBatchNorm,
     Tanh,
     Tanhshrink,
     Threshold,
-
-    Bilinear,
-    Identity,
-    LazyLinear,
-    Linear,
-
-    BatchNorm1d,
-    BatchNorm2d,
-    BatchNorm3d,
-    LazyBatchNorm1d,
-    LazyBatchNorm2d,
-    LazyBatchNorm3d,
-    SyncBatchNorm,
-    InstanceNorm1d,
-    InstanceNorm2d,
-    InstanceNorm3d,
-    LazyInstanceNorm1d,
-    LazyInstanceNorm2d,
-    LazyInstanceNorm3d,
-
-    Conv1d,
-    Conv2d,
-    Conv3d,
-    ConvTranspose1d,
-    ConvTranspose2d,
-    ConvTranspose3d,
-    LazyConv1d,
-    LazyConv2d,
-    LazyConv3d,
-    LazyConvTranspose1d,
-    LazyConvTranspose2d,
-    LazyConvTranspose3d,
-
-    AlphaDropout,
-    Dropout,
-    Dropout1d,
-    Dropout2d,
-    Dropout3d,
-    FeatureAlphaDropout,
 )
 
 _DROPOUT = {
@@ -166,7 +162,8 @@ _NORMALIZATION = {
     LazyInstanceNorm3d,
 }
 
-def isactivation(module : Module) -> bool:
+
+def isactivation(module: Module) -> bool:
     """
     Checks if provided module is an activation function module.
     Returns ``False`` for ``torch.nn.MultiheadAttention``.
@@ -178,7 +175,8 @@ def isactivation(module : Module) -> bool:
     """
     return module.__class__ in _ACTIVATION
 
-def isdropout(module : Module) -> bool:
+
+def isdropout(module: Module) -> bool:
     """
     Checks if provided module is a dropout module.
 
@@ -189,7 +187,8 @@ def isdropout(module : Module) -> bool:
     """
     return module.__class__ in _DROPOUT
 
-def islinear(module : Module) -> bool:
+
+def islinear(module: Module) -> bool:
     """
     Checks if provided module is a linear non-convolution module.
 
@@ -200,7 +199,8 @@ def islinear(module : Module) -> bool:
     """
     return module.__class__ in _LINEAR
 
-def isconv(module : Module) -> bool:
+
+def isconv(module: Module) -> bool:
     """
     Checks if provided module is a convolution module.
 
@@ -211,7 +211,8 @@ def isconv(module : Module) -> bool:
     """
     return module.__class__ in _CONV
 
-def isnormalization(module : Module) -> bool:
+
+def isnormalization(module: Module) -> bool:
     """
     Checks if provided module is a normalization module.
 

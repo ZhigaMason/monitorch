@@ -1,11 +1,12 @@
-
-from torch import no_grad, is_grad_enabled
-from torch.linalg import vector_norm
 from math import sqrt
-
 from typing import Any
-from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
+
+from torch import is_grad_enabled, no_grad
+from torch.linalg import vector_norm
+
 from monitorch.numerical import RunningMeanVar
+from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
+
 
 class OutputNorm(AbstractForwardPreprocessor):
     """
@@ -25,14 +26,14 @@ class OutputNorm(AbstractForwardPreprocessor):
         It is expected that validation pass is done without gradient computation.
     """
 
-    def __init__(self, normalize : bool, inplace : bool, record_no_grad : bool):
+    def __init__(self, normalize: bool, inplace: bool, record_no_grad: bool):
         self._normalize = normalize
         self._value = {}
         self._agg_class = RunningMeanVar if inplace else list
         self._agg_class = RunningMeanVar if inplace else list
         self._record_no_grad = record_no_grad
 
-    def process_fw(self, name : str, module, layer_input, layer_output):
+    def process_fw(self, name: str, module, layer_input, layer_output):
         """
         Computes mean output norm.
 
