@@ -1,10 +1,11 @@
-
 from collections import OrderedDict
 from typing import Any
 from math import sqrt
 from torch.linalg import vector_norm
-from monitorch.preprocessor.abstract.abstract_module_preprocessor import AbstractModulePreprocessor
-from monitorch.numerical import RunningMeanVar
+from monitorch.preprocessor.abstract.abstract_module_preprocessor import (
+    AbstractModulePreprocessor,
+)
+from monitorch.numerical import GeometryComputation
 
 
 class ParameterNorm(AbstractModulePreprocessor):
@@ -30,13 +31,14 @@ class ParameterNorm(AbstractModulePreprocessor):
         List of attributes to compute norm for.
     """
 
-    def __init__(self, attrs : list[str], normalize : bool, inplace : bool):
-        self._normalize = normalize
+    def __init__(self, attrs: list[str], normalize: bool, inplace: bool):
+        self._gc_kwargs = dict(
+            normalize=normalize, inplace=inplace, dot_product=False, eps=0.0
+        )
         self.attrs_ = attrs
-        self._value = OrderedDict()
-        self._agg_class = RunningMeanVar if inplace else list
+        self._value: OrderedDict[str, dict[str, GeometryComputation]] = OrderedDict()
 
-    def process_module(self, name : str, module):
+    def process_module(self, name: str, module):
         """
         Computes norms of all :attr:`attrs_`.
 
@@ -45,17 +47,21 @@ class ParameterNorm(AbstractModulePreprocessor):
         """
         d = self._value.setdefault(name, {})
         for attr in self.attrs_:
-            norm = vector_norm(getattr(module, attr)).item()
-            if self._normalize:
-                norm /= sqrt(getattr(module, attr).numel())
-            d.setdefault(attr, self._agg_class() ).append(norm)
+            param = getattr(module, attr)
+            gc = d.setdefault(attr, GeometryComputation(**self._gc_kwargs))
+            gc.update(param)
 
     @property
     def value(self) -> OrderedDict[str, Any]:
         """
         See base class
         """
-        return self._value
+        return OrderedDict(
+            [
+                (name, {attr: d[attr].value for attr in self.attrs_})
+                for name, d in self._value.items()
+            ]
+        )
 
     def reset(self) -> None:
         """
