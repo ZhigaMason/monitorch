@@ -458,12 +458,12 @@ class MatplotlibVisualizer(AbstractVisualizer):
             assert epochs == list(relations.keys()), 'All relations must have same number of epochs recorded'
             val = next(iter(relations.values()))
             first_record.append(val)
-            values = list(relations.values())
+            values.append(list(relations.values()))
         ax.stackplot(epochs, *values, colors=MatplotlibVisualizer._RELATION_COLORS)
         arr = np.array(first_record)
         pos_arr = np.cumsum(arr) - arr / 2
         for pos, rel_name in zip(pos_arr, rel_dict.keys()):
-            ax.text(0, pos, rel_name)
+            ax.text(epochs[0], pos, rel_name)
         min_ = min(epochs)
         max_ = max(epochs)
         ax.set_xticks(np.arange(min_, max_ + 1))

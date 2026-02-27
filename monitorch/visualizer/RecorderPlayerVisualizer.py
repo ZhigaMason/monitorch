@@ -71,9 +71,9 @@ class PlayerVisualizer:
 
     def __init__(self, source_filepath: str, target_visualizer: AbstractVisualizer):
         self.source_filepath = source_filepath
-        self.target = target_visualizer
+        self.visualizer = target_visualizer
 
-    def playback(self):
+    def playback(self) -> 'PlayerVisualizer':
         """
         Iterates through the pickle file and triggers methods on the target visualizer.
         """
@@ -85,13 +85,14 @@ class PlayerVisualizer:
                         method_name = record['method']
                         kwargs = record['kwargs']
 
-                        if not hasattr(self.target, method_name):
+                        if not hasattr(self.visualizer, method_name):
                             print(f"Warning: Target visualizer missing method '{method_name}'")
                             continue
-                        method = getattr(self.target, method_name)
+                        method = getattr(self.visualizer, method_name)
                         method(**kwargs)
 
                     except EOFError:
                         break
+            return self
         except FileNotFoundError:
             print(f'Error: File {self.source_filepath} not found.')
