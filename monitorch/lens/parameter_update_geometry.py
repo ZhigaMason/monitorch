@@ -14,16 +14,20 @@ from .abstract_lens import AbstractLens
 
 class ParameterUpdateGeometry(AbstractLens):
     """
-    Lens to examine geometry of gradients with respect to parameters.
+    Lens to examine geometry of parameter updates.
 
-    Computes L2-norm or root-mean-square of gradients on every backward pass through parameter.
-    Optionally computes normalized inner product between gradients from two consecutive backward passes.
+    Computes L2-norm or root-mean-square of parameter updates on every optimizer step call.
+    Optionally computes normalized inner product between parameter updates between two consecutive updates.
 
-    Computing inner product requires gradients from both epochs, hence the gradient will be saved after the computation is finished.
+    Computing inner product requires parameter update from both epochs, hence the update will be saved after the computation is finished.
     It drives space consumption linearly by size of studied parameters.
 
     Parameters
     ----------
+    optimizer : torch.optim.Optimizer | None
+        Optimizer, its step calls will be used for data collecection. If `None` is provided the lens must
+        explicitly called via :meth:`inspect_update`.
+
     inplace : bool = True
         Flag indicating if computation should be done in-place or in-memory.
 
@@ -34,10 +38,10 @@ class ParameterUpdateGeometry(AbstractLens):
 
     compute_adj_prod : bool = True
         Flag indicating if inner product normalized by L2-norm
-        between gradients from consecutive backward passes hould be computed.
+        between updates from consecutive optimizer steps should be computed.
 
     parameters : str|Iterable[str] = ('weight', 'bias')
-        Parameters which gradient will be studied.
+        Parameters which updates will be studied.
 
     line_aggregation : str|Iterable[str] = 'mean'
         Aggregation method for lines in plots.
@@ -49,9 +53,10 @@ class ParameterUpdateGeometry(AbstractLens):
 
     Default usage is shown below.
 
-    >>> inspector = PyTorchInspector(
+    >>> optimizer = torch.optim.AdamW(mynet.parameters())
+    >>> inspector = pytorchinspector(
     ...     lenses = [
-    ...         ParameterUpdateGeometry(),
+    ...         ParameterUpdateGeometry(optimizer),
     ...     ],
     ...     module = mynet,
     ...     visualizer='matplotlib'
@@ -210,7 +215,7 @@ class ParameterUpdateGeometry(AbstractLens):
         """
         Finaizes computations done through epoch.
 
-        Aggregates parameter gradient norms and optionally inner product according to ``line_aggregation`` and ``range_aggregation``.
+        Aggregates parameter updates' norms and optionally inner product according to ``line_aggregation`` and ``range_aggregation``.
         """
         for parameter_name, preprocessor in self._preprocessors.items():
             line_norm_tag_dict: OrderedDict[str, dict[str, float]] = self._line_data.setdefault(parameter_name, OrderedDict())

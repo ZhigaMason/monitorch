@@ -10,11 +10,11 @@ from monitorch.preprocessor.abstract.abstract_tensor_preprocessor import Abstrac
 
 class ParameterDifferenceGeometry(AbstractTensorPreprocessor):
     """
-    Preprocessor to keep track of parameters evolution with respect to preprocessor calls.
+    Preprocessor to keep track of parameters evolution with respect to preprocessor calls by inspecting it updates.
 
     Main usage is to inspect optimizer update step behaviour.
 
-    Computes (normalized) L2 norm of parameter tensor.
+    Computes (normalized) L2 norm of parameter updates.
     Optionally computes vectorized scalar product between consecutive gradients for further investigation,
     normalized to fit into [-1, 1] range.
 

@@ -7,9 +7,11 @@ from .abstract_gatherer import AbstractGatherer
 
 class OptimizerStepParameterGatherer(AbstractGatherer):
     """
-    Gatherer to hand over whole module object on call.
+    Gatherer to hand over whole module object on optimizer step.
 
-    Keeps a reference of module to pass it on call to preprocessors with name attached.
+    Keeps a reference of module and optimizer to pass it on call to preprocessors with name attached.
+
+    Calling :meth:`detach` does not remove reference to optimizer object.
 
     Parameters
     ----------
