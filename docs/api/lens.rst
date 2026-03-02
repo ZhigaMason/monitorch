@@ -14,5 +14,6 @@ lens
    lens/output_gradient_geometry
    lens/parameter_gradient_geometry
    lens/parameter_gradient_activation
+   lens/parameter_update_geometry
    lens/parameter_norm
    lens/module_distinction
