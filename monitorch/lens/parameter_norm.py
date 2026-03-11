@@ -149,7 +149,7 @@ class ParameterNorm(AbstractLens):
         module_name : str
             Name of the module, module's information will be passed to visaulizer under this name.
         """
-        if not all(hasattr(module, parameter_name) for parameter_name in self._parameters):
+        if not all(hasattr(module, parameter_name) and getattr(module, parameter_name) is not None for parameter_name in self._parameters):
             return
         gatherer = EpochModuleGatherer(module, [self._preprocessor], module_name, inspector_state=inspector_state)
         self._gatherers.append(gatherer)
