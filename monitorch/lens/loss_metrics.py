@@ -299,6 +299,8 @@ class LossMetrics(AbstractLens):
     def _finalize_metrics(self):
         assert self._call_preprocessor is not None
         for metric in self._metrics:
+            if metric not in self._call_preprocessor.value:
+                continue
             raw_val = self._call_preprocessor.value[metric]
             # line aggregation
             for agg_line in self._metrics_line:

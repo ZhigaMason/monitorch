@@ -15,6 +15,7 @@ def generic_lens_test(inspector, module, loss_fn, optimizer):
 
     if isinstance(inspector.visualizer, MatplotlibVisualizer):
         filterwarnings('ignore', message=MatplotlibVisualizer._NO_SMALL_TAGS_WARNING, category=UserWarning)
+        filterwarnings('ignore', message='Empty plot', category=UserWarning)
     train_xor(inspector, module, loss_fn, optimizer, n_dim=N_DIM, n_epochs=N_EPOCHS, push_loss=False)
 
     if isinstance(inspector.visualizer, MatplotlibVisualizer):

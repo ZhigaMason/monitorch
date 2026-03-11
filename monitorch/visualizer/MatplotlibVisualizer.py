@@ -317,8 +317,10 @@ class MatplotlibVisualizer(AbstractVisualizer):
                         MatplotlibVisualizer._plot_probability(ax, values)
                     case TagType.RELATIONS:
                         MatplotlibVisualizer._plot_relations(ax, values)
-                if self._big_tag_attr[tag].annotate:
-                    ax.legend()
+                if self._big_tag_attr[tag].annotate and len(ax.get_children()) > 0:
+                    labels = ax.get_legend_handles_labels()[1]
+                    if labels:
+                        ax.legend()
                 if self._big_tag_attr[tag].ylim is not None:
                     bottom, top = self._big_tag_attr[tag].ylim
                     ax.set_ylim(bottom, top)
@@ -405,10 +407,13 @@ class MatplotlibVisualizer(AbstractVisualizer):
                 ax.plot(values.keys(), values.values(), color=MatplotlibVisualizer._LINE_COLORS[val_name], label=val_name)
             else:
                 ax.plot(values.keys(), values.values(), label=val_name)
-        it = next(iter(val_dict.values())).keys()
-        min_ = min(it)
-        max_ = max(it)
-        ax.set_xticks(np.arange(min_, max_ + 1))
+        try:
+            it = next(iter(val_dict.values())).keys()
+            min_ = min(it)
+            max_ = max(it)
+            ax.set_xticks(np.arange(min_, max_ + 1))
+        except StopIteration:
+            warn('Empty plot')
 
     @staticmethod
     def _plot_probability(ax, prob_dict) -> None:
@@ -432,10 +437,13 @@ class MatplotlibVisualizer(AbstractVisualizer):
                 ax.fill_between(xs, ys, np.zeros_like(xs), alpha=MatplotlibVisualizer._RANGE_ALPHA)
                 ax.plot(xs, ys, label=prob_name)
         ax.set_ylim(0, 1)
-        it = next(iter(prob_dict.values())).keys()
-        min_ = min(it)
-        max_ = max(it)
-        ax.set_xticks(np.arange(min_, max_ + 1))
+        try:
+            it = next(iter(prob_dict.values())).keys()
+            min_ = min(it)
+            max_ = max(it)
+            ax.set_xticks(np.arange(min_, max_ + 1))
+        except StopIteration:
+            warn('Empty plot')
 
     @staticmethod
     def _plot_relations(ax, rel_dict) -> None:
