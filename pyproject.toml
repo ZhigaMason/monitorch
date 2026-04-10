@@ -12,7 +12,7 @@ keywords = [
         "neural networks",
         "gradients"
 ]
-license = "BSD-3-Clause"
+license = "MIT"
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent"
