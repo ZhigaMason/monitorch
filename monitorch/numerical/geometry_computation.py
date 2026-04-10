@@ -10,7 +10,7 @@ class GeometryComputation:
     """
     An object used for geometry calculation.
 
-    Keeps track of norm (RMS) and optionally adjacent dot product.
+    Keeps track of norm (RMS) and optionally correlation between consecutive tensors.
 
     Let :math:`X_1, ..., X_n` be sequence of tensors passed to :meth:`update`.
 
@@ -24,25 +24,25 @@ class GeometryComputation:
         Flag indicating use of :class:`RunningMeanVar`
     normalize : bool
         Flag indicating if norm of tensor should be computed as RMS
-    dot_product : bool
-        Flag indicating computation of adjacent scalar product (correlation), increases memory consumption by storing copy of previous tensor
+    correlation : bool
+        Flag indicating computation of correlation between consecutive tensors, increases memory consumption by storing copy of previous tensor
     eps : float
-        Constant used for numerical stability when diving dot product by norms
+        Constant used for numerical stability when computing correlation
     """
 
-    def __init__(self, inplace: bool, normalize: bool, dot_product: bool, eps: float):
+    def __init__(self, inplace: bool, normalize: bool, correlation: bool, eps: float):
         self.norm = RunningMeanVar() if inplace else list()
         self.eps = eps
         self.normalize = normalize
-        self.dot_product = dot_product
-        if dot_product:
+        self.correlation = correlation
+        if correlation:
             self.prev_norm = 1.0
             self.prev_value = 0
             self.product = RunningMeanVar() if inplace else list()
 
     def update(self, X: torch.Tensor):
         """
-        Performs an update step on norm and optionally product
+        Performs an update step on norm and optionally correlation
 
         Parameters
         ----------
@@ -52,7 +52,7 @@ class GeometryComputation:
         new_norm = torch.linalg.vector_norm(X)
         self.norm.append((new_norm.item() / np.sqrt(X.numel())) if self.normalize else new_norm.item())
 
-        if self.dot_product:
+        if self.correlation:
             new_product = torch.sum(self.prev_value * X) / (self.prev_norm * new_norm + self.eps)
             self.product.append(new_product.item())
             self.prev_norm = new_norm
@@ -66,10 +66,10 @@ class GeometryComputation:
         Returns
         -------
         tuple[`norms`, `products`]
-            if ``dot_product=True``
+            if ``correlation=True``
         `norms`
-            if ``dot_product=False``
+            if ``correlation=False``
         """
-        if self.dot_product:
+        if self.correlation:
             return self.norm, self.product
         return self.norm

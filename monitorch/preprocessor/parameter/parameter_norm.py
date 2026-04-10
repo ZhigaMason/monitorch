@@ -29,7 +29,7 @@ class ParameterNorm(AbstractModulePreprocessor):
     """
 
     def __init__(self, attrs: list[str], normalize: bool, inplace: bool):
-        self._gc_kwargs = dict(normalize=normalize, inplace=inplace, dot_product=False, eps=0.0)
+        self._gc_kwargs = dict(normalize=normalize, inplace=inplace, correlation=False, eps=0.0)
         self.attrs_ = attrs
         self._value: OrderedDict[str, dict[str, GeometryComputation]] = OrderedDict()
 

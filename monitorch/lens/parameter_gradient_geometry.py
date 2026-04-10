@@ -16,9 +16,9 @@ class ParameterGradientGeometry(AbstractLens):
     Lens to examine geometry of gradients with respect to parameters.
 
     Computes L2-norm or root-mean-square of gradients on every backward pass through parameter.
-    Optionally computes normalized inner product between gradients from two consecutive backward passes.
+    Optionally computes correlation between gradients from two consecutive backward passes.
 
-    Computing inner product requires gradients from both epochs, hence the gradient will be saved after the computation is finished.
+    Computing correlation requires gradients from both epochs, hence the gradient will be saved after the computation is finished.
     It drives space consumption linearly by size of studied parameters.
 
     Parameters
@@ -31,9 +31,8 @@ class ParameterGradientGeometry(AbstractLens):
     log_scale : bool = False
         Flag indicating if logarithmic scale should be used.
 
-    compute_adj_prod : bool = True
-        Flag indicating if inner product normalized by L2-norm
-        between gradients from consecutive backward passes hould be computed.
+    compute_correlation : bool = True
+        Flag indicating if correlation between gradients from consecutive backward passes should be computed.
 
     parameters : str|Iterable[str] = ('weight', 'bias')
         Parameters which gradient will be studied.
@@ -74,19 +73,19 @@ class ParameterGradientGeometry(AbstractLens):
         inplace: bool = True,
         normalize_by_size: bool = False,
         log_scale: bool = False,
-        compute_adj_prod: bool = True,
+        compute_correlation: bool = True,
         parameters: str | Iterable[str] = ('weight', 'bias'),
         line_aggregation: str | Iterable[str] = 'mean',
         range_aggregation: str | Iterable[str] | None = ('std', 'min-max'),
     ):
-        self._compute_adj_prod = compute_adj_prod
-        self._preprocessors = OrderedDict([(parameter, GradientGeometry(inplace=inplace, normalize=normalize_by_size, adj_prod=compute_adj_prod)) for parameter in parameters])
+        self._compute_correlation = compute_correlation
+        self._preprocessors = OrderedDict([(parameter, GradientGeometry(inplace=inplace, normalize=normalize_by_size, correlation=compute_correlation)) for parameter in parameters])
         self._gatherers = []
         self._line_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
         self._range_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
-        if self._compute_adj_prod:
-            self._line_adj_prod_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
-            self._range_adj_prod_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
+        if self._compute_correlation:
+            self._line_correlation_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
+            self._range_correlation_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
         self._log_scale = log_scale
 
         self._line_aggregation: Iterable[str] = [line_aggregation] if isinstance(line_aggregation, str) else line_aggregation
@@ -158,9 +157,9 @@ class ParameterGradientGeometry(AbstractLens):
 
         self._line_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
         self._range_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
-        if self._compute_adj_prod:
-            self._line_adj_prod_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
-            self._range_adj_prod_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
+        if self._compute_correlation:
+            self._line_correlation_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
+            self._range_correlation_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
 
     def register_foreign_preprocessor(self, ext_ppr: AbstractPreprocessor, inspector_state):
         """Does not interact with foreign preprocessor."""
@@ -172,7 +171,7 @@ class ParameterGradientGeometry(AbstractLens):
 
         For every parameter listed during initialization creates
         a small numerical plot '#PARAMETER_NAME Gradient Norm' optionally creates
-        a big comparison plot  '#PARAMETER_NAME Gradient Adjacent Prod'.
+        a big comparison plot  '#PARAMETER_NAME Gradient Correlation'.
 
         Parameters
         ----------
@@ -184,9 +183,9 @@ class ParameterGradientGeometry(AbstractLens):
                 f'{parameter_name} Gradient Norm'.title(),
                 TagAttributes(logy=self._log_scale, big_plot=False, annotate=True, type=TagType.NUMERICAL),
             )
-            if self._compute_adj_prod:
+            if self._compute_correlation:
                 vizualizer.register_tags(
-                    f'{parameter_name} Gradient Adjacent Prod'.title(),
+                    f'{parameter_name} Gradient Correlation'.title(),
                     TagAttributes(logy=False, big_plot=False, annotate=True, type=TagType.NUMERICAL, ylim=(1, -1)),
                 )
 
@@ -194,26 +193,26 @@ class ParameterGradientGeometry(AbstractLens):
         """
         Finaizes computations done through epoch.
 
-        Aggregates parameter gradient norms and optionally inner product according to ``line_aggregation`` and ``range_aggregation``.
+        Aggregates parameter gradient norms and optionally correlation according to ``line_aggregation`` and ``range_aggregation``.
         """
         for parameter_name, preprocessor in self._preprocessors.items():
             line_norm_tag_dict: OrderedDict[str, dict[str, float]] = self._line_data.setdefault(parameter_name, OrderedDict())
             range_norm_tag_dict: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = self._range_data.setdefault(parameter_name, OrderedDict())
             line_prod_tag_dict: OrderedDict[str, dict[str, float]]
             range_prod_tag_dict: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]
-            if self._compute_adj_prod:
-                line_prod_tag_dict = self._line_adj_prod_data.setdefault(parameter_name, OrderedDict())
-                range_prod_tag_dict = self._range_adj_prod_data.setdefault(parameter_name, OrderedDict())
+            if self._compute_correlation:
+                line_prod_tag_dict = self._line_correlation_data.setdefault(parameter_name, OrderedDict())
+                range_prod_tag_dict = self._range_correlation_data.setdefault(parameter_name, OrderedDict())
             for module_name, value in preprocessor.value.items():
                 line_norm_dict: dict[str, float] = line_norm_tag_dict.setdefault(module_name, {})
                 range_norm_dict: dict[tuple[str, str], tuple[float, float]] = range_norm_tag_dict.setdefault(module_name, {})
                 line_prod_dict: dict[str, float]
                 range_prod_dict: dict[tuple[str, str], tuple[float, float]]
-                if self._compute_adj_prod:
+                if self._compute_correlation:
                     line_prod_dict = line_prod_tag_dict.setdefault(module_name, {})
                     range_prod_dict = range_prod_tag_dict.setdefault(module_name, {})
 
-                if self._compute_adj_prod:
+                if self._compute_correlation:
                     norm, prod = value
                     for method in self._line_aggregation:
                         line_norm_dict[method] = extract_point(norm, method)
@@ -228,9 +227,9 @@ class ParameterGradientGeometry(AbstractLens):
                         range_norm_dict[parse_range_name(method)] = extract_range(value, method)
             self._line_data[parameter_name] = OrderedDict(reversed(line_norm_tag_dict.items()))
             self._range_data[parameter_name] = OrderedDict(reversed(range_norm_tag_dict.items()))
-            if self._compute_adj_prod:
-                self._line_adj_prod_data[parameter_name] = OrderedDict(reversed(line_prod_tag_dict.items()))
-                self._range_adj_prod_data[parameter_name] = OrderedDict(reversed(range_prod_tag_dict.items()))
+            if self._compute_correlation:
+                self._line_correlation_data[parameter_name] = OrderedDict(reversed(line_prod_tag_dict.items()))
+                self._range_correlation_data[parameter_name] = OrderedDict(reversed(range_prod_tag_dict.items()))
 
     def vizualize(self, vizualizer: AbstractVisualizer, epoch: int):
         """
@@ -246,7 +245,7 @@ class ParameterGradientGeometry(AbstractLens):
                 ('lin2',   {'mean' : 0.6}, {'min' : 0.3, 'max' : 0.7}),
             ])
 
-        Gradient adjacent product dictionary looks the same.
+        Gradient correlation dictionary looks the same.
 
         Parameters
         ----------
@@ -257,8 +256,8 @@ class ParameterGradientGeometry(AbstractLens):
         """
         for parameter_name in self._preprocessors:
             vizualizer.plot_numerical_values(epoch, f'{parameter_name} Gradient Norm'.title(), self._line_data[parameter_name], self._range_data[parameter_name])
-            if self._compute_adj_prod:
-                vizualizer.plot_numerical_values(epoch, f'{parameter_name} Gradient Adjacent Prod'.title(), self._line_adj_prod_data[parameter_name], self._range_adj_prod_data[parameter_name])
+            if self._compute_correlation:
+                vizualizer.plot_numerical_values(epoch, f'{parameter_name} Gradient Correlation'.title(), self._line_correlation_data[parameter_name], self._range_correlation_data[parameter_name])
 
     def reset_epoch(self):
         """

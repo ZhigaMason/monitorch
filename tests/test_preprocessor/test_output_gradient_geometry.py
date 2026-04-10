@@ -37,8 +37,8 @@ def collect_output_grad(grad_list: list):
     ],
 )
 def test_sequence_output_gradient_norm(module, inp_size, normalize, n_iter, seed):
-    oggm = OutputGradientGeometry(adj_prod=True, normalize=normalize, inplace=False)
-    oggr = OutputGradientGeometry(adj_prod=True, normalize=normalize, inplace=True)
+    oggm = OutputGradientGeometry(correlation=True, normalize=normalize, inplace=False)
+    oggr = OutputGradientGeometry(correlation=True, normalize=normalize, inplace=True)
 
     bg = BackwardGatherer(module, [oggm, oggr], 'standalone_test', InspectorState())  # noqa: F841
 

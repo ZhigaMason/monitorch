@@ -17,9 +17,9 @@ class ParameterUpdateGeometry(AbstractLens):
     Lens to examine geometry of parameter updates.
 
     Computes L2-norm or root-mean-square of parameter updates on every optimizer step call.
-    Optionally computes normalized inner product between parameter updates between two consecutive updates.
+    Optionally computes correlation between parameter updates from two consecutive steps.
 
-    Computing inner product requires parameter update from both epochs, hence the update will be saved after the computation is finished.
+    Computing correlation requires parameter update from both epochs, hence the update will be saved after the computation is finished.
     It drives space consumption linearly by size of studied parameters.
 
     Parameters
@@ -36,9 +36,8 @@ class ParameterUpdateGeometry(AbstractLens):
     log_scale : bool = False
         Flag indicating if logarithmic scale should be used.
 
-    compute_adj_prod : bool = True
-        Flag indicating if inner product normalized by L2-norm
-        between updates from consecutive optimizer steps should be computed.
+    compute_correlation : bool = True
+        Flag indicating if correlation between updates from consecutive optimizer steps should be computed.
 
     parameters : str|Iterable[str] = ('weight', 'bias')
         Parameters which updates will be studied.
@@ -81,20 +80,20 @@ class ParameterUpdateGeometry(AbstractLens):
         inplace: bool = True,
         normalize_by_size: bool = False,
         log_scale: bool = False,
-        compute_adj_prod: bool = True,
+        compute_correlation: bool = True,
         parameters: str | Iterable[str] = ('weight', 'bias'),
         line_aggregation: str | Iterable[str] = 'mean',
         range_aggregation: str | Iterable[str] | None = ('std', 'min-max'),
     ):
         self.optimizer: Optimizer | None = optimizer
-        self._compute_adj_prod = compute_adj_prod
-        self._preprocessors = OrderedDict([(parameter, ParameterDifferenceGeometry(inplace=inplace, normalize=normalize_by_size, adj_prod=compute_adj_prod)) for parameter in parameters])
+        self._compute_correlation = compute_correlation
+        self._preprocessors = OrderedDict([(parameter, ParameterDifferenceGeometry(inplace=inplace, normalize=normalize_by_size, correlation=compute_correlation)) for parameter in parameters])
         self._gatherers: list[AbstractGatherer] = []
         self._line_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
         self._range_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
-        if self._compute_adj_prod:
-            self._line_adj_prod_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
-            self._range_adj_prod_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
+        if self._compute_correlation:
+            self._line_correlation_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
+            self._range_correlation_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
         self._log_scale = log_scale
 
         self._line_aggregation: Iterable[str] = [line_aggregation] if isinstance(line_aggregation, str) else line_aggregation
@@ -179,9 +178,9 @@ class ParameterUpdateGeometry(AbstractLens):
 
         self._line_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
         self._range_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
-        if self._compute_adj_prod:
-            self._line_adj_prod_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
-            self._range_adj_prod_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
+        if self._compute_correlation:
+            self._line_correlation_data: dict[str, OrderedDict[str, dict[str, float]]] = {}
+            self._range_correlation_data: dict[str, OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]] = {}
 
     def register_foreign_preprocessor(self, ext_ppr: AbstractPreprocessor, inspector_state):
         """Does not interact with foreign preprocessor."""
@@ -193,7 +192,7 @@ class ParameterUpdateGeometry(AbstractLens):
 
         For every parameter listed during initialization creates
         a small numerical plot '#PARAMETER_NAME Update Norm' optionally creates
-        a big comparison plot  '#PARAMETER_NAME Update Adjacent Prod'.
+        a big comparison plot  '#PARAMETER_NAME Update Correlation'.
 
         Parameters
         ----------
@@ -205,9 +204,9 @@ class ParameterUpdateGeometry(AbstractLens):
                 f'{parameter_name} Update Norm'.title(),
                 TagAttributes(logy=self._log_scale, big_plot=False, annotate=True, type=TagType.NUMERICAL),
             )
-            if self._compute_adj_prod:
+            if self._compute_correlation:
                 vizualizer.register_tags(
-                    f'{parameter_name} Update Adjacent Prod'.title(),
+                    f'{parameter_name} Update Correlation'.title(),
                     TagAttributes(logy=False, big_plot=False, annotate=True, type=TagType.NUMERICAL, ylim=(1, -1)),
                 )
 
@@ -215,26 +214,26 @@ class ParameterUpdateGeometry(AbstractLens):
         """
         Finaizes computations done through epoch.
 
-        Aggregates parameter updates' norms and optionally inner product according to ``line_aggregation`` and ``range_aggregation``.
+        Aggregates parameter updates' norms and optionally correlation according to ``line_aggregation`` and ``range_aggregation``.
         """
         for parameter_name, preprocessor in self._preprocessors.items():
             line_norm_tag_dict: OrderedDict[str, dict[str, float]] = self._line_data.setdefault(parameter_name, OrderedDict())
             range_norm_tag_dict: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = self._range_data.setdefault(parameter_name, OrderedDict())
             line_prod_tag_dict: OrderedDict[str, dict[str, float]]
             range_prod_tag_dict: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]]
-            if self._compute_adj_prod:
-                line_prod_tag_dict = self._line_adj_prod_data.setdefault(parameter_name, OrderedDict())
-                range_prod_tag_dict = self._range_adj_prod_data.setdefault(parameter_name, OrderedDict())
+            if self._compute_correlation:
+                line_prod_tag_dict = self._line_correlation_data.setdefault(parameter_name, OrderedDict())
+                range_prod_tag_dict = self._range_correlation_data.setdefault(parameter_name, OrderedDict())
             for module_name, value in preprocessor.value.items():
                 line_norm_dict: dict[str, float] = line_norm_tag_dict.setdefault(module_name, {})
                 range_norm_dict: dict[tuple[str, str], tuple[float, float]] = range_norm_tag_dict.setdefault(module_name, {})
                 line_prod_dict: dict[str, float]
                 range_prod_dict: dict[tuple[str, str], tuple[float, float]]
-                if self._compute_adj_prod:
+                if self._compute_correlation:
                     line_prod_dict = line_prod_tag_dict.setdefault(module_name, {})
                     range_prod_dict = range_prod_tag_dict.setdefault(module_name, {})
 
-                if self._compute_adj_prod:
+                if self._compute_correlation:
                     norm, prod = value
                     for method in self._line_aggregation:
                         line_norm_dict[method] = extract_point(norm, method)
@@ -249,9 +248,9 @@ class ParameterUpdateGeometry(AbstractLens):
                         range_norm_dict[parse_range_name(method)] = extract_range(value, method)
             self._line_data[parameter_name] = OrderedDict(reversed(line_norm_tag_dict.items()))
             self._range_data[parameter_name] = OrderedDict(reversed(range_norm_tag_dict.items()))
-            if self._compute_adj_prod:
-                self._line_adj_prod_data[parameter_name] = OrderedDict(reversed(line_prod_tag_dict.items()))
-                self._range_adj_prod_data[parameter_name] = OrderedDict(reversed(range_prod_tag_dict.items()))
+            if self._compute_correlation:
+                self._line_correlation_data[parameter_name] = OrderedDict(reversed(line_prod_tag_dict.items()))
+                self._range_correlation_data[parameter_name] = OrderedDict(reversed(range_prod_tag_dict.items()))
 
     def vizualize(self, vizualizer: AbstractVisualizer, epoch: int):
         """
@@ -267,7 +266,7 @@ class ParameterUpdateGeometry(AbstractLens):
                 ('lin2',   {'mean' : 0.6}, {'min' : 0.3, 'max' : 0.7}),
             ])
 
-        Update adjacent product dictionary looks the same.
+        Update correlation dictionary looks the same.
 
         Parameters
         ----------
@@ -278,8 +277,8 @@ class ParameterUpdateGeometry(AbstractLens):
         """
         for parameter_name in self._preprocessors:
             vizualizer.plot_numerical_values(epoch, f'{parameter_name} Update Norm'.title(), self._line_data[parameter_name], self._range_data[parameter_name])
-            if self._compute_adj_prod:
-                vizualizer.plot_numerical_values(epoch, f'{parameter_name} Update Adjacent Prod'.title(), self._line_adj_prod_data[parameter_name], self._range_adj_prod_data[parameter_name])
+            if self._compute_correlation:
+                vizualizer.plot_numerical_values(epoch, f'{parameter_name} Update Correlation'.title(), self._line_correlation_data[parameter_name], self._range_correlation_data[parameter_name])
 
     def reset_epoch(self):
         """

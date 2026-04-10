@@ -37,10 +37,10 @@ def replace_grad(tensor):
     ],
 )
 def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
-    wggm = GradientGeometry(adj_prod=False, normalize=normalize, inplace=False)
-    wggr = GradientGeometry(adj_prod=False, normalize=normalize, inplace=True)
-    bggm = GradientGeometry(adj_prod=False, normalize=normalize, inplace=False)
-    bggr = GradientGeometry(adj_prod=False, normalize=normalize, inplace=True)
+    wggm = GradientGeometry(correlation=False, normalize=normalize, inplace=False)
+    wggr = GradientGeometry(correlation=False, normalize=normalize, inplace=True)
+    bggm = GradientGeometry(correlation=False, normalize=normalize, inplace=False)
+    bggr = GradientGeometry(correlation=False, normalize=normalize, inplace=True)
 
     module.weight.register_post_accumulate_grad_hook(replace_grad(grad_w))
     module.bias.register_post_accumulate_grad_hook(replace_grad(grad_b))
@@ -91,10 +91,10 @@ def test_artificial_gradient_norm(module, inp_size, grad_w, grad_b, normalize):
     ],
 )
 def test_sequence_gradient_norm(module, inp_size, normalize, n_iter, seed):
-    wggm = GradientGeometry(adj_prod=True, normalize=normalize, inplace=False)
-    wggr = GradientGeometry(adj_prod=True, normalize=normalize, inplace=True)
-    bggm = GradientGeometry(adj_prod=True, normalize=normalize, inplace=False)
-    bggr = GradientGeometry(adj_prod=True, normalize=normalize, inplace=True)
+    wggm = GradientGeometry(correlation=True, normalize=normalize, inplace=False)
+    wggr = GradientGeometry(correlation=True, normalize=normalize, inplace=True)
+    bggm = GradientGeometry(correlation=True, normalize=normalize, inplace=False)
+    bggr = GradientGeometry(correlation=True, normalize=normalize, inplace=True)
 
     state = InspectorState()
 

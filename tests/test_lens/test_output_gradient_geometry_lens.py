@@ -26,12 +26,12 @@ from monitorch.lens import OutputGradientGeometry
         (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'matplotlib', {'inplace': False}),
         (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'tensorboard', {'inplace': False}),
         (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'print', {'inplace': False}),
-        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'matplotlib', {'compute_adj_prod': False}),
-        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'tensorboard', {'compute_adj_prod': False}),
-        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'print', {'compute_adj_prod': False}),
-        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'matplotlib', {'compute_adj_prod': False, 'inplace': False}),
-        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'tensorboard', {'compute_adj_prod': False, 'inplace': False}),
-        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'print', {'compute_adj_prod': False, 'inplace': False}),
+        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'matplotlib', {'compute_correlation': False}),
+        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'tensorboard', {'compute_correlation': False}),
+        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'print', {'compute_correlation': False}),
+        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'matplotlib', {'compute_correlation': False, 'inplace': False}),
+        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'tensorboard', {'compute_correlation': False, 'inplace': False}),
+        (nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, 1), nn.Sigmoid()), nn.BCELoss(), 'print', {'compute_correlation': False, 'inplace': False}),
     ],
 )
 def test_output_gradient_geometry(module, loss_fn, visualizer, lens_kwargs):

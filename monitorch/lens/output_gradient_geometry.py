@@ -18,9 +18,9 @@ class OutputGradientGeometry(AbstractLens):
     Lens to examine geometry of gradients with respect to layer outputs.
 
     Computes L2-norm or root-mean-square of gradients on every backward pass through layer.
-    Optionally computes normalized inner product between gradients from two consecutive backward passes.
+    Optionally computes correlation between gradients from two consecutive backward passes.
 
-    Computing inner product requires gradients from both epochs, hence the gradient will be saved after the computation is finished.
+    Computing correlation requires gradients from both epochs, hence the gradient will be saved after the computation is finished.
     It drives space consumption linearly by size of studied outputs.
 
     Parameters
@@ -33,9 +33,8 @@ class OutputGradientGeometry(AbstractLens):
     log_scale : bool = False
         Flag indicating if logarithmic scale should be used.
 
-    compute_adj_prod : bool = True
-        Flag indicating if inner product normalized by L2-norm
-        between gradients from consecutive backward passes hould be computed.
+    compute_correlation : bool = True
+        Flag indicating if correlation between gradients from consecutive backward passes should be computed.
 
     skip_activation : bool = True
         Flag indicating if lens should NOT register activation layers.
@@ -72,27 +71,27 @@ class OutputGradientGeometry(AbstractLens):
     """
 
     _SMALL_NORM_TAG_NAME = 'Output Gradient Norm'
-    _SMALL_PROD_TAG_NAME = 'Output Gradient Adj Prod'
+    _SMALL_PROD_TAG_NAME = 'Output Gradient Correlation'
 
     def __init__(
         self,
         inplace: bool = True,
         normalize_by_size: bool = False,
         log_scale: bool = False,
-        compute_adj_prod: bool = True,
+        compute_correlation: bool = True,
         skip_activation: bool = True,
         line_aggregation: str | Iterable[str] = 'mean',
         range_aggregation: str | Iterable[str] | None = ('std', 'min-max'),
     ):
-        self._compute_adj_prod = compute_adj_prod
+        self._compute_correlation = compute_correlation
         self._skip_activation = skip_activation
-        self._preprocessor = OutputGradientGeometryPreprocessor(inplace=inplace, normalize=normalize_by_size, adj_prod=compute_adj_prod)
+        self._preprocessor = OutputGradientGeometryPreprocessor(inplace=inplace, normalize=normalize_by_size, correlation=compute_correlation)
         self._gatherers = []
         self._line_data: OrderedDict[str, dict[str, float]] = OrderedDict()
         self._range_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
-        if self._compute_adj_prod:
-            self._line_adj_prod_data: OrderedDict[str, dict[str, float]] = OrderedDict()
-            self._range_adj_prod_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+        if self._compute_correlation:
+            self._line_correlation_data: OrderedDict[str, dict[str, float]] = OrderedDict()
+            self._range_correlation_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
         self._log_scale = log_scale
 
         self._line_aggregation: Iterable[str] = [line_aggregation] if isinstance(line_aggregation, str) else line_aggregation
@@ -136,9 +135,9 @@ class OutputGradientGeometry(AbstractLens):
 
         self._line_data: OrderedDict[str, dict[str, float]] = OrderedDict()
         self._range_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
-        if self._compute_adj_prod:
-            self._line_adj_prod_data: OrderedDict[str, dict[str, float]] = OrderedDict()
-            self._range_adj_prod_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
+        if self._compute_correlation:
+            self._line_correlation_data: OrderedDict[str, dict[str, float]] = OrderedDict()
+            self._range_correlation_data: OrderedDict[str, dict[tuple[str, str], tuple[float, float]]] = OrderedDict()
 
     def register_foreign_preprocessor(self, ext_ppr: AbstractPreprocessor, inspector_state):
         """Does not interact with foreign preprocessor."""
@@ -149,7 +148,7 @@ class OutputGradientGeometry(AbstractLens):
         Introduces lens's plots to visualizer.
 
         Registers a small numerical plot 'Output Gradient Norm' and
-        optionally registers a small numerical plot 'Output Gradient Adj Product'.
+        optionally registers a small numerical plot 'Output Gradient Correlation'.
 
         Parameters
         ----------
@@ -160,7 +159,7 @@ class OutputGradientGeometry(AbstractLens):
             OutputGradientGeometry._SMALL_NORM_TAG_NAME,
             TagAttributes(logy=self._log_scale, big_plot=False, annotate=True, type=TagType.NUMERICAL),
         )
-        if self._compute_adj_prod:
+        if self._compute_correlation:
             vizualizer.register_tags(
                 OutputGradientGeometry._SMALL_PROD_TAG_NAME,
                 TagAttributes(logy=False, big_plot=False, annotate=True, type=TagType.NUMERICAL),
@@ -170,18 +169,18 @@ class OutputGradientGeometry(AbstractLens):
         """
         Finaizes computations done through epoch.
 
-        Aggregates output gradient norms and optionally inner product according to ``line_aggregation`` and ``range_aggregation``.
+        Aggregates output gradient norms and optionally correlation according to ``line_aggregation`` and ``range_aggregation``.
         """
         for module_name, value in self._preprocessor.value.items():
             line_norm_dict: dict[str, float] = self._line_data.setdefault(module_name, {})
             range_norm_dict: dict[tuple[str, str], tuple[float, float]] = self._range_data.setdefault(module_name, {})
             line_prod_dict: dict[str, float]
             range_prod_dict: dict[tuple[str, str], tuple[float, float]]
-            if self._compute_adj_prod:
-                line_prod_dict = self._line_adj_prod_data.setdefault(module_name, {})
-                range_prod_dict = self._range_adj_prod_data.setdefault(module_name, {})
+            if self._compute_correlation:
+                line_prod_dict = self._line_correlation_data.setdefault(module_name, {})
+                range_prod_dict = self._range_correlation_data.setdefault(module_name, {})
 
-            if self._compute_adj_prod:
+            if self._compute_correlation:
                 norm, prod = value
                 for method in self._line_aggregation:
                     line_norm_dict[method] = extract_point(norm, method)
@@ -196,9 +195,9 @@ class OutputGradientGeometry(AbstractLens):
                     range_norm_dict[parse_range_name(method)] = extract_range(value, method)
         self._line_data = OrderedDict(reversed(self._line_data.items()))
         self._range_data = OrderedDict(reversed(self._range_data.items()))
-        if self._compute_adj_prod:
-            self._line_adj_prod_data = OrderedDict(reversed(self._line_adj_prod_data.items()))
-            self._range_adj_prod_data = OrderedDict(reversed(self._range_adj_prod_data.items()))
+        if self._compute_correlation:
+            self._line_correlation_data = OrderedDict(reversed(self._line_correlation_data.items()))
+            self._range_correlation_data = OrderedDict(reversed(self._range_correlation_data.items()))
 
     def vizualize(self, vizualizer: AbstractVisualizer, epoch: int):
         """
@@ -214,7 +213,7 @@ class OutputGradientGeometry(AbstractLens):
                 ('relu1',   {'mean' : 0.6}, {'min' : 0.3, 'max' : 0.7}),
             ])
 
-        Gradient adjacent product dictionary looks the same.
+        Gradient correlation dictionary looks the same.
 
         Parameters
         ----------
@@ -224,8 +223,8 @@ class OutputGradientGeometry(AbstractLens):
             Computation's epoch number.
         """
         vizualizer.plot_numerical_values(epoch, OutputGradientGeometry._SMALL_NORM_TAG_NAME, self._line_data, self._range_data)
-        if self._compute_adj_prod:
-            vizualizer.plot_numerical_values(epoch, OutputGradientGeometry._SMALL_PROD_TAG_NAME, self._line_adj_prod_data, self._range_adj_prod_data)
+        if self._compute_correlation:
+            vizualizer.plot_numerical_values(epoch, OutputGradientGeometry._SMALL_PROD_TAG_NAME, self._line_correlation_data, self._range_correlation_data)
 
     def reset_epoch(self):
         """

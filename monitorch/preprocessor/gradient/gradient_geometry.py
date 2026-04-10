@@ -10,23 +10,23 @@ class GradientGeometry(AbstractTensorPreprocessor):
     Preprocessor to keep track of parameters' gradients.
 
     Computes (normalized) L2 norm of gradient tensor.
-    Optionally computes vectorized scalar product between consecutive gradients for further gradient oscilations investigation,
+    Optionally computes correlation between consecutive gradients for further gradient oscilations investigation,
     normalized to fit into [-1, 1] range.
 
     Parameters
     ----------
-    adj_prod : bool
-        Indicator if adjacent scalar product must be computed.
+    correlation : bool
+        Indicator if correlation must be computed.
     normalize : bool
         Indicator if gradient norm should be divided by square root of number of elements.
     inplace : bool
         Flag indicating whether to collect data inplace using :class:`RunningMeanVar` or to stack them into a list.
     """
 
-    def __init__(self, adj_prod: bool, normalize: bool, inplace: bool, eps: float = 1e-8):
+    def __init__(self, correlation: bool, normalize: bool, inplace: bool, eps: float = 1e-8):
         self._gc_kwargs: dict[str, bool] = dict(
             normalize=normalize,
-            dot_product=adj_prod,
+            correlation=correlation,
             inplace=inplace,
         )
         self._eps = eps
@@ -34,7 +34,7 @@ class GradientGeometry(AbstractTensorPreprocessor):
 
     def process_tensor(self, name: str, grad) -> None:
         """
-        Computes (normalized) L2 norm and optionally scalar product with previous gradient.
+        Computes (normalized) L2 norm and optionally correlation with previous gradient.
 
         The first gradient is taken to be 0.0 with norm 1.0.
 

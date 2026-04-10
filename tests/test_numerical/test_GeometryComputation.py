@@ -104,8 +104,8 @@ from monitorch.numerical import GeometryComputation
 )
 def test_geometry_computation(tensors, normalize):
     eps = 1e-8
-    gc_inmemory = GeometryComputation(dot_product=True, inplace=False, normalize=normalize, eps=eps)
-    gc_inplace = GeometryComputation(dot_product=True, inplace=True, normalize=normalize, eps=eps)
+    gc_inmemory = GeometryComputation(correlation=True, inplace=False, normalize=normalize, eps=eps)
+    gc_inplace = GeometryComputation(correlation=True, inplace=True, normalize=normalize, eps=eps)
     norm_list = []
     prod_list = []
     prev_tensor = 0
@@ -140,8 +140,8 @@ def test_geometry_computation(tensors, normalize):
 
 
 def test_geometry_computation_interface():
-    gc_norm = GeometryComputation(dot_product=False, inplace=True, eps=0, normalize=True)
-    gc_prod = GeometryComputation(dot_product=True, inplace=True, eps=0, normalize=True)
+    gc_norm = GeometryComputation(correlation=False, inplace=True, eps=0, normalize=True)
+    gc_prod = GeometryComputation(correlation=True, inplace=True, eps=0, normalize=True)
     t = torch.Tensor([1.0, 1.0, 1.0])
     gc_norm.update(t)
     gc_norm.update(t)
