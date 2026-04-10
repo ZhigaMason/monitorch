@@ -29,7 +29,7 @@ class PyTorchInspector:
     lenses : list[AbstractLens]
         List of objects from :mod:`monitorch.lens`, used to collect and plot data.
 
-    visualizer : str|AbstractVisualizer = 'matplotlib'
+    visualizer : str|AbstractVisualizer = 'print'
         Visualizer to draw plots, must be either a visualizer object from :mod:`monitorch.visualizer`
         or a string ``'matplotlib'``, ``'tensorboard'`` or ``'print'``.
     module : None|torch.nn.Module = None
@@ -112,7 +112,7 @@ class PyTorchInspector:
         self,
         lenses: list[AbstractLens],
         *,
-        visualizer: str | AbstractVisualizer = 'matplotlib',
+        visualizer: str | AbstractVisualizer = 'print',
         module: None | Module = None,
         depth: int = -1,
         module_name_prefix: str = '.',
