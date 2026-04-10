@@ -1,10 +1,17 @@
 from collections import OrderedDict as odict
 from warnings import warn
 
-import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.figure import Figure, SubFigure
-from matplotlib.gridspec import GridSpec
+try:
+    import numpy as np
+    from matplotlib import pyplot as plt
+    from matplotlib.figure import Figure, SubFigure
+    from matplotlib.gridspec import GridSpec
+except ImportError as e:
+    raise ImportError(
+        "MatplotlibVisualizer requires 'matplotlib' to be installed. "
+        "Install it with: pip install 'monitorch[matplotlib]'"
+    ) from e
+
 from typing_extensions import Self
 
 from .AbstractVisualizer import AbstractVisualizer, TagAttributes, TagType

@@ -18,12 +18,38 @@ Examples
 """
 
 from .AbstractVisualizer import AbstractVisualizer, TagAttributes, TagType
-from .MatplotlibVisualizer import MatplotlibVisualizer
 from .PrintVisualizer import PrintVisualizer
 from .RecorderPlayerVisualizer import PlayerVisualizer, RecorderVisualizer
-from .TensorBoardVisualizer import TensorBoardVisualizer
 
-_vizualizer_dict: dict[str, type[AbstractVisualizer]] = {'print': PrintVisualizer, 'tensorboard': TensorBoardVisualizer, 'matplotlib': MatplotlibVisualizer}
+_vizualizer_dict: dict[str, type[AbstractVisualizer]] = {'print': PrintVisualizer}
+
+try:
+    from .MatplotlibVisualizer import MatplotlibVisualizer
+    _vizualizer_dict['matplotlib'] = MatplotlibVisualizer
+except ImportError:
+    pass
+
+try:
+    from .TensorBoardVisualizer import TensorBoardVisualizer
+    _vizualizer_dict['tensorboard'] = TensorBoardVisualizer
+except ImportError:
+    pass
+
+_OPTIONAL_DEPS = {
+    'MatplotlibVisualizer': 'matplotlib',
+    'TensorBoardVisualizer': 'tensorboard',
+}
+
+
+def __getattr__(name: str):
+    if name in _OPTIONAL_DEPS:
+        dep = _OPTIONAL_DEPS[name]
+        raise ImportError(
+            f"{name} requires '{dep}' to be installed. "
+            f"Install it with: pip install 'monitorch[{dep}]'"
+        )
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     'AbstractVisualizer',

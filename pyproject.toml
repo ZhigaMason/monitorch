@@ -21,6 +21,16 @@ requires-python = ">=3.10"
 
 dependencies = [
   "torch>=2.0.0",
+]
+
+[project.optional-dependencies]
+matplotlib = [
+  "matplotlib>=3.10.0",
+]
+tensorboard = [
+  "tensorboard>=2.19.0",
+]
+dev = [
   "matplotlib>=3.10.0",
   "tensorboard>=2.19.0",
   "sphinx>=8.1.3",

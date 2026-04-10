@@ -5,7 +5,7 @@ from typing_extensions import Self
 
 from monitorch.lens import AbstractLens
 from monitorch.preprocessor import ExplicitCall
-from monitorch.visualizer import AbstractVisualizer, MatplotlibVisualizer, _vizualizer_dict
+from monitorch.visualizer import AbstractVisualizer, _vizualizer_dict
 
 from .inspector_state import InspectorState
 
@@ -185,7 +185,7 @@ class PyTorchInspector:
         self._call_preprocessor.reset()
         for lens in self.lenses:
             lens.detach_from_module()
-        if isinstance(self.visualizer, MatplotlibVisualizer):
+        if hasattr(self.visualizer, 'reset_fig'):
             self.visualizer.reset_fig()
         self.state.attached = False
         return self

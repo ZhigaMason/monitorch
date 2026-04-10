@@ -2,7 +2,13 @@ import os
 import re
 from collections import OrderedDict as odict
 
-from torch.utils.tensorboard import SummaryWriter
+try:
+    from torch.utils.tensorboard import SummaryWriter
+except ImportError as e:
+    raise ImportError(
+        "TensorBoardVisualizer requires 'tensorboard' to be installed. "
+        "Install it with: pip install 'monitorch[tensorboard]'"
+    ) from e
 
 from .AbstractVisualizer import AbstractVisualizer, TagAttributes
 
