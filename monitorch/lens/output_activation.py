@@ -45,6 +45,11 @@ class OutputActivation(AbstractLens):
         Layer types to exclude from expection.
         Overrides all settings.
 
+    channel_last : bool = False
+        If ``True``, expects layer outputs in ``[batch, seq_len, ..., features]`` format where the
+        feature/channel dimension is last (e.g. transformer outputs). If ``False`` (default), expects
+        PyTorch's standard ``[batch, features, spatial_dims, ...]`` format.
+
     warning_plot : bool = True
         Flag indicating if big warning plot should be added.
 
@@ -95,6 +100,7 @@ class OutputActivation(AbstractLens):
         dropout: bool = True,
         include: Iterable[type[Module]] = tuple(),
         exclude: Iterable[type[Module]] = tuple(),
+        channel_last: bool = False,
         warning_plot: bool = True,
         activation_aggregation: str = 'mean',
         death_aggregation: str = 'mean',
@@ -105,6 +111,7 @@ class OutputActivation(AbstractLens):
             death=True,
             inplace=inplace,
             record_no_grad=not skip_no_grad_pass,
+            channel_last=channel_last,
         )
         self._data: OrderedDict[str, dict[str, float]] = OrderedDict()
 

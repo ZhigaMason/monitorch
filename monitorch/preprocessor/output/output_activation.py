@@ -27,15 +27,20 @@ class OutputActivation(AbstractForwardPreprocessor):
         It is expected that validation pass is done without gradient computation.
     eps : float
         Numerical constant under which value is regarded as a zero.
+    channel_last : bool
+        If ``True``, expects data in ``[batch, seq_len, ..., features]`` format where the feature/channel
+        dimension is last (e.g. transformer outputs). If ``False`` (default), expects PyTorch's standard
+        ``[batch, features, spatial_dims, ...]`` format.
     """
 
-    def __init__(self, death: bool, inplace: bool, record_no_grad: bool, eps: float = 1e-8):
+    def __init__(self, death: bool, inplace: bool, record_no_grad: bool, eps: float = 1e-8, channel_last: bool = False):
         self._death = death
         self._value = {}  # Either name -> activation or name -> (activation, death_tensor)
         self._thresholds: dict[str, tuple[float, float]] = {}
         self._agg_class = RunningMeanVar if inplace else list
         self._record_no_grad = record_no_grad
         self._eps = eps
+        self._channel_last = channel_last
 
     def process_fw(self, name: str, module, layer_input, layer_output) -> None:
         """
@@ -67,6 +72,8 @@ class OutputActivation(AbstractForwardPreprocessor):
         new_activation_rate: Tensor
         with no_grad():
             new_activation_tensor = tabs(layer_output) > self._eps
+            if self._channel_last:
+                new_activation_tensor = new_activation_tensor.movedim(-1, 1)
             new_activation_rate = reduce_activation_to_activation_rates(new_activation_tensor, batch=True)
 
         if self._death:

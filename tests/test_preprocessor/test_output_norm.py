@@ -55,6 +55,44 @@ def test_sequence_output_norm(module, inp_size, normalize, n_iter, seed):
 
 
 @pytest.mark.parametrize(
+    ['inp_size', 'normalize', 'n_iter', 'seed'],
+    [
+        ((32, 10, 5), False, 100, 0),
+        ((32, 10, 5), True, 100, 0),
+        ((32, 10, 5), False, 100, 42),
+        ((32, 7, 4, 5), False, 100, 0),
+        ((32, 7, 4, 5), True, 100, 42),
+    ],
+)
+def test_channel_last_output_norm(inp_size, normalize, n_iter, seed):
+    # channel_last format is [batch, seq_len, ..., features]; the norm computation
+    # (flatten all non-batch dims, take L2 norm) is equivalent to channel_first.
+    module = nn.Identity()
+    onm = OutputNorm(normalize=normalize, inplace=False, record_no_grad=False, channel_last=True)
+    onr = OutputNorm(normalize=normalize, inplace=True, record_no_grad=False, channel_last=True)
+
+    ffg = FeedForwardGatherer(module, [onm, onr], 'standalone_test', InspectorState())  # noqa: F841
+
+    x = torch.zeros(*inp_size)
+    norms = []
+
+    torch.manual_seed(seed)
+    for _ in range(n_iter):
+        x.cauchy_()
+        y = module(x)
+
+        norm = vector_norm(y.flatten(1, -1), dim=-1).mean().item()
+        if normalize:
+            norm /= sqrt(y[0].numel())
+
+        assert np.isclose(norm, onm.value['standalone_test'][-1])
+        norms.append(norm)
+
+    rmv = onr.value['standalone_test']
+    assert np.isclose([np.mean(norms), np.var(norms), np.min(norms), np.max(norms)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()
+
+
+@pytest.mark.parametrize(
     ['module', 'inp_size', 'record_no_grad'],
     [
         (nn.Linear(10, 5), (32, 10), False),

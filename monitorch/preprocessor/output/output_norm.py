@@ -24,14 +24,19 @@ class OutputNorm(AbstractForwardPreprocessor):
     record_no_grad : bool
         Indicator if outputs made with ``torch.no_grad`` must be preprocessed.
         It is expected that validation pass is done without gradient computation.
+    channel_last : bool
+        If ``True``, expects data in ``[batch, seq_len, ..., features]`` format where the feature/channel
+        dimension is last (e.g. transformer outputs). If ``False`` (default), expects PyTorch's standard
+        ``[batch, features, spatial_dims, ...]`` format. The norm computation is equivalent in both cases
+        since all non-batch dimensions are flattened before computing the L2 norm.
     """
 
-    def __init__(self, normalize: bool, inplace: bool, record_no_grad: bool):
+    def __init__(self, normalize: bool, inplace: bool, record_no_grad: bool, channel_last: bool = False):
         self._normalize = normalize
         self._value = {}
         self._agg_class = RunningMeanVar if inplace else list
-        self._agg_class = RunningMeanVar if inplace else list
         self._record_no_grad = record_no_grad
+        self._channel_last = channel_last
 
     def process_fw(self, name: str, module, layer_input, layer_output):
         """

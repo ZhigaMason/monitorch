@@ -144,6 +144,50 @@ def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, i
 
 
 @pytest.mark.parametrize(
+    ['module', 'activation_tensor_func', 'n_iter', 'inp_size', 'seed'],
+    [
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (32, 10, 100), 0),
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (32, 10, 100), 42),
+        (nn.Mish(), lambda y: y.abs() > 1e-8, 50, (32, 10, 100), 0),
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (32, 5, 4, 100), 0),
+        (nn.ReLU(), lambda y: y.abs() > 1e-8, 50, (32, 5, 4, 100), 42),
+    ],
+)
+def test_channel_last_death_activation(module, activation_tensor_func, n_iter, inp_size, seed):
+    oam = OutputActivation(death=True, inplace=False, record_no_grad=False, channel_last=True)
+    oar = OutputActivation(death=True, inplace=True, record_no_grad=False, channel_last=True)
+    state = InspectorState()
+    ffg = FeedForwardGatherer(  # noqa: F841
+        module,
+        [oam, oar],
+        'standalone_test',
+        state,
+    )
+
+    x = torch.rand(*inp_size)
+    activations = []
+    deathes = []
+
+    torch.manual_seed(seed)
+    for _ in range(n_iter):
+        x.cauchy_()
+        y = module(x)
+        activation_tensor = activation_tensor_func(y)
+        # channel_last: features are last dim; average over all (batch, seq...) dims
+        spatial_dims = tuple(range(len(activation_tensor.shape) - 1))
+        new_activations = activation_tensor.float().mean(dim=spatial_dims)  # [features]
+        activations.append(new_activations.mean(dtype=torch.float32))
+        deathes.append((new_activations == 0).float().mean())
+
+    assert np.allclose(activations, oam.value['standalone_test'][0])
+    assert np.allclose(deathes, oam.value['standalone_test'][1])
+    rmv = oar.value['standalone_test'][0]
+    assert np.isclose([np.mean(activations), np.var(activations), np.min(activations), np.max(activations)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()
+    rmv = oar.value['standalone_test'][1]
+    assert np.isclose([np.mean(deathes), np.var(deathes), np.min(deathes), np.max(deathes)], [rmv.mean, rmv.var, rmv.min_, rmv.max_]).all()
+
+
+@pytest.mark.parametrize(
     ['module', 'record_no_grad'],
     [
         (

@@ -45,6 +45,11 @@ class OutputNorm(AbstractLens):
         Layer types to exclude from expection.
         Overrides all settings.
 
+    channel_last : bool = False
+        If ``True``, expects layer outputs in ``[batch, seq_len, ..., features]`` format where the
+        feature/channel dimension is last (e.g. transformer outputs). If ``False`` (default), expects
+        PyTorch's standard ``[batch, features, spatial_dims, ...]`` format.
+
     comparison_plot : bool = True
         Flag indicating if big comparison plot should be drawn.
     comparison_aggregation : str|None = None
@@ -97,12 +102,13 @@ class OutputNorm(AbstractLens):
         activation: bool = True,
         include: Iterable[type[Module]] = tuple(),
         exclude: Iterable[type[Module]] = tuple(),
+        channel_last: bool = False,
         comparison_plot: bool = True,
         comparison_aggregation: str | None = None,
         line_aggregation: str | Iterable[str] = 'mean',
         range_aggregation: str | Iterable[str] | None = ('std', 'min-max'),
     ):
-        self._preprocessor = OutputNormPreprocessor(normalize=normalize_by_size, inplace=inplace, record_no_grad=not skip_no_grad_pass)
+        self._preprocessor = OutputNormPreprocessor(normalize=normalize_by_size, inplace=inplace, record_no_grad=not skip_no_grad_pass, channel_last=channel_last)
 
         self._small_tag_attr = TagAttributes(logy=log_scale, big_plot=False, annotate=True, type=TagType.NUMERICAL)
 

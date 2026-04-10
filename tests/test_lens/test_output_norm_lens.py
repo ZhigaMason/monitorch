@@ -7,6 +7,21 @@ from monitorch.inspector import PyTorchInspector
 from monitorch.lens import OutputNorm
 
 
+def _channel_last_smoke(lens_kwargs, n_epochs=2):
+    """Smoke test helper for channel_last format [batch, seq_len, features]."""
+    module = nn.Sequential(nn.Linear(N_DIM, 32), nn.ReLU(), nn.Linear(32, N_DIM))
+    inspector = PyTorchInspector(lenses=[OutputNorm(**lens_kwargs)], module=module, visualizer='print')
+    optimizer = torch.optim.Adam(module.parameters())
+    for _ in range(n_epochs):
+        for _ in range(3):
+            x = torch.randn(8, 5, N_DIM)  # [batch, seq_len, features]
+            y = module(x)
+            y.abs().mean().backward()
+            optimizer.step()
+            optimizer.zero_grad()
+        inspector.tick_epoch()
+
+
 @pytest.mark.smoke
 @pytest.mark.parametrize(
     ['module', 'loss_fn', 'visualizer', 'lens_kwargs'],
@@ -41,3 +56,18 @@ def test_output_norm_lens(module, loss_fn, visualizer, lens_kwargs):
     optimizer = torch.optim.NAdam(module.parameters())
 
     generic_lens_test(inspector, module, loss_fn, optimizer)
+
+
+@pytest.mark.smoke
+@pytest.mark.parametrize(
+    'lens_kwargs',
+    [
+        {'channel_last': True},
+        {'channel_last': True, 'inplace': False},
+        {'channel_last': True, 'normalize_by_size': True},
+        {'channel_last': True, 'comparison_plot': False},
+        {'channel_last': True, 'include': [nn.Linear]},
+    ],
+)
+def test_output_norm_lens_channel_last(lens_kwargs):
+    _channel_last_smoke(lens_kwargs)
