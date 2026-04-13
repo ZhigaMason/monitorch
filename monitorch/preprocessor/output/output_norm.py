@@ -21,9 +21,10 @@ class OutputNorm(AbstractForwardPreprocessor):
         Indicator if output norm should be normalized by square root of number of elements in single sample output.
     inplace : bool
         Indicator if :class:`RunningMeanVar` or ``list`` should be used for aggregation.
-    record_no_grad : bool
-        Indicator if outputs made with ``torch.no_grad`` must be preprocessed.
-        It is expected that validation pass is done without gradient computation.
+    record_eval : bool
+        Indicator if outputs during evaluation must be preprocessed.
+    evaluation_from_grad : bool
+        Flag indicating if evaluation passes should be considered from gradient or modele.training
     channel_last : bool
         If ``True``, expects data in ``[batch, seq_len, ..., features]`` format where the feature/channel
         dimension is last (e.g. transformer outputs). If ``False`` (default), expects PyTorch's standard
@@ -31,11 +32,12 @@ class OutputNorm(AbstractForwardPreprocessor):
         since all non-batch dimensions are flattened before computing the L2 norm.
     """
 
-    def __init__(self, normalize: bool, inplace: bool, record_no_grad: bool, channel_last: bool = False):
+    def __init__(self, normalize: bool, inplace: bool, record_eval: bool, evaluation_from_grad: bool, channel_last: bool = False):
         self._normalize = normalize
         self._value = {}
         self._agg_class = RunningMeanVar if inplace else list
-        self._record_no_grad = record_no_grad
+        self._record_eval = record_eval
+        self._is_train = (lambda m: is_grad_enabled()) if evaluation_from_grad else (lambda m: m.training)
         self._channel_last = channel_last
 
     def process_fw(self, name: str, module, layer_input, layer_output):
@@ -56,7 +58,7 @@ class OutputNorm(AbstractForwardPreprocessor):
         layer_output : torch.Tensor
             Outputs to compute norm from.
         """
-        if not (self._record_no_grad or is_grad_enabled()):
+        if not (self._record_eval or self._is_train(module)):
             return
         norm_container = self._value.setdefault(name, self._agg_class())
 

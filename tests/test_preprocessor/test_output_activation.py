@@ -66,8 +66,8 @@ class DumbModule(nn.Module):
     ],
 )
 def test_output_single_activation(module, X, activation):
-    oam = OutputActivation(death=False, inplace=False, record_no_grad=False)
-    oar = OutputActivation(death=False, inplace=True, record_no_grad=False)
+    oam = OutputActivation(death=False, inplace=False, record_eval=False, evaluation_from_grad=True)
+    oar = OutputActivation(death=False, inplace=True, record_eval=False, evaluation_from_grad=True)
     state = InspectorState()
     ffg = FeedForwardGatherer(  # noqa: F841
         module,
@@ -107,8 +107,8 @@ def test_output_single_activation(module, X, activation):
     ],
 )
 def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, inp_size, seed):
-    oam = OutputActivation(death=True, inplace=False, record_no_grad=False)
-    oar = OutputActivation(death=True, inplace=True, record_no_grad=False)
+    oam = OutputActivation(death=True, inplace=False, record_eval=False, evaluation_from_grad=True)
+    oar = OutputActivation(death=True, inplace=True, record_eval=False, evaluation_from_grad=True)
     state = InspectorState()
     ffg = FeedForwardGatherer(  # noqa: F841
         module,
@@ -154,8 +154,8 @@ def test_output_epoch_death_activation(module, activation_tensor_func, n_iter, i
     ],
 )
 def test_channel_last_death_activation(module, activation_tensor_func, n_iter, inp_size, seed):
-    oam = OutputActivation(death=True, inplace=False, record_no_grad=False, channel_last=True)
-    oar = OutputActivation(death=True, inplace=True, record_no_grad=False, channel_last=True)
+    oam = OutputActivation(death=True, inplace=False, record_eval=False, evaluation_from_grad=True, channel_last=True)
+    oar = OutputActivation(death=True, inplace=True, record_eval=False, evaluation_from_grad=True, channel_last=True)
     state = InspectorState()
     ffg = FeedForwardGatherer(  # noqa: F841
         module,
@@ -208,8 +208,8 @@ def test_channel_last_death_activation(module, activation_tensor_func, n_iter, i
     ],
 )
 def test_record_no_grad(module, record_no_grad: bool):
-    oam = OutputActivation(death=True, inplace=False, record_no_grad=record_no_grad)
-    oar = OutputActivation(death=True, inplace=True, record_no_grad=record_no_grad)
+    oam = OutputActivation(death=True, inplace=False, record_eval=record_no_grad, evaluation_from_grad=True)
+    oar = OutputActivation(death=True, inplace=True, record_eval=record_no_grad, evaluation_from_grad=True)
 
     state = InspectorState()
     ffg = FeedForwardGatherer(  # noqa: F841

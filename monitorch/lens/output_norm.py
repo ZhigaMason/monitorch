@@ -26,10 +26,10 @@ class OutputNorm(AbstractLens):
     inplace : bool = True
         Flag indicating if computation should be done in-place or in-memory.
 
-    skip_no_grad_pass : bool = True
-        Flag indicating if data collected during ``torch.no_grad`` should be ignored.
-        It is expected that those passes are either validation or prediction,
-        and are no relevant to network's learning.
+    record_eval : bool = False
+        Flag indicating if data collected during evaluation should be ignored.
+    evaluation_from_grad : bool = False
+        Flag indicating if evaluation should be decided from torch.is_grad_enabled() or module.training.
 
     normalize_by_size : bool = False
         Flag indicating if output norm should be divided by root of number of elements, thus obtaining RMS of output.
@@ -96,7 +96,8 @@ class OutputNorm(AbstractLens):
     def __init__(
         self,
         inplace: bool = True,
-        skip_no_grad_pass: bool = True,
+        record_eval: bool = False,
+        evaluation_from_grad: bool = False,
         normalize_by_size: bool = False,
         log_scale: bool = False,
         activation: bool = True,
@@ -108,7 +109,13 @@ class OutputNorm(AbstractLens):
         line_aggregation: str | Iterable[str] = 'mean',
         range_aggregation: str | Iterable[str] | None = ('std', 'min-max'),
     ):
-        self._preprocessor = OutputNormPreprocessor(normalize=normalize_by_size, inplace=inplace, record_no_grad=not skip_no_grad_pass, channel_last=channel_last)
+        self._preprocessor = OutputNormPreprocessor(
+            normalize=normalize_by_size,
+            inplace=inplace,
+            record_eval=record_eval,
+            evaluation_from_grad=evaluation_from_grad,
+            channel_last=channel_last,
+        )
 
         self._small_tag_attr = TagAttributes(logy=log_scale, big_plot=False, annotate=True, type=TagType.NUMERICAL)
 

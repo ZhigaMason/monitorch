@@ -29,8 +29,8 @@ from monitorch.preprocessor import OutputNorm
     ],
 )
 def test_sequence_output_norm(module, inp_size, normalize, n_iter, seed):
-    onm = OutputNorm(normalize=normalize, inplace=False, record_no_grad=False)
-    onr = OutputNorm(normalize=normalize, inplace=True, record_no_grad=False)
+    onm = OutputNorm(normalize=normalize, inplace=False, record_eval=False, evaluation_from_grad=True)
+    onr = OutputNorm(normalize=normalize, inplace=True, record_eval=False, evaluation_from_grad=True)
 
     ffg = FeedForwardGatherer(module, [onm, onr], 'standalone_test', InspectorState())  # noqa: F841
 
@@ -68,8 +68,8 @@ def test_channel_last_output_norm(inp_size, normalize, n_iter, seed):
     # channel_last format is [batch, seq_len, ..., features]; the norm computation
     # (flatten all non-batch dims, take L2 norm) is equivalent to channel_first.
     module = nn.Identity()
-    onm = OutputNorm(normalize=normalize, inplace=False, record_no_grad=False, channel_last=True)
-    onr = OutputNorm(normalize=normalize, inplace=True, record_no_grad=False, channel_last=True)
+    onm = OutputNorm(normalize=normalize, inplace=False, record_eval=False, channel_last=True, evaluation_from_grad=True)
+    onr = OutputNorm(normalize=normalize, inplace=True, record_eval=False, channel_last=True, evaluation_from_grad=True)
 
     ffg = FeedForwardGatherer(module, [onm, onr], 'standalone_test', InspectorState())  # noqa: F841
 
@@ -93,7 +93,7 @@ def test_channel_last_output_norm(inp_size, normalize, n_iter, seed):
 
 
 @pytest.mark.parametrize(
-    ['module', 'inp_size', 'record_no_grad'],
+    ['module', 'inp_size', 'record_eval'],
     [
         (nn.Linear(10, 5), (32, 10), False),
         (nn.Conv2d(1, 5, 2), (32, 1, 16, 16), False),
@@ -109,9 +109,9 @@ def test_channel_last_output_norm(inp_size, normalize, n_iter, seed):
         (nn.Conv1d(1, 5, 2), (32, 1, 16), True),
     ],
 )
-def test_record_no_grad(module, inp_size, record_no_grad):
-    onm = OutputNorm(normalize=False, inplace=False, record_no_grad=record_no_grad)
-    onr = OutputNorm(normalize=False, inplace=True, record_no_grad=record_no_grad)
+def test_record_eval(module, inp_size, record_eval):
+    onm = OutputNorm(normalize=False, inplace=False, record_eval=record_eval, evaluation_from_grad=True)
+    onr = OutputNorm(normalize=False, inplace=True, record_eval=record_eval, evaluation_from_grad=True)
 
     ffg = FeedForwardGatherer(module, [onm, onr], 'standalone_test', InspectorState())  # noqa: F841
 
@@ -119,7 +119,7 @@ def test_record_no_grad(module, inp_size, record_no_grad):
         x = torch.rand(*inp_size)
         module(x)
 
-    if record_no_grad:
+    if record_eval:
         assert 'standalone_test' in onm.value
         assert 'standalone_test' in onr.value
     else:

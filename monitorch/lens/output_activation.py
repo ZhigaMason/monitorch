@@ -29,10 +29,10 @@ class OutputActivation(AbstractLens):
     inplace : bool = True
         Flag indicating if computation should be done in-place or in-memory.
 
-    skip_no_grad_pass : bool = True
-        Flag indicating if data collected during ``torch.no_grad`` should be ignored.
-        It is expected that those passes are either validation or prediction,
-        and are no relevant to network's learning.
+    record_eval : bool = False
+        Flag indicating if data collected during evaluation should be ignored.
+    evaluation_from_grad : bool = False
+        Flag indicating if evaluation should be decided from torch.is_grad_enabled() or module.training.
 
     activation : bool = True
         Flag indicating if activation function layers' data should be collected and displayed.
@@ -95,7 +95,8 @@ class OutputActivation(AbstractLens):
     def __init__(
         self,
         inplace: bool = True,
-        skip_no_grad_pass: bool = True,
+        record_eval: bool = False,
+        evaluation_from_grad: bool = False,
         activation: bool = True,
         dropout: bool = True,
         include: Iterable[type[Module]] = tuple(),
@@ -110,7 +111,8 @@ class OutputActivation(AbstractLens):
         self._preprocessor = OutputActivationPreprocessor(
             death=True,
             inplace=inplace,
-            record_no_grad=not skip_no_grad_pass,
+            record_eval=record_eval,
+            evaluation_from_grad=evaluation_from_grad,
             channel_last=channel_last,
         )
         self._data: OrderedDict[str, dict[str, float]] = OrderedDict()

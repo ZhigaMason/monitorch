@@ -25,6 +25,8 @@ class LossMetrics(AbstractLens):
     ----------
     metrics : Iterable[str]|None = None
         Metrics' names to plot.
+    evaluation_from_grad : bool = True
+        Flag indicating if evaluation (validation) passes must be decided from torch.is_grad_enabed() or loss_fn.training
     separate_loss_and_metrics : bool = True,
         Flag indicating if loss and metric plots should be separate.
 
@@ -124,6 +126,7 @@ class LossMetrics(AbstractLens):
         self,
         *,
         metrics: Iterable[str] | None = None,
+        evaluation_from_grad: bool = True,
         separate_loss_and_metrics: bool = True,
         loss_fn: Module | None = None,
         loss_fn_inplace: bool = True,
@@ -164,7 +167,7 @@ class LossMetrics(AbstractLens):
         self._is_loss_fn = False
         if loss_fn is not None:
             self._is_loss_fn = True
-            self._preprocessor = LossModule(inplace=loss_fn_inplace)
+            self._preprocessor = LossModule(inplace=loss_fn_inplace, evaluation_from_grad=evaluation_from_grad)
             self._loss_gatherer = FeedForwardGatherer(
                 loss_fn,
                 [self._preprocessor],

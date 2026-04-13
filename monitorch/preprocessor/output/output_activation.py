@@ -22,9 +22,10 @@ class OutputActivation(AbstractForwardPreprocessor):
         Indicator if death rate is to be collected.
     inplace : bool
         Indicator if :class:`RunningMeanVar` or ``list`` should be used for aggregation.
-    record_no_grad : bool
-        Indicator if outputs made with ``torch.no_grad`` must be preprocessed.
-        It is expected that validation pass is done without gradient computation.
+    record_eval : bool
+        Indicator if outputs during evaluation must be preprocessed.
+    evaluation_from_grad : bool
+        Flag indicating if evaluation passes should be considered from gradient or modele.training
     eps : float
         Numerical constant under which value is regarded as a zero.
     channel_last : bool
@@ -33,12 +34,13 @@ class OutputActivation(AbstractForwardPreprocessor):
         ``[batch, features, spatial_dims, ...]`` format.
     """
 
-    def __init__(self, death: bool, inplace: bool, record_no_grad: bool, eps: float = 1e-8, channel_last: bool = False):
+    def __init__(self, death: bool, inplace: bool, record_eval: bool, evaluation_from_grad: bool, eps: float = 1e-8, channel_last: bool = False):
         self._death = death
         self._value = {}  # Either name -> activation or name -> (activation, death_tensor)
         self._thresholds: dict[str, tuple[float, float]] = {}
         self._agg_class = RunningMeanVar if inplace else list
-        self._record_no_grad = record_no_grad
+        self._record_eval = record_eval
+        self._is_train = (lambda m: is_grad_enabled()) if evaluation_from_grad else (lambda m: m.training)
         self._eps = eps
         self._channel_last = channel_last
 
@@ -60,7 +62,7 @@ class OutputActivation(AbstractForwardPreprocessor):
         layer_output : torch.Tensor
             Outputs to compute activations from.
         """
-        if not (self._record_no_grad or is_grad_enabled()):
+        if not (self._record_eval or self._is_train(module)):
             return
         if name not in self._value:
             if self._death:

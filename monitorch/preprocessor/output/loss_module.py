@@ -17,13 +17,16 @@ class LossModule(AbstractForwardPreprocessor):
     ----------
     inplace : bool
         Indicator if :class:`RunningMeanVar` or ``list`` should be used for aggregation.
+    evaluation_from_grad : bool
+        Flag indicating if evaluation passes should be considered from gradient or modele.training
     """
 
-    def __init__(self, inplace: bool):
+    def __init__(self, inplace: bool, evaluation_from_grad: bool):
         self._value = {}
         self._train_str_loss = ''
         self._non_train_str_loss = ''
         self._agg_class = RunningMeanVar if inplace else list
+        self._is_train = (lambda m: is_grad_enabled()) if evaluation_from_grad else (lambda m: m.training)
 
     def set_loss_strs(self, train_loss_str: str, non_train_loss_str: str):
         """
@@ -63,7 +66,7 @@ class LossModule(AbstractForwardPreprocessor):
         """
         if layer_output.numel() != 1:
             raise AttributeError('Only single item loss can be preprocessed')
-        if is_grad_enabled():
+        if self._is_train(module):
             self._value[self._train_str_loss].append(layer_output.item())
         else:
             self._value[self._non_train_str_loss].append(layer_output.item())
