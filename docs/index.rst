@@ -7,7 +7,6 @@ Monitorch documentation
 =======================
 
 A modular tool to inspect, log, and visualize neural network internals during training in PyTorch.
-Most of the statistics collected and displayed by this module are described in `three beatiful articles <https://ai.gopubby.com/better-ways-to-monitor-nns-while-training-7c246867ca4f>`_ by Malcolm Lett.
 
 .. container:: columns
 

@@ -1,6 +1,6 @@
 [project]
 name = "monitorch"
-version = "0.1.0.3"
+version = "0.1.0.4"
 description = "A plug-and-use python library to monitor learning of PyTorch neural networks"
 readme = "README.md"
 authors = [
@@ -10,7 +10,10 @@ keywords = [
         "pytorch",
         "visualization",
         "neural networks",
-        "gradients"
+        "gradients",
+        "deep learning",
+        "training observability",
+        "experiments",
 ]
 license = "MIT"
 classifiers = [
