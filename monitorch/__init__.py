@@ -22,4 +22,4 @@ Examples
 >>> inspector.attach(model)
 """
 
-__version__ = '0.1.0.4'
+__version__ = '0.1.0.5'

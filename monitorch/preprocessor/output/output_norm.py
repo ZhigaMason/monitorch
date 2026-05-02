@@ -63,7 +63,7 @@ class OutputNorm(AbstractForwardPreprocessor):
         norm_container = self._value.setdefault(name, self._agg_class())
 
         with no_grad():
-            norm_mean = vector_norm(layer_output.flatten(1, -1), dim=-1).mean().item()
+            norm_mean = vector_norm(layer_output.flatten(1, -1), dim=-1).mean()
             if self._normalize:
                 norm_mean /= sqrt(layer_output[0].numel())
             norm_container.append(norm_mean)
