@@ -125,7 +125,7 @@ class ParameterGradientActivation(AbstractLens):
         module_name : str
             Name of the module, module's information will be passed to visaulizer under this name.
         """
-        if not all(hasattr(module, parameter_name) and getattr(module, parameter_name) is not None for parameter_name in self._preprocessors):
+        if not all(hasattr(module, parameter_name) and getattr(module, parameter_name) is not None and not getattr(module, parameter_name).requires_grad for parameter_name in self._preprocessors):
             return
 
         for parameter, preprocessor in self._preprocessors.items():
