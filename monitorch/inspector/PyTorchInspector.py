@@ -1,11 +1,13 @@
 from collections.abc import Callable, Iterable
 
+import torch.distributed as dist
 from torch.nn import Module
+from torch.nn.parallel import DistributedDataParallel as DDP
 from typing_extensions import Self
 
 from monitorch.lens import AbstractLens
 from monitorch.preprocessor import ExplicitCall
-from monitorch.visualizer import AbstractVisualizer, _vizualizer_dict
+from monitorch.visualizer import AbstractVisualizer, DummyVisualizer, _vizualizer_dict
 
 from .inspector_state import InspectorState
 
@@ -120,17 +122,22 @@ class PyTorchInspector:
         non_train_loss_str='val_loss',
         is_active_fn: int | Callable[[int], bool] = 1,
     ):
+        self.is_main_process = True
+        if dist.is_available() and dist.is_initialized():
+            self.is_main_process = dist.get_rank() == 0
+
         self.lenses = lenses
         self._call_preprocessor = ExplicitCall(train_loss_str, non_train_loss_str)
         self.depth = depth
         self.module_name_prefix = module_name_prefix
         self.state: InspectorState = InspectorState(is_active_fn=is_active_fn)
 
-        if isinstance(visualizer, str):
+        self.visualizer = DummyVisualizer()
+        if self.is_main_process and isinstance(visualizer, str):
             if visualizer not in _vizualizer_dict:
                 raise AttributeError(f'Unknown vizualizer, string defined vizualizer must be one of {list(_vizualizer_dict.keys())} ')
             self.visualizer = _vizualizer_dict[visualizer]()
-        else:
+        elif self.is_main_process:
             self.visualizer: AbstractVisualizer = visualizer
 
         for lens in self.lenses:
@@ -158,6 +165,8 @@ class PyTorchInspector:
         """
         if self.state.attached:
             self.detach()
+        if isinstance(module, DDP):
+            module = module.module
         leaf_module_names, non_leaf_module_names = PyTorchInspector._traverse_module_inclusion_tree(module, self.depth, self.module_name_prefix)
 
         for module, name in leaf_module_names:
@@ -241,7 +250,14 @@ class PyTorchInspector:
 
         for lens in self.lenses:
             lens.finalize_epoch()
-            lens.vizualize(self.visualizer, self.state.counter)
+
+        # synchronization between master and slaves
+        # to be concrete by the start of the following for the data from the whole world should be at master's hands
+        if self.is_main_process:
+            for lens in self.lenses:
+                lens.vizualize(self.visualizer, self.state.counter)
+
+        for lens in self.lenses:
             lens.reset_epoch()
         self._call_preprocessor.reset()
 
