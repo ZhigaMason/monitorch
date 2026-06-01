@@ -53,6 +53,32 @@ class ParameterNorm(AbstractModulePreprocessor):
         """
         return OrderedDict([(name, {attr: d[attr].value for attr in self.attrs_}) for name, d in self._value.items()])
 
+    def start_sync(self, dst_rank: int = 0) -> None:
+        """
+        Starts synchronization the data with the dst_rank.
+
+        Parameters
+        ----------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        for val in self._value.values():
+            for gc in val.values():
+                gc.start_sync(dst_rank=dst_rank)
+
+    def finish_sync(self) -> None:
+        """
+        Starts synchronization the data with the dst_rank.
+
+        Parameters
+        ----------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        for val in self._value.values():
+            for gc in val.values():
+                gc.finish_sync()
+
     def reset(self) -> None:
         """
         See base class

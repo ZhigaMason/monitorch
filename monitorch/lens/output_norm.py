@@ -270,3 +270,20 @@ class OutputNorm(AbstractLens):
         Resets data computed during last epoch and resets preprocessors.
         """
         self._preprocessor.reset()
+
+    def start_sync(self, dst_rank: int) -> None:
+        """
+        Starts synchronization between ranks.
+
+        Parameters
+        ----------
+        dst_rank : int
+            Target rank
+        """
+        self._preprocessor.start_sync(dst_rank)
+
+    def finish_sync(self) -> None:
+        """
+        Waits until synchronization completes.
+        """
+        self._preprocessor.finish_sync()

@@ -1,6 +1,6 @@
 from typing import Any
 
-from monitorch.numerical import RunningMeanVar
+from monitorch.numerical import RunningMeanVar, start_sync_rmv_or_error, finish_sync_rmv_or_error
 
 from .abstract.abstract_preprocessor import AbstractPreprocessor
 
@@ -85,6 +85,26 @@ class ExplicitCall(AbstractPreprocessor):
     @property
     def value(self) -> dict[str, Any]:
         return self.state
+
+    def start_sync(self, dst_rank: int = 0) -> None:
+        """
+        Syncs the data with the dst_rank.
+
+        Parameters
+        -------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        for val in self.state.values():
+            start_sync_rmv_or_error(val, dst_rank)
+
+    def finish_sync(self) -> None:
+        """
+        Finish syncing the data started by :meth:`start_sync`.
+        """
+
+        for val in self.state.values():
+            finish_sync_rmv_or_error(val)
 
     def reset(self) -> None:
         self.state = {}

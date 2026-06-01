@@ -51,6 +51,8 @@ class PyTorchInspector:
 
     is_active_fn : int | Callable[[int], bool] = 1
         Function deciding if inspector is active (collects and visualizes data) for given epoch. Passed directly to `InspectorState`. Integer values correspond to  function ``epoch % n == 0``, where `n` is passed value.
+    master_rank : int = 0
+        Master rank to gather data at in distributed settings.
 
 
     Attributes
@@ -70,6 +72,9 @@ class PyTorchInspector:
 
     module_name_prefix : str
         Delimiter to separate names of parent and child modules.
+
+    master_rank : int
+        Master rank to gather data at in distributed settings.
 
     Examples
     --------
@@ -121,6 +126,7 @@ class PyTorchInspector:
         train_loss_str='train_loss',
         non_train_loss_str='val_loss',
         is_active_fn: int | Callable[[int], bool] = 1,
+        master_rank: int = 0,
     ):
         self.is_main_process = True
         if dist.is_available() and dist.is_initialized():
@@ -131,6 +137,7 @@ class PyTorchInspector:
         self.depth = depth
         self.module_name_prefix = module_name_prefix
         self.state: InspectorState = InspectorState(is_active_fn=is_active_fn)
+        self.master_rank = master_rank
 
         self.visualizer = DummyVisualizer()
         if self.is_main_process and isinstance(visualizer, str):
@@ -250,6 +257,10 @@ class PyTorchInspector:
 
         for lens in self.lenses:
             lens.finalize_epoch()
+            lens.start_sync(dst_rank=self.master_rank)
+
+        for lens in self.lenses:
+            lens.finish_sync()
 
         # synchronization between master and slaves
         # to be concrete by the start of the following for the data from the whole world should be at master's hands

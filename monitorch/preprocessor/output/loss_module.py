@@ -2,7 +2,7 @@ from typing import Any
 
 from torch import is_grad_enabled
 
-from monitorch.numerical import RunningMeanVar
+from monitorch.numerical import RunningMeanVar, start_sync_rmv_or_error, finish_sync_rmv_or_error
 from monitorch.preprocessor.abstract import AbstractForwardPreprocessor
 
 
@@ -75,6 +75,30 @@ class LossModule(AbstractForwardPreprocessor):
     def value(self) -> dict[str, Any]:
         """See base class."""
         return self._value
+
+    def start_sync(self, dst_rank: int = 0) -> None:
+        """
+        Start synchronization the data with the dst_rank.
+
+        Parameters
+        ----------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        for val in self._value.values():
+            start_sync_rmv_or_error(val, dst_rank=dst_rank)
+
+    def finish_sync(self) -> None:
+        """
+        Finish synchronization the data with the dst_rank.
+
+        Parameters
+        ----------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        for val in self._value.values():
+            finish_sync_rmv_or_error(val)
 
     def reset(self) -> None:
         """See base class."""

@@ -362,6 +362,27 @@ class LossMetrics(AbstractLens):
                 OrderedDict([(metrics_tag, self._metrics_ranges)]),
             )
 
+    def start_sync(self, dst_rank: int) -> None:
+        """
+        Starts synchronization between ranks.
+
+        Parameters
+        ----------
+        dst_rank : int
+            Target rank
+        """
+        self._call_preprocessor.start_sync(dst_rank)
+        if self._is_loss_fn:
+            self._preprocessor.start_sync(dst_rank)
+
+    def finish_sync(self) -> None:
+        """
+        Waits until synchronization completes.
+        """
+        self._call_preprocessor.finish_sync()
+        if self._is_loss_fn:
+            self._preprocessor.finish_sync()
+
     def reset_epoch(self):
         """
         Resets inner state.

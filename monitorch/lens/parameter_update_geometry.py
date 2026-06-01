@@ -288,3 +288,22 @@ class ParameterUpdateGeometry(AbstractLens):
         """
         for preprocessor in self._preprocessors.values():
             preprocessor.reset()
+
+    def start_sync(self, dst_rank: int) -> None:
+        """
+        Starts synchronization between ranks.
+
+        Parameters
+        ----------
+        dst_rank : int
+            Target rank
+        """
+        for preprocessor in self._preprocessors.values():
+            preprocessor.start_sync(dst_rank)
+
+    def finish_sync(self) -> None:
+        """
+        Waits until synchronization completes.
+        """
+        for preprocessor in self._preprocessors.values():
+            preprocessor.finish_sync()

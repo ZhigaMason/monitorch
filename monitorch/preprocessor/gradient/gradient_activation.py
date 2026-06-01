@@ -4,7 +4,7 @@ from torch import abs as tabs
 from torch import float32 as tfloat32
 from torch import no_grad
 
-from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates
+from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates, start_sync_rmv_or_error, finish_sync_rmv_or_error
 from monitorch.preprocessor.abstract.abstract_tensor_preprocessor import AbstractTensorPreprocessor
 
 
@@ -69,6 +69,35 @@ class GradientActivation(AbstractTensorPreprocessor):
     def value(self) -> dict[str, Any]:
         """See base class."""
         return self._value
+
+    def start_sync(self, dst_rank: int = 0) -> None:
+        """
+        Syncs the data with the dst_rank.
+
+        Parameters
+        ----------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        if self._death:
+            for act, death in self._value.values():
+                start_sync_rmv_or_error(act, dst_rank=dst_rank)
+                start_sync_rmv_or_error(death, dst_rank=dst_rank)
+        else:
+            for act in self._value.values():
+                start_sync_rmv_or_error(act, dst_rank=dst_rank)
+
+    def finish_sync(self, dst_rank: int = 0) -> None:
+        """
+        Finishes syncing the data with the dst_rank.
+        """
+        if self._death:
+            for act, death in self._value.values():
+                finish_sync_rmv_or_error(act)
+                finish_sync_rmv_or_error(death)
+        else:
+            for act in self._value.values():
+                finish_sync_rmv_or_error(act)
 
     def reset(self) -> None:
         """See base class."""

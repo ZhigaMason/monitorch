@@ -3,7 +3,7 @@ import copy
 import numpy as np
 import torch
 
-from .running_value import Accumulator, RunningMeanVar
+from .running_value import Accumulator, RunningMeanVar, start_sync_rmv_or_error, finish_sync_rmv_or_error
 
 
 class GeometryComputation:
@@ -73,3 +73,29 @@ class GeometryComputation:
         if self.correlation:
             return self.norm, self.product
         return self.norm
+
+    def start_sync(self, dst_rank: int) -> None:
+        """
+        Starts synchronizing the world to gather data at dst_rank or raises error if inplace.
+
+        Parameters
+        ----------
+        dst_rank : int
+            Rank of gathering destination.
+        """
+        start_sync_rmv_or_error(self.norm, dst_rank)
+        if self.correlation:
+            start_sync_rmv_or_error(self.product, dst_rank)
+
+    def finish_sync(self) -> None:
+        """
+        Finishes synchronizing the world to gather data at dst_rank or raises error if inplace.
+
+        Parameters
+        ----------
+        dst_rank : int
+            Rank of gathering destination.
+        """
+        finish_sync_rmv_or_error(self.norm)
+        if self.correlation:
+            finish_sync_rmv_or_error(self.product)

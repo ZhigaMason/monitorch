@@ -53,6 +53,25 @@ class GradientGeometry(AbstractTensorPreprocessor):
         """See base class."""
         return {k: gc.value for k, gc in self._value.items()}
 
+    def start_sync(self, dst_rank: int = 0) -> None:
+        """
+        Starts syncronizing the data with the dst_rank.
+
+        Parameters
+        ----------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        for gc in self._value.values():
+            gc.start_sync(dst_rank=dst_rank)
+
+    def finish_sync(self) -> None:
+        """
+        Finishes syncronizing the data with the dst_rank.
+        """
+        for gc in self._value.values():
+            gc.finish_sync()
+
     def reset(self) -> None:
         """See base class."""
         self._value = OrderedDict()

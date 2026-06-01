@@ -1,10 +1,11 @@
+from collections import OrderedDict
 from math import sqrt
 from typing import Any
 
 from torch import is_grad_enabled, no_grad
 from torch.linalg import vector_norm
 
-from monitorch.numerical import RunningMeanVar
+from monitorch.numerical import RunningMeanVar, start_sync_rmv_or_error, finish_sync_rmv_or_error
 from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
 
 
@@ -34,7 +35,7 @@ class OutputNorm(AbstractForwardPreprocessor):
 
     def __init__(self, normalize: bool, inplace: bool, record_eval: bool, evaluation_from_grad: bool, channel_last: bool = False):
         self._normalize = normalize
-        self._value = {}
+        self._value = OrderedDict()
         self._agg_class = RunningMeanVar if inplace else list
         self._record_eval = record_eval
         self._is_train = (lambda m: is_grad_enabled()) if evaluation_from_grad else (lambda m: m.training)
@@ -71,6 +72,30 @@ class OutputNorm(AbstractForwardPreprocessor):
     @property
     def value(self) -> dict[str, Any]:
         return self._value
+
+    def start_sync(self, dst_rank: int = 0) -> None:
+        """
+        Syncs the data with the dst_rank.
+
+        Parameters
+        ----------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        for rmv in self._value.values():
+            start_sync_rmv_or_error(rmv, dst_rank=dst_rank)
+
+    def finish_sync(self) -> None:
+        """
+        Finish syncing the data with the dst_rank.
+
+        Parameters
+        ----------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        for rmv in self._value.values():
+            finish_sync_rmv_or_error(rmv)
 
     def reset(self) -> None:
         self._value = {}

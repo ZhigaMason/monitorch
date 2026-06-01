@@ -99,6 +99,25 @@ class AbstractLens(ABC):
         pass
 
     @abstractmethod
+    def start_sync(self, dst_rank: int) -> None:
+        """
+        Starts synchronization between ranks.
+
+        Parameters
+        ----------
+        dst_rank : int
+            Target rank
+        """
+        pass
+
+    @abstractmethod
+    def finish_sync(self) -> None:
+        """
+        Waits until synchronization completes.
+        """
+        pass
+
+    @abstractmethod
     def vizualize(self, visualizer: AbstractVisualizer, epoch: int):
         """
         Passes computed data to visualizer.

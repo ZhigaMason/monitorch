@@ -22,7 +22,7 @@ Examples
 
 from .activation_computation import reduce_activation_to_activation_rates
 from .geometry_computation import GeometryComputation
-from .running_value import Accumulator, RunningMeanVar, RunningValue, extract_point, extract_range, parse_range_name
+from .running_value import Accumulator, RunningMeanVar, RunningValue, extract_point, extract_range, finish_sync_rmv_or_error, parse_range_name, start_sync_rmv_or_error
 
 __all__ = [
     'Accumulator',
@@ -33,4 +33,6 @@ __all__ = [
     'extract_range',
     'parse_range_name',
     'reduce_activation_to_activation_rates',
+    'start_sync_rmv_or_error',
+    'finish_sync_rmv_or_error',
 ]

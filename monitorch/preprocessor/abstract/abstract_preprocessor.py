@@ -21,6 +21,30 @@ class AbstractPreprocessor(ABC):
         pass
 
     @abstractmethod
+    def start_sync(self, dst_rank: int = 0) -> None:
+        """
+        Start synchronization of the data with the dst_rank.
+
+        Parameters
+        -------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        pass
+
+    @abstractmethod
+    def finish_sync(self) -> None:
+        """
+        Start synchronization of the data with the dst_rank.
+
+        Parameters
+        -------
+        dst_rank : int = 0
+            Master rank to gather data at.
+        """
+        pass
+
+    @abstractmethod
     def reset(self) -> None:
         """Resets preprocessor for further computation"""
         pass
