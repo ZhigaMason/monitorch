@@ -2,11 +2,13 @@ from collections import OrderedDict
 from math import sqrt
 from typing import Any
 
-from torch import is_grad_enabled, no_grad
+from torch import no_grad
 from torch.linalg import vector_norm
 
-from monitorch.numerical import RunningMeanVar, start_sync_rmv_or_error, finish_sync_rmv_or_error
+from monitorch.numerical import RunningMeanVar, finish_sync_rmv_or_error, start_sync_rmv_or_error
 from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
+
+from .utils import make_train_switch
 
 
 class OutputNorm(AbstractForwardPreprocessor):
@@ -38,7 +40,7 @@ class OutputNorm(AbstractForwardPreprocessor):
         self._value = OrderedDict()
         self._agg_class = RunningMeanVar if inplace else list
         self._record_eval = record_eval
-        self._is_train = (lambda m: is_grad_enabled()) if evaluation_from_grad else (lambda m: m.training)
+        self._is_train = make_train_switch(evaluation_from_grad)
         self._channel_last = channel_last
 
     def process_fw(self, name: str, module, layer_input, layer_output):

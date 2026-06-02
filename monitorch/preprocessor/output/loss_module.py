@@ -1,9 +1,9 @@
 from typing import Any
 
-from torch import is_grad_enabled
-
-from monitorch.numerical import RunningMeanVar, start_sync_rmv_or_error, finish_sync_rmv_or_error
+from monitorch.numerical import RunningMeanVar, finish_sync_rmv_or_error, start_sync_rmv_or_error
 from monitorch.preprocessor.abstract import AbstractForwardPreprocessor
+
+from .utils import make_train_switch
 
 
 class LossModule(AbstractForwardPreprocessor):
@@ -26,7 +26,7 @@ class LossModule(AbstractForwardPreprocessor):
         self._train_str_loss = ''
         self._non_train_str_loss = ''
         self._agg_class = RunningMeanVar if inplace else list
-        self._is_train = (lambda m: is_grad_enabled()) if evaluation_from_grad else (lambda m: m.training)
+        self._is_train = make_train_switch(evaluation_from_grad)
 
     def set_loss_strs(self, train_loss_str: str, non_train_loss_str: str):
         """

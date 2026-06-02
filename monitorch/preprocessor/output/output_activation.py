@@ -1,11 +1,13 @@
 from typing import Any
 
-from torch import Tensor, is_grad_enabled, no_grad
+from torch import Tensor, no_grad
 from torch import abs as tabs
 from torch import float32 as tfloat32
 
-from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates, start_sync_rmv_or_error, finish_sync_rmv_or_error
+from monitorch.numerical import RunningMeanVar, finish_sync_rmv_or_error, reduce_activation_to_activation_rates, start_sync_rmv_or_error
 from monitorch.preprocessor.abstract.abstract_forward_preprocessor import AbstractForwardPreprocessor
+
+from .utils import make_train_switch
 
 
 class OutputActivation(AbstractForwardPreprocessor):
@@ -40,7 +42,7 @@ class OutputActivation(AbstractForwardPreprocessor):
         self._thresholds: dict[str, tuple[float, float]] = {}
         self._agg_class = RunningMeanVar if inplace else list
         self._record_eval = record_eval
-        self._is_train = (lambda m: is_grad_enabled()) if evaluation_from_grad else (lambda m: m.training)
+        self._is_train = make_train_switch(evaluation_from_grad)
         self._eps = eps
         self._channel_last = channel_last
 

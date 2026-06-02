@@ -145,7 +145,7 @@ class RunningMeanVar:
         local_stats = torch.tensor(
             [self.count, self.mean, self.var, self.min_, self.max_],
             dtype=torch.float64,  # float64 prevents precision loss in variance
-            device=torch.cpu,
+            device=torch.device('cpu'),
         )
 
         world_size = dist.get_world_size()
@@ -154,7 +154,7 @@ class RunningMeanVar:
 
         self._handle = dist.gather(
             local_stats,
-            gather_list=self._gathered_stats,
+            gather_list=self._gathered_data,
             dst=dst_rank,
             async_op=True,
         )
