@@ -59,7 +59,9 @@ include = ["monitorch*"]
 [tool.pytest.ini_options]
 markers = [
     "smoke: tests only succesful runs, no functionality asserts",
+    "slow: tests that are slow to run"
 ]
+addopts = "-m 'not slow'"
 
 [tool.ruff]
 target-version = "py310"

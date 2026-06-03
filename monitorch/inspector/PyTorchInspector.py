@@ -256,11 +256,13 @@ class PyTorchInspector:
             return
 
         for lens in self.lenses:
-            lens.finalize_epoch()
             lens.start_sync(dst_rank=self.master_rank)
 
         for lens in self.lenses:
             lens.finish_sync()
+
+        for lens in self.lenses:
+            lens.finalize_epoch()
 
         # synchronization between master and slaves
         # to be concrete by the start of the following for the data from the whole world should be at master's hands
