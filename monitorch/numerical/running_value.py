@@ -141,21 +141,20 @@ class RunningMeanVar:
         dst_rank : int = 0
             Rank to gather all of the stats at.
         """
+        current_device = torch.device(f'cuda:{torch.cuda.current_device()}' if torch.cuda.is_available() else 'cpu')
 
         local_stats = torch.tensor(
             [self.count, self.mean, self.var, self.min_, self.max_],
             dtype=torch.float64,  # float64 prevents precision loss in variance
-            device=torch.device('cpu'),
+            device=current_device,
         )
 
         world_size = dist.get_world_size()
-        if dist.get_rank() == dst_rank:
-            self._gathered_data = [torch.zeros_like(local_stats) for _ in range(world_size)]
+        self._gathered_data = [torch.zeros_like(local_stats) for _ in range(world_size)]
 
-        self._handle = dist.gather(
+        self._handle = dist.all_gather(
+            self._gathered_data,
             local_stats,
-            gather_list=self._gathered_data,
-            dst=dst_rank,
             async_op=True,
         )
 
@@ -166,7 +165,7 @@ class RunningMeanVar:
         self._handle = None
 
         if self._gathered_data is None:
-            return None
+            return
 
         # Chan's algorithm for distributed variance calculation
         # it can be done as a tree reduction, but realistically the world size < 16
