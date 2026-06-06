@@ -1,10 +1,10 @@
 from typing import Any
 
 from torch import abs as tabs
-from torch import float32 as tfloat32
+from torch import float64 as tfloat64
 from torch import no_grad
 
-from monitorch.numerical import RunningMeanVar, reduce_activation_to_activation_rates, start_sync_rmv_or_error, finish_sync_rmv_or_error
+from monitorch.numerical import RunningMeanVar, finish_sync_rmv_or_error, reduce_activation_to_activation_rates, start_sync_rmv_or_error
 from monitorch.preprocessor.abstract.abstract_tensor_preprocessor import AbstractTensorPreprocessor
 
 
@@ -59,11 +59,11 @@ class GradientActivation(AbstractTensorPreprocessor):
 
         if self._death:
             activations, death_rates = self._value[name]
-            death_rates.append(new_activation_rates.eq(0.0).mean(dtype=tfloat32))
-            activations.append(new_activation_rates.mean(dtype=tfloat32))
+            death_rates.append(new_activation_rates.eq(0.0).mean(dtype=tfloat64))
+            activations.append(new_activation_rates.mean(dtype=tfloat64))
         else:
             activations = self._value[name]
-            activations.append(new_activation_rates.mean(dtype=tfloat32))
+            activations.append(new_activation_rates.mean(dtype=tfloat64))
 
     @property
     def value(self) -> dict[str, Any]:
