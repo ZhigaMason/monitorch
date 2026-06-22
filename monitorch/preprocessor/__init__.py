@@ -11,7 +11,7 @@ from .abstract import AbstractBackwardPreprocessor, AbstractForwardPreprocessor,
 from .ExplicitCall import ExplicitCall
 from .gradient import GradientActivation, GradientGeometry, OutputGradientGeometry
 from .output import LossModule, OutputActivation, OutputNorm
-from .parameter import ParameterDifferenceGeometry, ParameterNorm
+from .parameter import ParameterCond, ParameterDifferenceGeometry, ParameterNorm
 
 __all__ = [
     'AbstractBackwardPreprocessor',
@@ -28,4 +28,5 @@ __all__ = [
     'OutputNorm',
     'ParameterDifferenceGeometry',
     'ParameterNorm',
+    'ParameterCond',
 ]

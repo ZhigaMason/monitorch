@@ -40,6 +40,7 @@ from .loss_metrics import LossMetrics
 from .output_activation import OutputActivation
 from .output_gradient_geometry import OutputGradientGeometry
 from .output_norm import OutputNorm
+from .parameter_cond import ParameterCond
 from .parameter_gradient_activation import ParameterGradientActivation
 from .parameter_gradient_geometry import ParameterGradientGeometry
 from .parameter_norm import ParameterNorm
@@ -53,6 +54,7 @@ __all__ = [
     'OutputNorm',
     'ParameterGradientActivation',
     'ParameterGradientGeometry',
+    'ParameterCond',
     'ParameterNorm',
     'ParameterUpdateGeometry',
 ]
